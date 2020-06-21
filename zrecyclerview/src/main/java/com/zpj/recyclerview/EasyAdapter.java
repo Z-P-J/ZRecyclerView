@@ -80,9 +80,11 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             } else {
                 res = itemRes;
             }
-            View view = LayoutInflater.from(viewGroup.getContext()).inflate(res, viewGroup, false);
+            View view;
             if (onCreateViewHolder != null) {
-                onCreateViewHolder.onCreateViewHolder(viewGroup, view, viewType);
+                view = onCreateViewHolder.onCreateViewHolder(viewGroup, res, viewType);
+            } else {
+                view = LayoutInflater.from(viewGroup.getContext()).inflate(res, viewGroup, false);
             }
             return new EasyViewHolder(view);
         }
@@ -224,7 +226,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             gridManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
                 @Override
                 public int getSpanSize(int position) {
-                    return isHeaderPosition(position) || isFooterPosition(position)
+                    return (isHeaderPosition(position) || isFooterPosition(position))
                             ? gridManager.getSpanCount() : 1;
                 }
             });
@@ -284,11 +286,11 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 //        return ViewCompat.canScrollVertically(mRecyclerView, -1);
     }
 
-    private boolean isHeaderPosition(int position) {
+    protected boolean isHeaderPosition(int position) {
         return headerView != null && position == 0;
     }
 
-    private boolean isFooterPosition(int position) {
+    protected boolean isFooterPosition(int position) {
         return footerView != null && position == getItemCount() - 1;
     }
 

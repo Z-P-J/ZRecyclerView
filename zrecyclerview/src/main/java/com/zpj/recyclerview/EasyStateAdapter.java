@@ -85,6 +85,21 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
         return super.getItemViewType(position);
     }
 
+    @Override
+    protected boolean isHeaderPosition(int position) {
+        if (state != STATE_CONTENT) {
+            return true;
+        }
+        return super.isHeaderPosition(position);
+    }
+
+    @Override
+    protected boolean isFooterPosition(int position) {
+        if (state != STATE_CONTENT) {
+            return true;
+        }
+        return super.isFooterPosition(position);
+    }
 
     @Override
     public int getItemCount() {

@@ -36,9 +36,12 @@ public class EasyRecyclerLayout<T> extends FrameLayout {
     private final Set<Integer> selectedList = new ArraySet<>();
 
     private OnSelectChangeListener<T> onSelectChangeListener;
+    private IEasy.OnCreateViewHolderListener<T> onCreateViewHolderListener;
     private EasyRecyclerView<T> easyRecyclerView;
     private EasyStateAdapter<T> adapter;
     private SwipeRefreshLayout refreshLayout;
+
+    private int itemRes = -1;
 
     private boolean showCheckBox = false;
 
@@ -86,18 +89,26 @@ public class EasyRecyclerLayout<T> extends FrameLayout {
         });
 
         easyRecyclerView = new EasyRecyclerView<>(recyclerView);
-    }
-
-    public EasyRecyclerLayout<T> setItemRes(@LayoutRes final int res) {
         easyRecyclerView.setItemRes(R.layout.easy_item_recycler_layout);
         easyRecyclerView.onCreateViewHolder(new IEasy.OnCreateViewHolderListener<T>() {
             @Override
-            public void onCreateViewHolder(ViewGroup parent, View view, int viewType) {
+            public View onCreateViewHolder(ViewGroup parent, int layoutRes, int viewType) {
+                View view = LayoutInflater.from(getContext()).inflate(layoutRes, parent, false);
                 FrameLayout container = view.findViewById(R.id.container);
-                View content = LayoutInflater.from(getContext()).inflate(res, null, false);
+                View content;
+                if (onCreateViewHolderListener != null) {
+                    content = onCreateViewHolderListener.onCreateViewHolder((ViewGroup) view, itemRes, viewType);
+                } else {
+                    content = LayoutInflater.from(getContext()).inflate(itemRes, null, false);
+                }
                 container.addView(content);
+                return view;
             }
         });
+    }
+
+    public EasyRecyclerLayout<T> setItemRes(@LayoutRes final int res) {
+        this.itemRes = res;
         return this;
     }
 
@@ -219,6 +230,11 @@ public class EasyRecyclerLayout<T> extends FrameLayout {
         return this;
     }
 
+    public EasyRecyclerLayout<T> onCreateViewHolder(IEasy.OnCreateViewHolderListener<T> callback) {
+        this.onCreateViewHolderListener = callback;
+        return this;
+    }
+
     public EasyRecyclerLayout<T> onBindViewHolder(final IEasy.OnBindViewHolderListener<T> callback) {
         easyRecyclerView.onBindViewHolder(new IEasy.OnBindViewHolderListener<T>() {
             @Override
@@ -281,6 +297,9 @@ public class EasyRecyclerLayout<T> extends FrameLayout {
     }
 
     public void build() {
+//        if (easyRecyclerView.getOnCreateViewHolder() == null) {
+//            easyRecyclerView.onCreateViewHolder(onCreateViewHolderListener);
+//        }
         easyRecyclerView.build();
         adapter = easyRecyclerView.getAdapter();
         if (enableLoadMore) {

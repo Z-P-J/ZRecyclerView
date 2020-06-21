@@ -30,7 +30,7 @@ public interface IEasy {
     }
 
     interface OnCreateViewHolderListener<T>{
-        void onCreateViewHolder(ViewGroup parent, View itemView, int viewType);
+        View onCreateViewHolder(ViewGroup parent, int layoutRes, int viewType);
     }
 
     interface OnBindHeaderListener {

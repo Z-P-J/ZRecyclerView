@@ -121,6 +121,10 @@ public class EasyRecyclerView<T> {
         return this;
     }
 
+    public IEasy.OnCreateViewHolderListener<T> getOnCreateViewHolder() {
+        return onCreateViewHolder;
+    }
+
     public EasyRecyclerView<T> addOnScrollListener(final RecyclerView.OnScrollListener onScrollListener) {
         recyclerView.addOnScrollListener(onScrollListener);
         return this;
@@ -142,9 +146,9 @@ public class EasyRecyclerView<T> {
     }
 
     public void build() {
-        if (itemRes <= 0) {
-            throw new RuntimeException("You must set the itemRes!");
-        }
+//        if (itemRes <= 0) {
+//            throw new RuntimeException("You must set the itemRes!");
+//        }
         if (list == null) {
             list = new ArrayList<>(0);
         }

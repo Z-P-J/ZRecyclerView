@@ -3,7 +3,11 @@ package com.zpj.recycler.demo;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.zpj.recyclerview.EasyAdapter;
@@ -26,10 +30,20 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         recyclerLayout = findViewById(R.id.recycler_layout);
         recyclerLayout.setData(list)
-                .setItemRes(R.layout.layout_text)
+//                .setItemRes(R.layout.layout_text)
+                .onCreateViewHolder(new IEasy.OnCreateViewHolderListener<Integer>() {
+                    @Override
+                    public View onCreateViewHolder(ViewGroup parent, int layoutRes, int viewType) {
+                        Log.d("onCreateViewHolder", "onCreateViewHolder");
+                        return LayoutInflater.from(parent.getContext())
+                                .inflate(R.layout.layout_text, parent, false);
+                    }
+                })
                 .setEnableSelection(true)
                 .setEnableSwipeRefresh(true)
-                .setEnableLoadMore(true)
+//                .setEnableLoadMore(true)
+                .setEnableLoadMore(false)
+                .setLayoutManager(new GridLayoutManager(this, 3))
                 .setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
                     @Override
                     public void onRefresh() {
@@ -89,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 })
                 .build();
+        recyclerLayout.showLoading();
     }
 
     @Override
