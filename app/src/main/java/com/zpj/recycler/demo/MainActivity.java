@@ -30,15 +30,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         recyclerLayout = findViewById(R.id.recycler_layout);
         recyclerLayout.setData(list)
-//                .setItemRes(R.layout.layout_text)
-                .onCreateViewHolder(new IEasy.OnCreateViewHolderListener<Integer>() {
-                    @Override
-                    public View onCreateViewHolder(ViewGroup parent, int layoutRes, int viewType) {
-                        Log.d("onCreateViewHolder", "onCreateViewHolder");
-                        return LayoutInflater.from(parent.getContext())
-                                .inflate(R.layout.layout_text, parent, false);
-                    }
-                })
+                .setItemRes(R.layout.layout_text)
+//                .onCreateViewHolder(new IEasy.OnCreateViewHolderListener<Integer>() {
+//                    @Override
+//                    public View onCreateViewHolder(ViewGroup parent, int layoutRes, int viewType) {
+//                        Log.d("onCreateViewHolder", "onCreateViewHolder");
+//                        return LayoutInflater.from(parent.getContext())
+//                                .inflate(R.layout.layout_text, parent, false);
+//                    }
+//                })
                 .setEnableSelection(true)
                 .setEnableSwipeRefresh(true)
 //                .setEnableLoadMore(true)
@@ -51,14 +51,14 @@ public class MainActivity extends AppCompatActivity {
                         recyclerLayout.notifyDataSetChanged();
                     }
                 })
-                .setOnSelectChangeListener(new EasyRecyclerLayout.OnSelectChangeListener<Integer>() {
+                .setOnSelectChangeListener(new IEasy.OnSelectChangeListener<Integer>() {
                     @Override
                     public void onSelectModeChange(boolean selectMode) {
 
                     }
 
                     @Override
-                    public void onChange(List<Integer> list, int position, boolean isChecked) {
+                    public void onSelectChange(List<Integer> list, int position, boolean isChecked) {
 
                     }
 
@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
                 .onBindViewHolder(new IEasy.OnBindViewHolderListener<Integer>() {
                     @Override
                     public void onBindViewHolder(EasyViewHolder holder, List<Integer> list, int position, List<Object> payloads) {
-                        holder.setText(R.id.tv_text, "第" + list.get(position) + "个");
+                        holder.setText(R.id.tv_text, "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111第" + list.get(position) + "个");
                     }
                 })
                 .onItemClick(new IEasy.OnItemClickListener<Integer>() {
@@ -97,13 +97,13 @@ public class MainActivity extends AppCompatActivity {
                 .onItemLongClick(new IEasy.OnItemLongClickListener<Integer>() {
                     @Override
                     public boolean onLongClick(EasyViewHolder holder, View view, Integer data) {
-                        recyclerLayout.getSelectedSet().add(data);
+                        recyclerLayout.getSelectedSet().add(holder.getHolderPosition());
                         recyclerLayout.enterSelectMode();
                         return true;
                     }
                 })
                 .build();
-        recyclerLayout.showLoading();
+//        recyclerLayout.showLoading();
     }
 
     @Override

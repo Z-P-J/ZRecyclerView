@@ -16,7 +16,7 @@ import com.zpj.recyclerview.R;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EasyRecyclerView<T> {
+public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
 
     private final RecyclerView recyclerView;
 
@@ -32,13 +32,14 @@ public class EasyRecyclerView<T> {
     private IEasy.OnBindHeaderListener onBindHeaderListener;
     private View footerView;
 
-    private IEasy.OnGetChildViewTypeListener onGetChildViewTypeListener;
+    private IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener;
     private IEasy.OnGetChildLayoutIdListener onGetChildLayoutIdListener;
     private IEasy.OnBindViewHolderListener<T> onBindViewHolderListener;
     private IEasy.OnCreateViewHolderListener<T> onCreateViewHolder;
     private IEasy.OnLoadMoreListener onLoadMoreListener;
 
     private final SparseArray<IEasy.OnClickListener<T>> onClickListeners = new SparseArray<>();
+    private final SparseArray<IEasy.OnLongClickListener<T>> onLongClickListeners = new SparseArray<>();
     private IEasy.OnItemClickListener<T> onItemClickListener;
     private IEasy.OnItemLongClickListener<T> onItemLongClickListener;
 
@@ -68,6 +69,71 @@ public class EasyRecyclerView<T> {
 
     public EasyRecyclerView<T> addItemDecoration(RecyclerView.ItemDecoration decor) {
         this.recyclerView.addItemDecoration(decor);
+        return this;
+    }
+
+    public EasyRecyclerView<T> addItemDecoration(RecyclerView.ItemDecoration decor, int index) {
+        this.recyclerView.addItemDecoration(decor, index);
+        return this;
+    }
+
+    public EasyRecyclerView<T> setItemViewCacheSize(int size) {
+        recyclerView.setItemViewCacheSize(size);
+        return this;
+    }
+
+    public EasyRecyclerView<T> setHasFixedSize(boolean hasFixedSize) {
+        recyclerView.setHasFixedSize(hasFixedSize);
+        return this;
+    }
+
+    public EasyRecyclerView<T> setLayoutFrozen(boolean layoutFrozen) {
+        recyclerView.setLayoutFrozen(layoutFrozen);
+        return this;
+    }
+
+    public EasyRecyclerView<T> setOnFlingListener(RecyclerView.OnFlingListener listener) {
+        recyclerView.setOnFlingListener(listener);
+        return this;
+    }
+
+    public EasyRecyclerView<T> setRecyclerListener(RecyclerView.RecyclerListener listener) {
+        recyclerView.setRecyclerListener(listener);
+        return this;
+    }
+
+    public EasyRecyclerView<T> setScrollingTouchSlop(int slop) {
+        recyclerView.setScrollingTouchSlop(slop);
+        return this;
+    }
+
+    public EasyRecyclerView<T> setEdgeEffectFactory(RecyclerView.EdgeEffectFactory factory) {
+        recyclerView.setEdgeEffectFactory(factory);
+        return this;
+    }
+
+    public EasyRecyclerView<T> setRecycledViewPool(RecyclerView.RecycledViewPool pool) {
+        recyclerView.setRecycledViewPool(pool);
+        return this;
+    }
+
+    public EasyRecyclerView<T> setNestedScrollingEnabled(boolean enabled) {
+        recyclerView.setNestedScrollingEnabled(enabled);
+        return this;
+    }
+
+    public EasyRecyclerView<T> setPreserveFocusAfterLayout(boolean preserveFocusAfterLayout) {
+        recyclerView.setPreserveFocusAfterLayout(preserveFocusAfterLayout);
+        return this;
+    }
+
+    public EasyRecyclerView<T> setViewCacheExtension(RecyclerView.ViewCacheExtension extension) {
+        recyclerView.setViewCacheExtension(extension);
+        return this;
+    }
+
+    public EasyRecyclerView<T> setChildDrawingOrderCallback(RecyclerView.ChildDrawingOrderCallback callback) {
+        recyclerView.setChildDrawingOrderCallback(callback);
         return this;
     }
 
@@ -101,7 +167,7 @@ public class EasyRecyclerView<T> {
         return this;
     }
 
-    public EasyRecyclerView<T> onGetChildViewType(IEasy.OnGetChildViewTypeListener listener) {
+    public EasyRecyclerView<T> onGetChildViewType(IEasy.OnGetChildViewTypeListener<T> listener) {
         this.onGetChildViewTypeListener = listener;
         return this;
     }
@@ -130,8 +196,27 @@ public class EasyRecyclerView<T> {
         return this;
     }
 
-    public EasyRecyclerView<T> onViewClick(@IdRes int id, IEasy.OnClickListener<T> onClickListener) {
-        onClickListeners.put(id, onClickListener);
+    public EasyRecyclerView<T> onViewClick(@IdRes int id, IEasy.OnClickListener<T> listener) {
+        onClickListeners.put(id, listener);
+        return this;
+    }
+
+    public EasyRecyclerView<T> onViewClick(IEasy.OnClickListener<T> listener, int...ids) {
+        for (int id : ids) {
+            onClickListeners.put(id, listener);
+        }
+        return this;
+    }
+
+    public EasyRecyclerView<T> onViewLongClick(@IdRes int id, IEasy.OnLongClickListener<T> listener) {
+        onLongClickListeners.put(id, listener);
+        return this;
+    }
+
+    public EasyRecyclerView<T> onViewLongClick(IEasy.OnLongClickListener<T> listener, int...ids) {
+        for (int id : ids) {
+            onLongClickListeners.put(id, listener);
+        }
         return this;
     }
 
@@ -159,7 +244,7 @@ public class EasyRecyclerView<T> {
                 itemRes, onGetChildViewTypeListener,
                 onGetChildLayoutIdListener, onCreateViewHolder,
                 onBindViewHolderListener, onItemClickListener,
-                onItemLongClickListener, onClickListeners);
+                onItemLongClickListener, onClickListeners, onLongClickListeners);
         if (headerView != null) {
             easyAdapter.setHeaderView(headerView);
             easyAdapter.setOnBindHeaderListener(onBindHeaderListener);
@@ -170,7 +255,7 @@ public class EasyRecyclerView<T> {
             footerView = LayoutInflater.from(recyclerView.getContext()).inflate(R.layout.easy_base_footer, null, false);
             easyAdapter.setFooterView(footerView);
         }
-        easyAdapter.setOnLoadMoreListener(onLoadMoreListener);
+        easyAdapter.setOnLoadMoreListener(this);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(easyAdapter);
     }
@@ -291,6 +376,24 @@ public class EasyRecyclerView<T> {
         easyAdapter.notifyItemChanged(position, payload);
     }
 
+    public void notifyVisibleItemChanged() {
+        RecyclerView.LayoutManager manager = getLayoutManager();
+        if (manager instanceof LinearLayoutManager) {
+            int first = ((LinearLayoutManager) manager).findFirstVisibleItemPosition();
+            int last = ((LinearLayoutManager) manager).findLastVisibleItemPosition();
+            notifyItemRangeChanged(first, last - first + 1);
+        }
+    }
+
+    public void notifyVisibleItemChanged(Object payload) {
+        RecyclerView.LayoutManager manager = getLayoutManager();
+        if (manager instanceof LinearLayoutManager) {
+            int first = ((LinearLayoutManager) manager).findFirstVisibleItemPosition();
+            int last = ((LinearLayoutManager) manager).findLastVisibleItemPosition();
+            notifyItemRangeChanged(first, last = first + 1, payload);
+        }
+    }
+
     public void notifyItemInserted(int position) {
         if (easyAdapter == null) {
             return;
@@ -319,6 +422,10 @@ public class EasyRecyclerView<T> {
         easyAdapter.notifyItemRemoved(position);
     }
 
+    public void smoothScrollToPosition(int position) {
+        recyclerView.smoothScrollToPosition(position);
+    }
+
     public EasyStateAdapter<T> getAdapter() {
         return easyAdapter;
     }
@@ -337,5 +444,13 @@ public class EasyRecyclerView<T> {
 
     public List<T> getData() {
         return list;
+    }
+
+    @Override
+    public boolean onLoadMore(EasyAdapter.Enabled enabled, int currentPage) {
+        if (onLoadMoreListener != null) {
+            onLoadMoreListener.onLoadMore(enabled, currentPage);
+        }
+        return false;
     }
 }

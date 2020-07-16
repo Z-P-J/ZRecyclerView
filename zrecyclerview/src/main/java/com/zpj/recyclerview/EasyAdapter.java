@@ -33,7 +33,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     private View headerView;
     private View footerView;
 
-    private final IEasy.OnGetChildViewTypeListener onGetChildViewTypeListener;
+    private final IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener;
     private final IEasy.OnGetChildLayoutIdListener onGetChildLayoutIdListener;
     private final IEasy.OnBindViewHolderListener<T> onBindViewHolderListener;
     private final IEasy.OnCreateViewHolderListener<T> onCreateViewHolder;
@@ -41,15 +41,17 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     private final IEasy.OnItemClickListener<T> onItemClickListener;
     private final IEasy.OnItemLongClickListener<T> onItemLongClickListener;
     private final SparseArray<IEasy.OnClickListener<T>> onClickListeners;
+    private final SparseArray<IEasy.OnLongClickListener<T>> onLongClickListeners;
 
     EasyAdapter(List<T> list, int itemRes,
-                IEasy.OnGetChildViewTypeListener onGetChildViewTypeListener,
+                IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener,
                 IEasy.OnGetChildLayoutIdListener onGetChildLayoutIdListener,
                 IEasy.OnCreateViewHolderListener<T> onCreateViewHolder,
                 IEasy.OnBindViewHolderListener<T> onBindViewHolderListener,
                 IEasy.OnItemClickListener<T> onClickListener,
                 IEasy.OnItemLongClickListener<T> onLongClickListener,
-                SparseArray<IEasy.OnClickListener<T>> onClickListeners) {
+                SparseArray<IEasy.OnClickListener<T>> onClickListeners,
+                SparseArray<IEasy.OnLongClickListener<T>> onLongClickListeners) {
         this.list = list;
         this.itemRes = itemRes;
         this.onGetChildViewTypeListener = onGetChildViewTypeListener;
@@ -59,6 +61,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         this.onItemClickListener = onClickListener;
         this.onItemLongClickListener = onLongClickListener;
         this.onClickListeners = onClickListeners;
+        this.onLongClickListeners = onLongClickListeners;
         registerAdapterDataObserver(mObserver);
         mEnabled = new Enabled(mOnEnabledListener);
     }
@@ -73,7 +76,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         } else {
             int res;
             if (onGetChildLayoutIdListener != null) {
-                res = onGetChildLayoutIdListener.onGetLayoutId(viewType);
+                res = onGetChildLayoutIdListener.onGetChildLayoutId(viewType);
                 if (res <= 0) {
                     res = itemRes;
                 }
@@ -177,11 +180,12 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         }
 
         final T data = list.get(getRealPosition(holder));
+        holder.setTag(data);
         holder.setOnItemClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (onItemClickListener != null) {
-                    onItemClickListener.onClick(holder, v, data);
+                    onItemClickListener.onClick(holder, v, (T) holder.getTag());
                 }
             }
         });
@@ -189,7 +193,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             @Override
             public boolean onLongClick(View v) {
                 if (onItemLongClickListener != null) {
-                    return onItemLongClickListener.onLongClick(holder, v, data);
+                    return onItemLongClickListener.onLongClick(holder, v, (T) holder.getTag());
                 }
                 return false;
             }
@@ -204,7 +208,21 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
                 view.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        listener.onClick(holder, v, data);
+                        listener.onClick(holder, v, (T) holder.getTag());
+                    }
+                });
+            }
+        }
+
+        for (int i = 0; i < onLongClickListeners.size(); i++) {
+            int key = onLongClickListeners.keyAt(i);
+            View view = holder.getView(key);
+            if (view != null) {
+                final IEasy.OnLongClickListener<T> listener = onLongClickListeners.get(key);
+                view.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        return listener.onLongClick(holder, v, (T) holder.getTag());
                     }
                 });
             }
@@ -261,7 +279,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             if (headerView != null) {
                 position -= 1;
             }
-            return onGetChildViewTypeListener.onGetViewType(position);
+            return onGetChildViewTypeListener.onGetViewType(list, position);
         }
         return TYPE_CHILD;
     }

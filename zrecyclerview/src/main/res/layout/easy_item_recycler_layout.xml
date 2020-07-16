@@ -7,7 +7,7 @@
     android:background="?android:attr/selectableItemBackground">
 
     <FrameLayout
-        android:id="@+id/container"
+        android:id="@+id/easy_container"
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -22,7 +22,7 @@
         android:id="@+id/easy_recycler_layout_check_box_container"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:padding="10dp"
+        android:padding="16dp"
         android:visibility="visible"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"

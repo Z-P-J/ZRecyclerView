@@ -16,6 +16,10 @@ public interface IEasy {
         void onClick(EasyViewHolder holder, View view, T data);
     }
 
+    interface OnLongClickListener<T> {
+        boolean onLongClick(EasyViewHolder holder, View view, T data);
+    }
+
     interface OnItemClickListener<T> {
         void onClick(EasyViewHolder holder, View view, T data);
     }
@@ -45,11 +49,19 @@ public interface IEasy {
         boolean onLoadMore(EasyAdapter.Enabled enabled, int currentPage);
     }
 
-    interface OnGetChildViewTypeListener {
-        int onGetViewType(int position);
+    interface OnGetChildViewTypeListener<T> {
+        int onGetViewType(List<T> list, int position);
     }
 
     interface OnGetChildLayoutIdListener {
-        @LayoutRes int onGetLayoutId(int viewType);
+        @LayoutRes int onGetChildLayoutId(int viewType);
     }
+
+    interface OnSelectChangeListener<T> {
+        void onSelectModeChange(boolean selectMode);
+        void onSelectChange(List<T> list, int position, boolean isChecked);
+        void onSelectAll();
+        void onUnSelectAll();
+    }
+
 }

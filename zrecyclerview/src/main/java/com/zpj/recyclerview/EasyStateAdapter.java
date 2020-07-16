@@ -31,16 +31,17 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     private final StateLayout stateLayout;
 
     EasyStateAdapter(Context context, List<T> list, int itemRes,
-                     IEasy.OnGetChildViewTypeListener onGetChildViewTypeListener,
+                     IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener,
                      IEasy.OnGetChildLayoutIdListener onGetChildLayoutIdListener,
                      IEasy.OnCreateViewHolderListener<T> onCreateViewHolder,
                      IEasy.OnBindViewHolderListener<T> onBindViewHolderListener,
                      IEasy.OnItemClickListener<T> onClickListener,
                      IEasy.OnItemLongClickListener<T> onLongClickListener,
-                     SparseArray<IEasy.OnClickListener<T>> onClickListeners) {
+                     SparseArray<IEasy.OnClickListener<T>> onClickListeners,
+                     SparseArray<IEasy.OnLongClickListener<T>> onLongClickListeners) {
         super(list, itemRes, onGetChildViewTypeListener, onGetChildLayoutIdListener,
                 onCreateViewHolder, onBindViewHolderListener, onClickListener,
-                onLongClickListener, onClickListeners);
+                onLongClickListener, onClickListeners, onLongClickListeners);
         this.context = context;
         stateLayout = new StateLayout(context);
         ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);

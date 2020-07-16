@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.util.ArraySet;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -22,21 +23,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class EasyRecyclerLayout<T> extends FrameLayout {
-
-    public interface OnSelectChangeListener<T> {
-        void onSelectModeChange(boolean selectMode);
-        void onChange(List<T> list, int position, boolean isChecked);
-        void onSelectAll();
-        void onUnSelectAll();
-    }
+public class EasyRecyclerLayout<T> extends FrameLayout
+        implements IEasy.OnLoadMoreListener,
+        IEasy.OnItemClickListener<T>,
+        IEasy.OnItemLongClickListener<T>,
+        IEasy.OnGetChildViewTypeListener<T>,
+        IEasy.OnGetChildLayoutIdListener,
+        IEasy.OnCreateViewHolderListener<T>,
+        IEasy.OnSelectChangeListener<T>,
+        IEasy.OnBindViewHolderListener<T> {
 
     private static final String TAG = "EasyRecyclerLayout";
 
     private final Set<Integer> selectedList = new ArraySet<>();
 
-    private OnSelectChangeListener<T> onSelectChangeListener;
+    private IEasy.OnItemClickListener<T> onItemClickListener;
+    private IEasy.OnItemLongClickListener<T> onItemLongClickListener;
+    private IEasy.OnLoadMoreListener onLoadMoreListener;
+    private IEasy.OnSelectChangeListener<T> onSelectChangeListener;
+    private IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener;
+    private IEasy.OnGetChildLayoutIdListener onGetChildLayoutIdListener;
     private IEasy.OnCreateViewHolderListener<T> onCreateViewHolderListener;
+    private IEasy.OnBindViewHolderListener<T> onBindViewHolderListener;
     private EasyRecyclerView<T> easyRecyclerView;
     private EasyStateAdapter<T> adapter;
     private SwipeRefreshLayout refreshLayout;
@@ -79,7 +87,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout {
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 int topRowVerticalPosition =
                         recyclerView.getChildCount() == 0 ? 0 : recyclerView.getChildAt(0).getTop();
-                refreshLayout.setEnabled(enableSwipeRefresh && topRowVerticalPosition >= 0);
+                refreshLayout.setEnabled(!isSelectMode() && enableSwipeRefresh && topRowVerticalPosition >= 0);
             }
 
             @Override
@@ -89,23 +97,176 @@ public class EasyRecyclerLayout<T> extends FrameLayout {
         });
 
         easyRecyclerView = new EasyRecyclerView<>(recyclerView);
-        easyRecyclerView.setItemRes(R.layout.easy_item_recycler_layout);
-        easyRecyclerView.onCreateViewHolder(new IEasy.OnCreateViewHolderListener<T>() {
+        easyRecyclerView.setItemRes(R.layout.easy_item_recycler_layout)
+                .onCreateViewHolder(this)
+                .onGetChildViewType(this)
+                .onBindViewHolder(this)
+                .onItemLongClick(this)
+                .onItemClick(this)
+                .onLoadMore(this);
+
+    }
+
+    @Override
+    public int onGetViewType(List<T> list, int position) {
+        if (onGetChildViewTypeListener != null) {
+            onGetChildViewTypeListener.onGetViewType(list, position);
+        }
+        return 0;
+    }
+
+    @Override
+    public int onGetChildLayoutId(int viewType) {
+        int res;
+        if (onGetChildLayoutIdListener != null) {
+            res = onGetChildLayoutIdListener.onGetChildLayoutId(viewType);
+            if (res <= 0) {
+                res = itemRes;
+            }
+        } else {
+            res = itemRes;
+        }
+        return res;
+    }
+
+    @Override
+    public View onCreateViewHolder(ViewGroup parent, int layoutRes, int viewType) {
+        View view = LayoutInflater.from(getContext()).inflate(layoutRes, parent, false);
+        FrameLayout container = view.findViewById(R.id.easy_container);
+
+        int res = onGetChildLayoutId(viewType);
+
+        View content;
+        if (onCreateViewHolderListener != null) {
+            content = onCreateViewHolderListener.onCreateViewHolder((ViewGroup) view, res, viewType);
+        } else {
+            content = LayoutInflater.from(getContext()).inflate(res, null, false);
+        }
+
+        container.addView(content);
+        return view;
+    }
+
+    @Override
+    public void onBindViewHolder(final EasyViewHolder holder, List<T> list, int position, List<Object> payloads) {
+        holder.setPosition(position);
+        FrameLayout container = holder.getView(R.id.easy_container);
+        View contentChild = container.getChildAt(0);
+
+        final RelativeLayout checkBoxContainer = holder.getView(R.id.easy_recycler_layout_check_box_container);
+        final SmoothCheckBox checkBox = holder.getView(R.id.easy_recycler_layout_check_box);
+        checkBox.setChecked(selectedList.contains(position), false);
+        checkBox.setClickable(false);
+        checkBox.setOnCheckedChangeListener(null);
+        if (showCheckBox) {
+            checkBoxContainer.setVisibility(enableSelection ? VISIBLE : GONE);
+        } else {
+            checkBoxContainer.setVisibility(selectMode ? VISIBLE : GONE);
+        }
+        contentChild.setPaddingRelative(
+                contentChild.getPaddingStart(),
+                contentChild.getPaddingTop(),
+                checkBoxContainer.getVisibility() == VISIBLE ? 0 : contentChild.getPaddingStart(),
+                contentChild.getPaddingBottom()
+        );
+
+        checkBox.setOnClickListener(new OnClickListener() {
             @Override
-            public View onCreateViewHolder(ViewGroup parent, int layoutRes, int viewType) {
-                View view = LayoutInflater.from(getContext()).inflate(layoutRes, parent, false);
-                FrameLayout container = view.findViewById(R.id.container);
-                View content;
-                if (onCreateViewHolderListener != null) {
-                    content = onCreateViewHolderListener.onCreateViewHolder((ViewGroup) view, itemRes, viewType);
-                } else {
-                    content = LayoutInflater.from(getContext()).inflate(itemRes, null, false);
-                }
-                container.addView(content);
-                return view;
+            public void onClick(View v) {
+                checkBoxContainer.performClick();
             }
         });
+        checkBoxContainer.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (checkBox.isChecked()) {
+                    checkBox.setChecked(false, true);
+                    unSelect(holder.getHolderPosition());
+                } else {
+                    checkBox.setChecked(true, true);
+                    onSelected(holder.getHolderPosition());
+                }
+            }
+        });
+
+        Log.d(TAG, "onBindViewHolder position=" + position + " selected=" + selectedList.contains(position));
+        holder.setItemClickCallback(new IEasy.OnItemClickCallback() {
+            @Override
+            public boolean shouldIgnoreClick(View view) {
+                Log.d(TAG, "shouldIgnoreClick selectMode=" + selectMode);
+                if (selectMode) {
+                    if (checkBox.isChecked()) {
+                        checkBox.setChecked(false, true);
+                        unSelect(holder.getHolderPosition());
+                    } else {
+                        checkBox.setChecked(true, true);
+                        onSelected(holder.getHolderPosition());
+                    }
+//                            easyRecyclerView.notifyItemChanged(holder.getHolderPosition());
+                    return true;
+                }
+                return false;
+            }
+        });
+        if (onBindViewHolderListener != null) {
+            onBindViewHolderListener.onBindViewHolder(holder, list, position, payloads);
+        }
     }
+
+    @Override
+    public boolean onLoadMore(EasyAdapter.Enabled enabled, int currentPage) {
+        if (isSelectMode()) {
+            return false;
+        }
+        if (onLoadMoreListener != null) {
+            onLoadMoreListener.onLoadMore(enabled, currentPage);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean onLongClick(EasyViewHolder holder, View view, T data) {
+        if (onItemLongClickListener != null) {
+            return onItemLongClickListener.onLongClick(holder, view, data);
+        }
+        return false;
+    }
+
+    @Override
+    public void onClick(EasyViewHolder holder, View view, T data) {
+        if (onItemClickListener != null) {
+            onItemClickListener.onClick(holder, view, data);
+        }
+    }
+
+    @Override
+    public void onSelectModeChange(boolean selectMode) {
+        if (onSelectChangeListener != null) {
+            onSelectChangeListener.onSelectAll();
+        }
+    }
+
+    @Override
+    public void onSelectChange(List<T> list, int position, boolean isChecked) {
+        if (onSelectChangeListener != null) {
+            onSelectChangeListener.onSelectChange(easyRecyclerView.getData(), position, isChecked);
+        }
+    }
+
+    @Override
+    public void onSelectAll() {
+        if (onSelectChangeListener != null) {
+            onSelectChangeListener.onSelectAll();
+        }
+    }
+
+    @Override
+    public void onUnSelectAll() {
+        if (onSelectChangeListener != null) {
+            onSelectChangeListener.onUnSelectAll();
+        }
+    }
+
 
     public EasyRecyclerLayout<T> setItemRes(@LayoutRes final int res) {
         this.itemRes = res;
@@ -117,8 +278,73 @@ public class EasyRecyclerLayout<T> extends FrameLayout {
         return this;
     }
 
+    public EasyRecyclerLayout<T> addItemDecoration(RecyclerView.ItemDecoration decor) {
+        this.easyRecyclerView.addItemDecoration(decor);
+        return this;
+    }
+
+    public EasyRecyclerLayout<T> addItemDecoration(RecyclerView.ItemDecoration decor, int index) {
+        this.easyRecyclerView.addItemDecoration(decor, index);
+        return this;
+    }
+
     public EasyRecyclerLayout<T> setItemAnimator(RecyclerView.ItemAnimator animator) {
         easyRecyclerView.setItemAnimator(animator);
+        return this;
+    }
+
+    public EasyRecyclerLayout<T> setItemViewCacheSize(int size) {
+        easyRecyclerView.setItemViewCacheSize(size);
+        return this;
+    }
+
+    public EasyRecyclerLayout<T> setHasFixedSize(boolean hasFixedSize) {
+        easyRecyclerView.setHasFixedSize(hasFixedSize);
+        return this;
+    }
+
+    public EasyRecyclerLayout<T> setLayoutFrozen(boolean layoutFrozen) {
+        easyRecyclerView.setLayoutFrozen(layoutFrozen);
+        return this;
+    }
+
+    public EasyRecyclerLayout<T> setOnFlingListener(RecyclerView.OnFlingListener listener) {
+        easyRecyclerView.setOnFlingListener(listener);
+        return this;
+    }
+
+    public EasyRecyclerLayout<T> setRecyclerListener(RecyclerView.RecyclerListener listener) {
+        easyRecyclerView.setRecyclerListener(listener);
+        return this;
+    }
+
+    public EasyRecyclerLayout<T> setScrollingTouchSlop(int slop) {
+        easyRecyclerView.setScrollingTouchSlop(slop);
+        return this;
+    }
+
+    public EasyRecyclerLayout<T> setEdgeEffectFactory(RecyclerView.EdgeEffectFactory factory) {
+        easyRecyclerView.setEdgeEffectFactory(factory);
+        return this;
+    }
+
+    public EasyRecyclerLayout<T> setRecycledViewPool(RecyclerView.RecycledViewPool pool) {
+        easyRecyclerView.setRecycledViewPool(pool);
+        return this;
+    }
+
+    public EasyRecyclerLayout<T> setPreserveFocusAfterLayout(boolean preserveFocusAfterLayout) {
+        easyRecyclerView.setPreserveFocusAfterLayout(preserveFocusAfterLayout);
+        return this;
+    }
+
+    public EasyRecyclerLayout<T> setViewCacheExtension(RecyclerView.ViewCacheExtension extension) {
+        easyRecyclerView.setViewCacheExtension(extension);
+        return this;
+    }
+
+    public EasyRecyclerLayout<T> setChildDrawingOrderCallback(RecyclerView.ChildDrawingOrderCallback callback) {
+        easyRecyclerView.setChildDrawingOrderCallback(callback);
         return this;
     }
 
@@ -148,6 +374,10 @@ public class EasyRecyclerLayout<T> extends FrameLayout {
             @Override
             public void onRefresh() {
                 if (enableSwipeRefresh) {
+                    if (isSelectMode()) {
+                        refreshLayout.setRefreshing(false);
+                        return;
+                    }
                     refreshLayout.setRefreshing(true);
                     if (onRefreshListener != null) {
                         onRefreshListener.onRefresh();
@@ -195,104 +425,63 @@ public class EasyRecyclerLayout<T> extends FrameLayout {
     }
 
     public EasyRecyclerLayout<T> onLoadMore(IEasy.OnLoadMoreListener onLoadMoreListener) {
-        easyRecyclerView.onLoadMore(onLoadMoreListener);
+        this.onLoadMoreListener = onLoadMoreListener;
         enableLoadMore = true;
         return this;
     }
 
-    public EasyRecyclerLayout<T> setOnSelectChangeListener(OnSelectChangeListener<T> onSelectChangeListener) {
+    public EasyRecyclerLayout<T> setOnSelectChangeListener(IEasy.OnSelectChangeListener<T> onSelectChangeListener) {
         this.onSelectChangeListener = onSelectChangeListener;
         return this;
     }
 
-    public EasyRecyclerLayout<T> onViewClick(@IdRes int id, IEasy.OnClickListener<T> onClickListener) {
-        easyRecyclerView.onViewClick(id, onClickListener);
+    public EasyRecyclerLayout<T> onViewClick(@IdRes int id, IEasy.OnClickListener<T> listener) {
+        easyRecyclerView.onViewClick(id, listener);
+        return this;
+    }
+
+    public EasyRecyclerLayout<T> onViewClick(IEasy.OnClickListener<T> listener, int...ids) {
+        easyRecyclerView.onViewClick(listener, ids);
+        return this;
+    }
+
+    public EasyRecyclerLayout<T> onViewLongClick(@IdRes int id, IEasy.OnLongClickListener<T> listener) {
+        easyRecyclerView.onViewLongClick(id, listener);
+        return this;
+    }
+
+    public EasyRecyclerLayout<T> onViewLongClick(IEasy.OnLongClickListener<T> listener, int...ids) {
+        easyRecyclerView.onViewLongClick(listener, ids);
         return this;
     }
 
     public EasyRecyclerLayout<T> onItemClick(IEasy.OnItemClickListener<T> listener) {
-        easyRecyclerView.onItemClick(listener);
+        this.onItemClickListener = listener;
         return this;
     }
 
     public EasyRecyclerLayout<T> onItemLongClick(IEasy.OnItemLongClickListener<T> listener) {
-        easyRecyclerView.onItemLongClick(listener);
+        this.onItemLongClickListener = listener;
         return this;
     }
 
-    public EasyRecyclerLayout<T> onGetChildViewType(IEasy.OnGetChildViewTypeListener listener) {
-        easyRecyclerView.onGetChildViewType(listener);
+    public EasyRecyclerLayout<T> onGetChildViewType(IEasy.OnGetChildViewTypeListener<T> listener) {
+        this.onGetChildViewTypeListener = listener;
         return this;
     }
 
     public EasyRecyclerLayout<T> onGetChildLayoutId(IEasy.OnGetChildLayoutIdListener listener) {
-        easyRecyclerView.onGetChildLayoutId(listener);
+        this.onGetChildLayoutIdListener = listener;
         return this;
     }
 
-    public EasyRecyclerLayout<T> onCreateViewHolder(IEasy.OnCreateViewHolderListener<T> callback) {
-        this.onCreateViewHolderListener = callback;
+    public EasyRecyclerLayout<T> onCreateViewHolder(IEasy.OnCreateViewHolderListener<T> listener) {
+        this.onCreateViewHolderListener = listener;
         return this;
     }
 
-    public EasyRecyclerLayout<T> onBindViewHolder(final IEasy.OnBindViewHolderListener<T> callback) {
-        easyRecyclerView.onBindViewHolder(new IEasy.OnBindViewHolderListener<T>() {
-            @Override
-            public void onBindViewHolder(final EasyViewHolder holder, List<T> list, final int position, List<Object> payloads) {
-                holder.setPosition(position);
-                final RelativeLayout checkBoxContainer = holder.getView(R.id.easy_recycler_layout_check_box_container);
-                final SmoothCheckBox checkBox = holder.getView(R.id.easy_recycler_layout_check_box);
-                checkBox.setChecked(selectedList.contains(position), false);
-                checkBox.setClickable(false);
-                checkBox.setOnCheckedChangeListener(null);
-                if (showCheckBox) {
-                    checkBoxContainer.setVisibility(enableSelection ? VISIBLE : GONE);
-                } else {
-                    checkBoxContainer.setVisibility(selectMode ? VISIBLE : GONE);
-                }
-                checkBox.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        checkBoxContainer.performClick();
-                    }
-                });
-                checkBoxContainer.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (checkBox.isChecked()) {
-                            checkBox.setChecked(false, true);
-                            unSelect(holder.getHolderPosition());
-                        } else {
-                            checkBox.setChecked(true, true);
-                            onSelected(holder.getHolderPosition());
-                        }
-                    }
-                });
-
-                Log.d(TAG, "onBindViewHolder position=" + position + " selected=" + selectedList.contains(position));
-                holder.setItemClickCallback(new IEasy.OnItemClickCallback() {
-                    @Override
-                    public boolean shouldIgnoreClick(View view) {
-                        Log.d(TAG, "shouldIgnoreClick selectMode=" + selectMode);
-                        if (selectMode) {
-                            if (checkBox.isChecked()) {
-                                checkBox.setChecked(false, true);
-                                unSelect(holder.getHolderPosition());
-                            } else {
-                                checkBox.setChecked(true, true);
-                                onSelected(holder.getHolderPosition());
-                            }
-//                            easyRecyclerView.notifyItemChanged(holder.getHolderPosition());
-                            return true;
-                        }
-                        return false;
-                    }
-                });
-                if (callback != null) {
-                    callback.onBindViewHolder(holder, list, position, payloads);
-                }
-            }
-        });
+    public EasyRecyclerLayout<T> onBindViewHolder(final IEasy.OnBindViewHolderListener<T> listener) {
+        this.onBindViewHolderListener = listener;
         return this;
     }
 
@@ -300,6 +489,8 @@ public class EasyRecyclerLayout<T> extends FrameLayout {
 //        if (easyRecyclerView.getOnCreateViewHolder() == null) {
 //            easyRecyclerView.onCreateViewHolder(onCreateViewHolderListener);
 //        }
+
+
         easyRecyclerView.build();
         adapter = easyRecyclerView.getAdapter();
         if (enableLoadMore) {
@@ -424,10 +615,9 @@ public class EasyRecyclerLayout<T> extends FrameLayout {
         refreshLayout.setEnabled(false);
         easyRecyclerView.getAdapter().setLoadMoreEnabled(false);
         selectMode = true;
-        easyRecyclerView.notifyDataSetChanged();
-        if (onSelectChangeListener != null) {
-            onSelectChangeListener.onSelectModeChange(selectMode);
-        }
+//        easyRecyclerView.notifyDataSetChanged();
+        notifyVisibleItemChanged();
+        onSelectModeChange(selectMode);
     }
 
     public void exitSelectMode() {
@@ -438,10 +628,9 @@ public class EasyRecyclerLayout<T> extends FrameLayout {
         easyRecyclerView.getAdapter().setLoadMoreEnabled(true);
         selectMode = false;
         selectedList.clear();
-        easyRecyclerView.notifyDataSetChanged();
-        if (onSelectChangeListener != null) {
-            onSelectChangeListener.onSelectModeChange(selectMode);
-        }
+//        easyRecyclerView.notifyDataSetChanged();
+        notifyVisibleItemChanged();
+        onSelectModeChange(selectMode);
     }
 
     private void onSelectChange(int position, boolean isChecked) {
@@ -452,21 +641,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout {
                 selectMode = true;
             }
         }
-        if (onSelectChangeListener != null) {
-            onSelectChangeListener.onChange(easyRecyclerView.getData(), position, isChecked);
-        }
-    }
-
-    private void onSelectAll() {
-        if (onSelectChangeListener != null) {
-            onSelectChangeListener.onSelectAll();
-        }
-    }
-
-    private void onUnSelectAll() {
-        if (onSelectChangeListener != null) {
-            onSelectChangeListener.onUnSelectAll();
-        }
+        onSelectChange(easyRecyclerView.getData(), position, isChecked);
     }
 
     private void onSelected(int position) {
@@ -497,8 +672,9 @@ public class EasyRecyclerLayout<T> extends FrameLayout {
         for (int i = 0; i < easyRecyclerView.getAdapter().getItemCount(); i++) {
             selectedList.add(i);
             onSelectChange(i, true);
-            notifyItemChanged(i);
+//            notifyItemChanged(i);
         }
+        notifyVisibleItemChanged();
         onSelectAll();
     }
 
@@ -507,7 +683,8 @@ public class EasyRecyclerLayout<T> extends FrameLayout {
             onSelectChange(i, false);
         }
         selectedList.clear();
-        easyRecyclerView.notifyDataSetChanged();
+//        easyRecyclerView.notifyDataSetChanged();
+        notifyVisibleItemChanged();
         onUnSelectAll();
     }
 
@@ -539,12 +716,28 @@ public class EasyRecyclerLayout<T> extends FrameLayout {
         stopRefresh();
     }
 
+    public void notifyVisibleItemChanged() {
+        easyRecyclerView.notifyVisibleItemChanged();
+    }
+
+    public void notifyVisibleItemChanged(Object payload) {
+        easyRecyclerView.notifyVisibleItemChanged(payload);
+    }
+
     public void notifyItemChanged(int position) {
         easyRecyclerView.notifyItemChanged(position);
     }
 
     public void notifyItemChanged(int position, Object payload) {
         easyRecyclerView.notifyItemChanged(position, payload);
+    }
+
+    public void notifyItemRangeChanged(int start, int end) {
+        easyRecyclerView.notifyItemRangeChanged(start, end);
+    }
+
+    public void notifyItemRangeChanged(int start, int end, Object payload) {
+        easyRecyclerView.notifyItemRangeChanged(start, end, payload);
     }
 
     public void notifyItemRemoved(int position) {
@@ -585,11 +778,27 @@ public class EasyRecyclerLayout<T> extends FrameLayout {
         }
     }
 
+    public void smoothScrollToPosition(int position) {
+        easyRecyclerView.smoothScrollToPosition(position);
+    }
+
     public List<T> getData() {
         return easyRecyclerView.getData();
     }
 
     public EasyRecyclerView<T> getEasyRecyclerView() {
         return easyRecyclerView;
+    }
+
+    public RecyclerView getRecyclerView() {
+        return easyRecyclerView.getRecyclerView();
+    }
+
+    public EasyStateAdapter<T> getAdapter() {
+        return easyRecyclerView.getAdapter();
+    }
+
+    public RecyclerView.LayoutManager getLayoutManager() {
+        return easyRecyclerView.getLayoutManager();
     }
 }
