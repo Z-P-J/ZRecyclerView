@@ -6,6 +6,7 @@ import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
@@ -377,12 +378,7 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
     }
 
     public void notifyVisibleItemChanged() {
-        RecyclerView.LayoutManager manager = getLayoutManager();
-        if (manager instanceof LinearLayoutManager) {
-            int first = ((LinearLayoutManager) manager).findFirstVisibleItemPosition();
-            int last = ((LinearLayoutManager) manager).findLastVisibleItemPosition();
-            notifyItemRangeChanged(first, last - first + 1);
-        }
+        notifyVisibleItemChanged(null);
     }
 
     public void notifyVisibleItemChanged(Object payload) {
@@ -390,8 +386,45 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
         if (manager instanceof LinearLayoutManager) {
             int first = ((LinearLayoutManager) manager).findFirstVisibleItemPosition();
             int last = ((LinearLayoutManager) manager).findLastVisibleItemPosition();
-            notifyItemRangeChanged(first, last = first + 1, payload);
+            if (payload == null) {
+                notifyItemRangeChanged(first, last - first + 1);
+            } else {
+                notifyItemRangeChanged(first, last - first + 1, payload);
+            }
+        } else if (manager instanceof StaggeredGridLayoutManager) {
+            StaggeredGridLayoutManager layoutManager = (StaggeredGridLayoutManager) manager;
+            int[] firsts = new int[layoutManager.getSpanCount()];
+            int[] into = new int[layoutManager.getSpanCount()];
+            layoutManager.findFirstVisibleItemPositions(firsts);
+            layoutManager.findLastVisibleItemPositions(into);
+            int first = first(firsts);
+            int last = last(into);
+            if (payload == null) {
+                notifyItemRangeChanged(first, last - first + 1);
+            } else {
+                notifyItemRangeChanged(first, last - first + 1, payload);
+            }
         }
+    }
+
+    private int first(int[] firstPositions) {
+        int first = firstPositions[0];
+        for (int value : firstPositions) {
+            if (value < first) {
+                first = value;
+            }
+        }
+        return first;
+    }
+
+    private int last(int[] lastPositions) {
+        int last = lastPositions[0];
+        for (int value : lastPositions) {
+            if (value > last) {
+                last = value;
+            }
+        }
+        return last;
     }
 
     public void notifyItemInserted(int position) {
@@ -449,7 +482,7 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
     @Override
     public boolean onLoadMore(EasyAdapter.Enabled enabled, int currentPage) {
         if (onLoadMoreListener != null) {
-            onLoadMoreListener.onLoadMore(enabled, currentPage);
+            return onLoadMoreListener.onLoadMore(enabled, currentPage);
         }
         return false;
     }

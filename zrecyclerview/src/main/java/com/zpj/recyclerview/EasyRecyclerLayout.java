@@ -149,7 +149,6 @@ public class EasyRecyclerLayout<T> extends FrameLayout
 
     @Override
     public void onBindViewHolder(final EasyViewHolder holder, List<T> list, int position, List<Object> payloads) {
-        holder.setPosition(position);
         FrameLayout container = holder.getView(R.id.easy_container);
         View contentChild = container.getChildAt(0);
 
@@ -181,10 +180,10 @@ public class EasyRecyclerLayout<T> extends FrameLayout
             public void onClick(View v) {
                 if (checkBox.isChecked()) {
                     checkBox.setChecked(false, true);
-                    unSelect(holder.getHolderPosition());
+                    unSelect(holder.getRealPosition());
                 } else {
                     checkBox.setChecked(true, true);
-                    onSelected(holder.getHolderPosition());
+                    onSelected(holder.getRealPosition());
                 }
             }
         });
@@ -197,10 +196,10 @@ public class EasyRecyclerLayout<T> extends FrameLayout
                 if (selectMode) {
                     if (checkBox.isChecked()) {
                         checkBox.setChecked(false, true);
-                        unSelect(holder.getHolderPosition());
+                        unSelect(holder.getRealPosition());
                     } else {
                         checkBox.setChecked(true, true);
-                        onSelected(holder.getHolderPosition());
+                        onSelected(holder.getRealPosition());
                     }
 //                            easyRecyclerView.notifyItemChanged(holder.getHolderPosition());
                     return true;
@@ -219,7 +218,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
             return false;
         }
         if (onLoadMoreListener != null) {
-            onLoadMoreListener.onLoadMore(enabled, currentPage);
+            return onLoadMoreListener.onLoadMore(enabled, currentPage);
         }
         return false;
     }

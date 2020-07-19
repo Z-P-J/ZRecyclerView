@@ -129,6 +129,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 //                onBindViewHolderListener.onBindViewHolder(holder, list, getRealPosition(holder), payloads);
 //            }
 //        }
+        holder.setRealPosition(getRealPosition(holder));
         holder.setViewType(getItemViewType(position));
         if (isHeaderPosition(position)) {
             if (onBindHeaderListener != null) {

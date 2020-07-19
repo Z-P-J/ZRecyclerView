@@ -6,7 +6,7 @@
 step 1:
 
 ```java
-implementation 'com.zpj.widget:ZRecyclerView:1.0.1'
+implementation 'com.zpj.widget:ZRecyclerView:1.0.5'
 ```
 
 step 2:
@@ -22,7 +22,7 @@ step 2:
 step 3:
 
 ```java
-recyclerLayout = findViewById(R.id.recycler_layout);
+        recyclerLayout = findViewById(R.id.recycler_layout);
         recyclerLayout.setData(list)
                 .setItemRes(R.layout.layout_text)
                 .setEnableSelection(true)

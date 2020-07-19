@@ -10,7 +10,8 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public final class EasyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
+public final class EasyViewHolder extends RecyclerView.ViewHolder
+        implements View.OnClickListener, View.OnLongClickListener {
 
     private IEasy.OnItemClickCallback clickCallback;
     private View.OnClickListener onClickListener;
@@ -27,7 +28,7 @@ public final class EasyViewHolder extends RecyclerView.ViewHolder implements Vie
         itemView.setOnLongClickListener(this);
     }
 
-    public void setTag(Object tag) {
+    void setTag(Object tag) {
         this.tag = tag;
     }
 
@@ -120,11 +121,11 @@ public final class EasyViewHolder extends RecyclerView.ViewHolder implements Vie
         }
     }
 
-    public <T extends ImageView> T getImageView(@IdRes int id) {
+    public ImageView getImageView(@IdRes int id) {
         return getView(id);
     }
 
-    public <T extends ImageButton> T getImageButton(@IdRes int id) {
+    public ImageButton getImageButton(@IdRes int id) {
         return getView(id);
     }
 
@@ -149,11 +150,11 @@ public final class EasyViewHolder extends RecyclerView.ViewHolder implements Vie
         }
     }
 
-    public void setPosition(int position) {
+    void setRealPosition(int position) {
         this.position = position;
     }
 
-    public int getHolderPosition() {
+    public int getRealPosition() {
         return position;
     }
 
@@ -177,7 +178,7 @@ public final class EasyViewHolder extends RecyclerView.ViewHolder implements Vie
         return itemView.performClick();
     }
 
-    public void setViewType(int viewType) {
+    void setViewType(int viewType) {
         this.viewType = viewType;
     }
 

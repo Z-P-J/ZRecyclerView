@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
                 .onItemLongClick(new IEasy.OnItemLongClickListener<Integer>() {
                     @Override
                     public boolean onLongClick(EasyViewHolder holder, View view, Integer data) {
-                        recyclerLayout.getSelectedSet().add(holder.getHolderPosition());
+                        recyclerLayout.getSelectedSet().add(holder.getRealPosition());
                         recyclerLayout.enterSelectMode();
                         return true;
                     }
