@@ -33,6 +33,8 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
     private IEasy.OnBindHeaderListener onBindHeaderListener;
     private View footerView;
 
+    private boolean enableLoadMore = false;;
+
     private IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener;
     private IEasy.OnGetChildLayoutIdListener onGetChildLayoutIdListener;
     private IEasy.OnBindViewHolderListener<T> onBindViewHolderListener;
@@ -165,6 +167,7 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
 
     public EasyRecyclerView<T> onLoadMore(IEasy.OnLoadMoreListener onLoadMoreListener) {
         this.onLoadMoreListener = onLoadMoreListener;
+        this.enableLoadMore = true;
         return this;
     }
 
@@ -231,6 +234,11 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
         return this;
     }
 
+    public EasyRecyclerView<T> setLoadMoreEnabled(boolean enabled) {
+        this.enableLoadMore = enabled;
+        return this;
+    }
+
     public void build() {
 //        if (itemRes <= 0) {
 //            throw new RuntimeException("You must set the itemRes!");
@@ -252,11 +260,12 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
         }
         if (footerView != null) {
             easyAdapter.setFooterView(footerView);
-        } else if (onLoadMoreListener != null) {
+        } else if (onLoadMoreListener != null && enableLoadMore) {
             footerView = LayoutInflater.from(recyclerView.getContext()).inflate(R.layout.easy_base_footer, null, false);
             easyAdapter.setFooterView(footerView);
         }
         easyAdapter.setOnLoadMoreListener(this);
+        easyAdapter.setLoadMoreEnabled(onLoadMoreListener != null && enableLoadMore);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(easyAdapter);
     }

@@ -346,7 +346,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
     public void setOnLoadMoreListener(IEasy.OnLoadMoreListener mOnLoadMoreListener) {
         this.mOnLoadMoreListener = mOnLoadMoreListener;
-        mEnabled.setLoadMoreEnabled(true);
+        setLoadMoreEnabled(true);
     }
 
     private RecyclerView mRecyclerView;
@@ -469,7 +469,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             super.onScrollStateChanged(recyclerView, newState);
 
             Log.d(TAG, "onScrollStateChanged getLoadMoreEnabled=" + getLoadMoreEnabled() + "  mIsLoading=" + mIsLoading);
-            if (!getLoadMoreEnabled() || mIsLoading || mOnLoadMoreListener == null) {
+            if (footerView == null || !getLoadMoreEnabled() || mIsLoading || mOnLoadMoreListener == null) {
                 return;
             }
 

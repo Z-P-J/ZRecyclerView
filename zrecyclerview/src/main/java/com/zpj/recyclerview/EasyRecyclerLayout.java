@@ -110,7 +110,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
     @Override
     public int onGetViewType(List<T> list, int position) {
         if (onGetChildViewTypeListener != null) {
-            onGetChildViewTypeListener.onGetViewType(list, position);
+            return onGetChildViewTypeListener.onGetViewType(list, position);
         }
         return 0;
     }
@@ -489,7 +489,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
 //            easyRecyclerView.onCreateViewHolder(onCreateViewHolderListener);
 //        }
 
-
+        easyRecyclerView.setLoadMoreEnabled(onLoadMoreListener != null && enableLoadMore);
         easyRecyclerView.build();
         adapter = easyRecyclerView.getAdapter();
         if (enableLoadMore) {

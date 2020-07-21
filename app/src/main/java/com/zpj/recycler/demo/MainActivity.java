@@ -74,11 +74,17 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .onLoadMore(new IEasy.OnLoadMoreListener() {
                     @Override
-                    public boolean onLoadMore(EasyAdapter.Enabled enabled, int currentPage) {
-                        for (int i = currentPage * 20; i < (currentPage + 1) * 20; i++) {
-                            list.add(i);
-                        }
-                        recyclerLayout.notifyDataSetChanged();
+                    public boolean onLoadMore(final EasyAdapter.Enabled enabled, final int currentPage) {
+                        // 模拟数据加载
+                        recyclerLayout.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                for (int i = currentPage * 20; i < (currentPage + 1) * 20; i++) {
+                                    list.add(i);
+                                }
+                                recyclerLayout.notifyDataSetChanged();
+                            }
+                        }, 1000);
                         return true;
                     }
                 })

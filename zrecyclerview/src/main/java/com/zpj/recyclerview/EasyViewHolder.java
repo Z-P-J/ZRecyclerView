@@ -1,11 +1,13 @@
 package com.zpj.recyclerview;
 
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -34,6 +36,36 @@ public final class EasyViewHolder extends RecyclerView.ViewHolder
 
     public Object getTag() {
         return tag;
+    }
+
+    public void setTag(@IdRes int id, Object tag) {
+        View view = getView(id);
+        if (view != null) {
+            view.setTag(tag);
+        }
+    }
+
+    public void setTag(@IdRes int id, int key, Object tag) {
+        View view = getView(id);
+        if (view != null) {
+            view.setTag(key, tag);
+        }
+    }
+
+    public Object getTag(@IdRes int id) {
+        View view = getView(id);
+        if (view != null) {
+            return view.getTag();
+        }
+        return null;
+    }
+
+    public Object getTag(@IdRes int id, int key) {
+        View view = getView(id);
+        if (view != null) {
+            return view.getTag(key);
+        }
+        return null;
     }
 
     public <T extends View> T getView(@IdRes int id) {
@@ -107,14 +139,21 @@ public final class EasyViewHolder extends RecyclerView.ViewHolder
         }
     }
 
-    public void setTextColor(@IdRes int id, float size) {
+    public void setTextColor(@IdRes int id, ColorStateList color) {
+        View view = getView(id);
+        if (view instanceof TextView) {
+            ((TextView) view).setTextColor(color);
+        }
+    }
+
+    public void setTextSize(@IdRes int id, float size) {
         View view = getView(id);
         if (view instanceof TextView) {
             ((TextView) view).setTextSize(size);
         }
     }
 
-    public void setTextColor(@IdRes int id, int unit, float size) {
+    public void setTextSize(@IdRes int id, int unit, float size) {
         View view = getView(id);
         if (view instanceof TextView) {
             ((TextView) view).setTextSize(unit, size);
@@ -147,6 +186,13 @@ public final class EasyViewHolder extends RecyclerView.ViewHolder
         View view = getView(id);
         if (view instanceof ImageView) {
             ((ImageView) view).setImageBitmap(bitmap);
+        }
+    }
+
+    public void setLayoutParams(@IdRes int id, ViewGroup.LayoutParams params) {
+        View view = getView(id);
+        if (view != null) {
+            view.setLayoutParams(params);
         }
     }
 
