@@ -49,6 +49,10 @@ public interface IEasy {
         boolean onLoadMore(EasyAdapter.Enabled enabled, int currentPage);
     }
 
+    interface OnLoadRetryListener {
+        void onLoadRetry();
+    }
+
     interface OnGetChildViewTypeListener<T> {
         int onGetViewType(List<T> list, int position);
     }

@@ -75,6 +75,16 @@ public class MainActivity extends AppCompatActivity {
                 .onLoadMore(new IEasy.OnLoadMoreListener() {
                     @Override
                     public boolean onLoadMore(final EasyAdapter.Enabled enabled, final int currentPage) {
+                        if (list.size() >= 40) {
+                            recyclerLayout.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    recyclerLayout.showErrorView("hhhhhhhhhh");
+//                                    recyclerLayout.showNoNetworkView("dfghj");
+                                }
+                            }, 1000);
+                            return true;
+                        }
                         // 模拟数据加载
                         recyclerLayout.postDelayed(new Runnable() {
                             @Override
@@ -110,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .build();
 //        recyclerLayout.showLoading();
+        recyclerLayout.showErrorView("test");
     }
 
     @Override

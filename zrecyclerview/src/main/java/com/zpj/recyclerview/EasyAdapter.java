@@ -5,6 +5,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
@@ -28,10 +29,10 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
     private int itemRes;
 
-    private int currentPage = -1;
+    protected int currentPage = -1;
 
-    private View headerView;
-    private View footerView;
+    protected View headerView;
+    protected View footerView;
 
     private final IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener;
     private final IEasy.OnGetChildLayoutIdListener onGetChildLayoutIdListener;
@@ -151,29 +152,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
                 mRecyclerView.post(new Runnable() {
                     @Override
                     public void run() {
-                        ProgressBar progressBar = footerView.findViewById(R.id.progress_bar);
-                        TextView tvMsg = footerView.findViewById(R.id.tv_msg);
-                        if (list.isEmpty() || currentPage < -1) {
-                            currentPage = -1;
-                        }
-                        if (mOnLoadMoreListener.onLoadMore(mEnabled, currentPage + 1)) {
-//                            footerView.setVisibility(View.VISIBLE);
-                            if (progressBar != null) {
-                                progressBar.setVisibility(View.VISIBLE);
-                            }
-                            if (tvMsg != null) {
-                                tvMsg.setVisibility(View.GONE);
-                            }
-                            currentPage++;
-                        } else { // if (footerView != null)
-//                            footerView.setVisibility(View.GONE);
-                            if (progressBar != null) {
-                                progressBar.setVisibility(View.GONE);
-                            }
-                            if (tvMsg != null) {
-                                tvMsg.setVisibility(View.VISIBLE);
-                            }
-                        }
+                        onLoadMore();
                     }
                 });
             }
@@ -297,6 +276,43 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         return count;
     }
 
+    protected void onLoadMore() {
+        ProgressBar progressBar = footerView.findViewById(R.id.progress_bar);
+        TextView tvMsg = footerView.findViewById(R.id.tv_msg);
+        if (list.isEmpty() || currentPage < -1) {
+            currentPage = -1;
+        }
+        if (mOnLoadMoreListener.onLoadMore(mEnabled, currentPage + 1)) {
+            if (progressBar != null) {
+                progressBar.setVisibility(View.VISIBLE);
+            }
+            if (tvMsg != null) {
+                tvMsg.setVisibility(View.GONE);
+            }
+            currentPage++;
+        } else {
+//            if (progressBar != null) {
+//                progressBar.setVisibility(View.GONE);
+//            }
+//            if (tvMsg != null) {
+//                tvMsg.setVisibility(View.VISIBLE);
+//            }
+            showFooterMsg(mRecyclerView.getContext().getString(R.string.easy_has_no_more));
+        }
+    }
+
+    protected void showFooterMsg(String msg) {
+        ProgressBar progressBar = getFooterView().findViewById(R.id.progress_bar);
+        TextView tvMsg = getFooterView().findViewById(R.id.tv_msg);
+        if (progressBar != null) {
+            progressBar.setVisibility(View.GONE);
+        }
+        if (tvMsg != null) {
+            tvMsg.setVisibility(View.VISIBLE);
+            tvMsg.setText(msg);
+        }
+    }
+
     private boolean canScroll() {
         if (mRecyclerView == null) {
             throw new NullPointerException("mRecyclerView is null, you should setAdapter(recyclerAdapter);");
@@ -352,8 +368,8 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     private RecyclerView mRecyclerView;
     private IEasy.OnLoadMoreListener mOnLoadMoreListener;
 
-    private Enabled mEnabled;
-    private boolean mIsLoading;
+    protected Enabled mEnabled;
+    protected boolean mIsLoading;
     private boolean mShouldRemove;
     private boolean mShowNoMoreEnabled;
     private boolean mIsLoadFailed;
@@ -463,9 +479,9 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         }
     };
 
-    private RecyclerView.OnScrollListener mOnScrollListener = new RecyclerView.OnScrollListener() {
+    private final RecyclerView.OnScrollListener mOnScrollListener = new RecyclerView.OnScrollListener() {
         @Override
-        public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+        public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
             super.onScrollStateChanged(recyclerView, newState);
 
             Log.d(TAG, "onScrollStateChanged getLoadMoreEnabled=" + getLoadMoreEnabled() + "  mIsLoading=" + mIsLoading);
@@ -486,39 +502,41 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
                     isBottom = last(into) >= layoutManager.getItemCount() - 1;
                 } else {
-                    isBottom = ((GridLayoutManager) layoutManager).findLastVisibleItemPosition()
-                            >= layoutManager.getItemCount() - 1;
+//                    isBottom = ((GridLayoutManager) layoutManager).findLastVisibleItemPosition()
+//                            >= layoutManager.getItemCount() - 1;
+                    isBottom = false;
                 }
 
                 if (isBottom) {
                     mIsLoading = true;
-                    ProgressBar progressBar = footerView.findViewById(R.id.progress_bar);
-                    TextView tvMsg = footerView.findViewById(R.id.tv_msg);
-                    if (list.isEmpty() || currentPage < -1) {
-                        currentPage = -1;
-                    }
-                    if (mOnLoadMoreListener.onLoadMore(mEnabled, currentPage + 1)) {
-                        if (progressBar != null) {
-                            progressBar.setVisibility(View.VISIBLE);
-                        }
-                        if (tvMsg != null) {
-                            tvMsg.setVisibility(View.GONE);
-                        }
-                        currentPage++;
-                    } else if (footerView != null) {
-                        if (progressBar != null) {
-                            progressBar.setVisibility(View.GONE);
-                        }
-                        if (tvMsg != null) {
-                            tvMsg.setVisibility(View.VISIBLE);
-                        }
-                    }
+                    onLoadMore();
+//                    ProgressBar progressBar = footerView.findViewById(R.id.progress_bar);
+//                    TextView tvMsg = footerView.findViewById(R.id.tv_msg);
+//                    if (list.isEmpty() || currentPage < -1) {
+//                        currentPage = -1;
+//                    }
+//                    if (mOnLoadMoreListener.onLoadMore(mEnabled, currentPage + 1)) {
+//                        if (progressBar != null) {
+//                            progressBar.setVisibility(View.VISIBLE);
+//                        }
+//                        if (tvMsg != null) {
+//                            tvMsg.setVisibility(View.GONE);
+//                        }
+//                        currentPage++;
+//                    } else if (footerView != null) {
+//                        if (progressBar != null) {
+//                            progressBar.setVisibility(View.GONE);
+//                        }
+//                        if (tvMsg != null) {
+//                            tvMsg.setVisibility(View.VISIBLE);
+//                        }
+//                    }
                 }
             }
         }
 
         @Override
-        public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+        public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
             super.onScrolled(recyclerView, dx, dy);
         }
 

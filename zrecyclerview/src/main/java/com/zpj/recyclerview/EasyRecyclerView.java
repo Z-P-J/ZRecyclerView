@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 
 import com.zpj.recyclerview.R;
+import com.zpj.widget.statelayout.StateLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,13 +34,15 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
     private IEasy.OnBindHeaderListener onBindHeaderListener;
     private View footerView;
 
-    private boolean enableLoadMore = false;;
+    private boolean enableLoadMore = false;
+    ;
 
     private IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener;
     private IEasy.OnGetChildLayoutIdListener onGetChildLayoutIdListener;
     private IEasy.OnBindViewHolderListener<T> onBindViewHolderListener;
     private IEasy.OnCreateViewHolderListener<T> onCreateViewHolder;
     private IEasy.OnLoadMoreListener onLoadMoreListener;
+    private IEasy.OnLoadRetryListener onLoadRetryListener;
 
     private final SparseArray<IEasy.OnClickListener<T>> onClickListeners = new SparseArray<>();
     private final SparseArray<IEasy.OnLongClickListener<T>> onLongClickListeners = new SparseArray<>();
@@ -171,6 +174,11 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
         return this;
     }
 
+    public EasyRecyclerView<T> setOnLoadRetryListener(IEasy.OnLoadRetryListener onLoadRetryListener) {
+        this.onLoadRetryListener = onLoadRetryListener;
+        return this;
+    }
+
     public EasyRecyclerView<T> onGetChildViewType(IEasy.OnGetChildViewTypeListener<T> listener) {
         this.onGetChildViewTypeListener = listener;
         return this;
@@ -205,7 +213,7 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
         return this;
     }
 
-    public EasyRecyclerView<T> onViewClick(IEasy.OnClickListener<T> listener, int...ids) {
+    public EasyRecyclerView<T> onViewClick(IEasy.OnClickListener<T> listener, int... ids) {
         for (int id : ids) {
             onClickListeners.put(id, listener);
         }
@@ -217,7 +225,7 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
         return this;
     }
 
-    public EasyRecyclerView<T> onViewLongClick(IEasy.OnLongClickListener<T> listener, int...ids) {
+    public EasyRecyclerView<T> onViewLongClick(IEasy.OnLongClickListener<T> listener, int... ids) {
         for (int id : ids) {
             onLongClickListeners.put(id, listener);
         }
@@ -249,11 +257,14 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
         if (layoutManager == null) {
             layoutManager = new LinearLayoutManager(recyclerView.getContext());
         }
-        easyAdapter = new EasyStateAdapter<>(recyclerView.getContext(), list,
+        easyAdapter = new EasyStateAdapter<>(
+                recyclerView.getContext(), list,
                 itemRes, onGetChildViewTypeListener,
                 onGetChildLayoutIdListener, onCreateViewHolder,
                 onBindViewHolderListener, onItemClickListener,
-                onItemLongClickListener, onClickListeners, onLongClickListeners);
+                onItemLongClickListener, onClickListeners,
+                onLongClickListeners, onLoadRetryListener
+        );
         if (headerView != null) {
             easyAdapter.setHeaderView(headerView);
             easyAdapter.setOnBindHeaderListener(onBindHeaderListener);

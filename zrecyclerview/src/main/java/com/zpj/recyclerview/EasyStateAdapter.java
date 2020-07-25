@@ -2,10 +2,14 @@ package com.zpj.recyclerview;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.zpj.widget.statelayout.StateLayout;
 
@@ -30,7 +34,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
 
     private final StateLayout stateLayout;
 
-    EasyStateAdapter(Context context, List<T> list, int itemRes,
+    EasyStateAdapter(final Context context, List<T> list, int itemRes,
                      IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener,
                      IEasy.OnGetChildLayoutIdListener onGetChildLayoutIdListener,
                      IEasy.OnCreateViewHolderListener<T> onCreateViewHolder,
@@ -38,7 +42,8 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
                      IEasy.OnItemClickListener<T> onClickListener,
                      IEasy.OnItemLongClickListener<T> onLongClickListener,
                      SparseArray<IEasy.OnClickListener<T>> onClickListeners,
-                     SparseArray<IEasy.OnLongClickListener<T>> onLongClickListeners) {
+                     SparseArray<IEasy.OnLongClickListener<T>> onLongClickListeners,
+                     final IEasy.OnLoadRetryListener onLoadRetryListener) {
         super(list, itemRes, onGetChildViewTypeListener, onGetChildLayoutIdListener,
                 onCreateViewHolder, onBindViewHolderListener, onClickListener,
                 onLongClickListener, onClickListeners, onLongClickListeners);
@@ -46,6 +51,19 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
         stateLayout = new StateLayout(context);
         ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         stateLayout.setLayoutParams(params);
+        stateLayout.setRefreshListener(new StateLayout.OnViewRefreshListener() {
+            @Override
+            public void refreshClick() {
+                if (onLoadRetryListener != null) {
+                    onLoadRetryListener.onLoadRetry();
+                }
+            }
+
+            @Override
+            public void loginClick() {
+
+            }
+        });
     }
 
     @NonNull
@@ -141,27 +159,60 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     /**
      * 显示错误视图
      */
+
+    private void showErrorFooter(String msg) {
+        String errorMsg = "出错了！";
+        if (!TextUtils.isEmpty(msg)) {
+            errorMsg += ("\n错误信息：" + msg);
+        }
+        showFooterMsg(errorMsg);
+        if (mIsLoading) {
+            currentPage--;
+            mIsLoading = false;
+        }
+    }
+
     public final void showError() {
+        if (getFooterView() != null && !list.isEmpty()) {
+            showErrorFooter(null);
+            return;
+        }
         changeState(STATE_ERROR);
         stateLayout.showErrorView();
     }
 
     public void showErrorView(int msgId) {
+        if (getFooterView() != null && !list.isEmpty()) {
+            showErrorFooter(context.getString(msgId));
+            return;
+        }
         changeState(STATE_ERROR);
         stateLayout.showErrorView(msgId);
     }
 
     public void showErrorView(String msg) {
+        if (getFooterView() != null && !list.isEmpty()) {
+            showErrorFooter(msg);
+            return;
+        }
         changeState(STATE_ERROR);
         stateLayout.showErrorView(msg);
     }
 
     public void showErrorView(int msgId, int imgId) {
+        if (getFooterView() != null && !list.isEmpty()) {
+            showErrorFooter(context.getString(msgId));
+            return;
+        }
         changeState(STATE_ERROR);
         stateLayout.showErrorView(msgId, imgId);
     }
 
     public void showErrorView(String msg, int imgId) {
+        if (getFooterView() != null && !list.isEmpty()) {
+            showErrorFooter(msg);
+            return;
+        }
         changeState(STATE_ERROR);
         stateLayout.showErrorView(msg, imgId);
     }
@@ -197,22 +248,51 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     /**
      * 显示无网络视图
      */
+
+    private void showNoNetworkFooter(String msg) {
+        String errorMsg = "网络不可用！";
+        if (!TextUtils.isEmpty(msg)) {
+            errorMsg += ("\n错误信息：" + msg);
+        }
+        showFooterMsg(errorMsg);
+        if (mIsLoading) {
+            currentPage--;
+            mIsLoading = false;
+        }
+    }
+
     public final void showNoNetwork() {
+        if (getFooterView() != null && !list.isEmpty()) {
+            showNoNetworkFooter(null);
+            return;
+        }
         changeState(STATE_NO_NETWORK);
         stateLayout.showNoNetworkView();
     }
 
     public void showNoNetworkView(int msgId) {
+        if (getFooterView() != null && !list.isEmpty()) {
+            showNoNetworkFooter(context.getString(msgId));
+            return;
+        }
         changeState(STATE_NO_NETWORK);
         stateLayout.showNoNetworkView(msgId);
     }
 
     public void showNoNetworkView(String msg) {
+        if (getFooterView() != null && !list.isEmpty()) {
+            showNoNetworkFooter(msg);
+            return;
+        }
         changeState(STATE_NO_NETWORK);
         stateLayout.showNoNetworkView(msg);
     }
 
     public void showNoNetworkView(int msgId, int imgId) {
+        if (getFooterView() != null && !list.isEmpty()) {
+            showNoNetworkFooter(context.getString(msgId));
+            return;
+        }
         changeState(STATE_NO_NETWORK);
         stateLayout.showNoNetworkView(msgId, imgId);
     }

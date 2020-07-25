@@ -2,4 +2,5 @@
     <string name="empty_view_hint">暂无数据</string>
     <string name="error_view_hint">加载失败</string>
     <string name="no_network_view_hint">网络异常</string>
+    <string name="easy_has_no_more">没有更多了(`・ω・´)</string>
 </resources>

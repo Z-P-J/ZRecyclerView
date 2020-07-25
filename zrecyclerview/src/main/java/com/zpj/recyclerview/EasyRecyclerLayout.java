@@ -25,6 +25,7 @@ import java.util.Set;
 
 public class EasyRecyclerLayout<T> extends FrameLayout
         implements IEasy.OnLoadMoreListener,
+        IEasy.OnLoadRetryListener,
         IEasy.OnItemClickListener<T>,
         IEasy.OnItemLongClickListener<T>,
         IEasy.OnGetChildViewTypeListener<T>,
@@ -40,11 +41,13 @@ public class EasyRecyclerLayout<T> extends FrameLayout
     private IEasy.OnItemClickListener<T> onItemClickListener;
     private IEasy.OnItemLongClickListener<T> onItemLongClickListener;
     private IEasy.OnLoadMoreListener onLoadMoreListener;
+    private IEasy.OnLoadRetryListener onLoadRetryListener;
     private IEasy.OnSelectChangeListener<T> onSelectChangeListener;
     private IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener;
     private IEasy.OnGetChildLayoutIdListener onGetChildLayoutIdListener;
     private IEasy.OnCreateViewHolderListener<T> onCreateViewHolderListener;
     private IEasy.OnBindViewHolderListener<T> onBindViewHolderListener;
+    private SwipeRefreshLayout.OnRefreshListener onRefreshListener;
     private EasyRecyclerView<T> easyRecyclerView;
     private EasyStateAdapter<T> adapter;
     private SwipeRefreshLayout refreshLayout;
@@ -103,7 +106,8 @@ public class EasyRecyclerLayout<T> extends FrameLayout
                 .onBindViewHolder(this)
                 .onItemLongClick(this)
                 .onItemClick(this)
-                .onLoadMore(this);
+                .onLoadMore(this)
+                .setOnLoadRetryListener(this);
 
     }
 
@@ -369,6 +373,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
     }
 
     public EasyRecyclerLayout<T> setOnRefreshListener(final SwipeRefreshLayout.OnRefreshListener onRefreshListener) {
+        this.onRefreshListener = onRefreshListener;
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -426,6 +431,11 @@ public class EasyRecyclerLayout<T> extends FrameLayout
     public EasyRecyclerLayout<T> onLoadMore(IEasy.OnLoadMoreListener onLoadMoreListener) {
         this.onLoadMoreListener = onLoadMoreListener;
         enableLoadMore = true;
+        return this;
+    }
+
+    public EasyRecyclerLayout<T> setOnLoadRetryListener(IEasy.OnLoadRetryListener listener) {
+        this.onLoadRetryListener = listener;
         return this;
     }
 
@@ -799,5 +809,14 @@ public class EasyRecyclerLayout<T> extends FrameLayout
 
     public RecyclerView.LayoutManager getLayoutManager() {
         return easyRecyclerView.getLayoutManager();
+    }
+
+    @Override
+    public void onLoadRetry() {
+        if (onLoadRetryListener != null) {
+            onLoadRetryListener.onLoadRetry();
+        } else if (onRefreshListener != null) {
+            onRefreshListener.onRefresh();
+        }
     }
 }
