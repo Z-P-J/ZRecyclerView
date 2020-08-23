@@ -11,6 +11,7 @@ import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -277,22 +278,22 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     }
 
     protected void onLoadMore() {
-        ProgressBar progressBar = footerView.findViewById(R.id.progress_bar);
+        LinearLayout llContainerProgress = footerView.findViewById(R.id.ll_container_progress);
         TextView tvMsg = footerView.findViewById(R.id.tv_msg);
         if (list.isEmpty() || currentPage < -1) {
             currentPage = -1;
         }
         if (mOnLoadMoreListener.onLoadMore(mEnabled, currentPage + 1)) {
-            if (progressBar != null) {
-                progressBar.setVisibility(View.VISIBLE);
+            if (llContainerProgress != null) {
+                llContainerProgress.setVisibility(View.VISIBLE);
             }
             if (tvMsg != null) {
                 tvMsg.setVisibility(View.GONE);
             }
             currentPage++;
         } else {
-//            if (progressBar != null) {
-//                progressBar.setVisibility(View.GONE);
+//            if (llContainerProgress != null) {
+//                llContainerProgress.setVisibility(View.GONE);
 //            }
 //            if (tvMsg != null) {
 //                tvMsg.setVisibility(View.VISIBLE);
@@ -302,10 +303,10 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     }
 
     protected void showFooterMsg(String msg) {
-        ProgressBar progressBar = getFooterView().findViewById(R.id.progress_bar);
+        LinearLayout llContainerProgress = footerView.findViewById(R.id.ll_container_progress);
         TextView tvMsg = getFooterView().findViewById(R.id.tv_msg);
-        if (progressBar != null) {
-            progressBar.setVisibility(View.GONE);
+        if (llContainerProgress != null) {
+            llContainerProgress.setVisibility(View.GONE);
         }
         if (tvMsg != null) {
             tvMsg.setVisibility(View.VISIBLE);

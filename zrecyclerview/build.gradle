@@ -26,7 +26,7 @@ android {
         artifactId = 'ZRecyclerView'
         userOrg = 'z-p-j'
         groupId = 'com.zpj.widget'
-        publishVersion = '1.0.7'
+        publishVersion = '1.0.8'
         desc = 'A RecyclerView which is implemented to make it easier to use.'
         website = 'https://github.com/Z-P-J/ZRecyclerView'
         licences = ['Apache-2.0']

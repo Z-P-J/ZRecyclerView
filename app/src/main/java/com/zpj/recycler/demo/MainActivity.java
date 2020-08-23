@@ -4,10 +4,7 @@ import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.zpj.recyclerview.EasyAdapter;
@@ -81,9 +78,11 @@ public class MainActivity extends AppCompatActivity {
                                 public void run() {
                                     recyclerLayout.showErrorView("hhhhhhhhhh");
 //                                    recyclerLayout.showNoNetworkView("dfghj");
+//                                    recyclerLayout.showError();
                                 }
                             }, 1000);
                             return true;
+//                            return false;
                         }
                         // 模拟数据加载
                         recyclerLayout.postDelayed(new Runnable() {

@@ -811,6 +811,10 @@ public class EasyRecyclerLayout<T> extends FrameLayout
         return easyRecyclerView.getLayoutManager();
     }
 
+    public EasyState getState() {
+        return adapter.getState();
+    }
+
     @Override
     public void onLoadRetry() {
         if (onLoadRetryListener != null) {

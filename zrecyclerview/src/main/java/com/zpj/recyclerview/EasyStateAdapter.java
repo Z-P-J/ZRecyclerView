@@ -7,30 +7,27 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.zpj.widget.statelayout.StateLayout;
 
 import java.util.List;
 
+import static com.zpj.recyclerview.EasyState.STATE_CONTENT;
+import static com.zpj.recyclerview.EasyState.STATE_EMPTY;
+import static com.zpj.recyclerview.EasyState.STATE_ERROR;
+import static com.zpj.recyclerview.EasyState.STATE_LOADING;
+import static com.zpj.recyclerview.EasyState.STATE_NO_NETWORK;
+
 public class EasyStateAdapter<T> extends EasyAdapter<T> {
 
     private static final String TAG = "EasyStateAdapter";
-
-    private static final int STATE_CONTENT = 0;
-    private static final int STATE_LOADING = 1;
-    private static final int STATE_EMPTY = 2;
-    private static final int STATE_ERROR = 3;
-    private static final int STATE_NO_NETWORK = 4;
 
     private static final int TYPE_STATE = -3;
 
     private final Context context;
 
-    private int state = STATE_CONTENT;
-    private int preState = STATE_CONTENT;
+    private EasyState state = STATE_CONTENT;
+    private EasyState preState = STATE_CONTENT;
 
     private final StateLayout stateLayout;
 
@@ -161,7 +158,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
      */
 
     private void showErrorFooter(String msg) {
-        String errorMsg = "出错了！";
+        String errorMsg = "~ 出错了 ~";
         if (!TextUtils.isEmpty(msg)) {
             errorMsg += ("\n错误信息：" + msg);
         }
@@ -302,12 +299,19 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
      * 显示内容视图
      */
     public final void showContent() {
+        if (state == STATE_CONTENT) {
+            return;
+        }
         state = STATE_CONTENT;
         setLoadMoreEnabled(true);
         notifyDataSetChanged();
     }
 
-    private void changeState(int state) {
+    public EasyState getState() {
+        return state;
+    }
+
+    private void changeState(EasyState state) {
         preState = this.state;
         this.state = state;
         setLoadMoreEnabled(false);
