@@ -32,6 +32,7 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
 
     private View headerView;
     private IEasy.OnBindHeaderListener onBindHeaderListener;
+    private IEasy.OnBindFooterListener onBindFooterListener;
     private View footerView;
 
     private boolean enableLoadMore = false;
@@ -162,9 +163,9 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
         return this;
     }
 
-    public EasyRecyclerView<T> setFooterView(@LayoutRes int layoutRes, IEasy.OnCreateFooterListener callback) {
+    public EasyRecyclerView<T> setFooterView(@LayoutRes int layoutRes, IEasy.OnBindFooterListener listener) {
         this.footerView = LayoutInflater.from(recyclerView.getContext()).inflate(layoutRes, null, false);
-        callback.onCreateFooterView(footerView);
+        onBindFooterListener = listener;
         return this;
     }
 
@@ -271,9 +272,11 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
         }
         if (footerView != null) {
             easyAdapter.setFooterView(footerView);
+            easyAdapter.setOnBindFooterListener(onBindFooterListener);
         } else if (onLoadMoreListener != null && enableLoadMore) {
             footerView = LayoutInflater.from(recyclerView.getContext()).inflate(R.layout.easy_base_footer, null, false);
             easyAdapter.setFooterView(footerView);
+            easyAdapter.setOnBindFooterListener(onBindFooterListener);
         }
         easyAdapter.setOnLoadMoreListener(this);
         easyAdapter.setLoadMoreEnabled(onLoadMoreListener != null && enableLoadMore);
@@ -403,28 +406,49 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
 
     public void notifyVisibleItemChanged(Object payload) {
         RecyclerView.LayoutManager manager = getLayoutManager();
+        int first = -1;
+        int last = -1;
         if (manager instanceof LinearLayoutManager) {
-            int first = ((LinearLayoutManager) manager).findFirstVisibleItemPosition();
-            int last = ((LinearLayoutManager) manager).findLastVisibleItemPosition();
-            if (payload == null) {
-                notifyItemRangeChanged(first, last - first + 1);
-            } else {
-                notifyItemRangeChanged(first, last - first + 1, payload);
-            }
+            first = ((LinearLayoutManager) manager).findFirstVisibleItemPosition();
+            last = ((LinearLayoutManager) manager).findLastVisibleItemPosition();
+//            if (payload == null) {
+//                notifyItemRangeChanged(first, last - first + 1);
+//            } else {
+//                notifyItemRangeChanged(first, last - first + 1, payload);
+//            }
         } else if (manager instanceof StaggeredGridLayoutManager) {
             StaggeredGridLayoutManager layoutManager = (StaggeredGridLayoutManager) manager;
             int[] firsts = new int[layoutManager.getSpanCount()];
             int[] into = new int[layoutManager.getSpanCount()];
             layoutManager.findFirstVisibleItemPositions(firsts);
             layoutManager.findLastVisibleItemPositions(into);
-            int first = first(firsts);
-            int last = last(into);
+            first = first(firsts);
+            last = last(into);
+//            if (payload == null) {
+//                notifyItemRangeChanged(first, last - first + 1);
+//            } else {
+//                notifyItemRangeChanged(first, last - first + 1, payload);
+//            }
+        }
+
+        if (getAdapter().getHeaderView() != null) {
+            first += 1;
+        }
+
+        if (last > first) {
+            int count = last - first;
+            if (last + 1 < getData().size()) {
+                count += 1;
+            }
             if (payload == null) {
-                notifyItemRangeChanged(first, last - first + 1);
+                notifyItemRangeChanged(first, count);
             } else {
-                notifyItemRangeChanged(first, last - first + 1, payload);
+                notifyItemRangeChanged(first, count, payload);
             }
         }
+
+
+
     }
 
     private int first(int[] firstPositions) {

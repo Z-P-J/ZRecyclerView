@@ -39,8 +39,8 @@ public class MainActivity extends AppCompatActivity {
                 .setEnableSelection(true)
                 .setEnableSwipeRefresh(true)
 //                .setEnableLoadMore(true)
-                .setEnableLoadMore(false)
-                .setLayoutManager(new GridLayoutManager(this, 3))
+                .setEnableLoadMore(true)
+//                .setLayoutManager(new GridLayoutManager(this, 3))
                 .setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
                     @Override
                     public void onRefresh() {
@@ -68,6 +68,11 @@ public class MainActivity extends AppCompatActivity {
                     public void onUnSelectAll() {
 
                     }
+
+//                    @Override
+//                    public boolean isSelected(Integer item, int position) {
+//                        return false;
+//                    }
                 })
                 .onLoadMore(new IEasy.OnLoadMoreListener() {
                     @Override
@@ -119,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .build();
 //        recyclerLayout.showLoading();
-        recyclerLayout.showErrorView("test");
+//        recyclerLayout.showErrorView("test");
     }
 
     @Override

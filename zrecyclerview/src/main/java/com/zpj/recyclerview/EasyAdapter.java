@@ -40,6 +40,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     private final IEasy.OnBindViewHolderListener<T> onBindViewHolderListener;
     private final IEasy.OnCreateViewHolderListener<T> onCreateViewHolder;
     private IEasy.OnBindHeaderListener onBindHeaderListener;
+    private IEasy.OnBindFooterListener onBindFooterListener;
     private final IEasy.OnItemClickListener<T> onItemClickListener;
     private final IEasy.OnItemLongClickListener<T> onItemLongClickListener;
     private final SparseArray<IEasy.OnClickListener<T>> onClickListeners;
@@ -140,6 +141,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             return;
         }
         if (isFooterPosition(position)) {
+            Log.d(TAG, "isFooterPosition");
             if (list.isEmpty()) {
                 ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                 footerView.setLayoutParams(params);
@@ -149,6 +151,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             }
             if (!canScroll() && mOnLoadMoreListener != null && !mIsLoading && getLoadMoreEnabled()) {
                 mIsLoading = true;
+                Log.d(TAG, "isFooterPosition onLoadMore");
                 // fix Cannot call this method while RecyclerView is computing a layout or scrolling
                 mRecyclerView.post(new Runnable() {
                     @Override
@@ -156,6 +159,26 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
                         onLoadMore();
                     }
                 });
+            }
+            holder.setOnItemClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d(TAG, "isFooterPosition click canScroll=" + canScroll() + " mIsLoading=" + mIsLoading);
+                    if (mOnLoadMoreListener != null && !mIsLoading && getLoadMoreEnabled()) {
+                        mIsLoading = true;
+                        Log.d(TAG, "isFooterPosition onLoadMore");
+                        // fix Cannot call this method while RecyclerView is computing a layout or scrolling
+                        mRecyclerView.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                onLoadMore();
+                            }
+                        });
+                    }
+                }
+            });
+            if (onBindFooterListener != null) {
+                onBindFooterListener.onBindFooter(holder);
             }
             return;
         }
@@ -186,12 +209,16 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             View view = holder.getView(key);
             if (view != null) {
                 final IEasy.OnClickListener<T> listener = onClickListeners.get(key);
-                view.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        listener.onClick(holder, v, (T) holder.getTag());
-                    }
-                });
+                if (listener != null) {
+                    view.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            listener.onClick(holder, v, (T) holder.getTag());
+                        }
+                    });
+                    continue;
+                }
+                view.setOnClickListener(null);
             }
         }
 
@@ -200,12 +227,16 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             View view = holder.getView(key);
             if (view != null) {
                 final IEasy.OnLongClickListener<T> listener = onLongClickListeners.get(key);
-                view.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
-                        return listener.onLongClick(holder, v, (T) holder.getTag());
-                    }
-                });
+                if (listener != null) {
+                    view.setOnLongClickListener(new View.OnLongClickListener() {
+                        @Override
+                        public boolean onLongClick(View v) {
+                            return listener.onLongClick(holder, v, (T) holder.getTag());
+                        }
+                    });
+                    continue;
+                }
+                view.setOnLongClickListener(null);
             }
         }
 
@@ -278,6 +309,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     }
 
     protected void onLoadMore() {
+        Log.d(TAG, "onLoadMore");
         LinearLayout llContainerProgress = footerView.findViewById(R.id.ll_container_progress);
         TextView tvMsg = footerView.findViewById(R.id.tv_msg);
         if (list.isEmpty() || currentPage < -1) {
@@ -298,6 +330,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 //            if (tvMsg != null) {
 //                tvMsg.setVisibility(View.VISIBLE);
 //            }
+            mIsLoading = false;
             showFooterMsg(mRecyclerView.getContext().getString(R.string.easy_has_no_more));
         }
     }
@@ -344,6 +377,10 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
     public void setOnBindHeaderListener(IEasy.OnBindHeaderListener onBindHeaderListener) {
         this.onBindHeaderListener = onBindHeaderListener;
+    }
+
+    public void setOnBindFooterListener(IEasy.OnBindFooterListener onBindFooterListener) {
+        this.onBindFooterListener = onBindFooterListener;
     }
 
     public View getHeaderView() {
@@ -489,6 +526,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             if (footerView == null || !getLoadMoreEnabled() || mIsLoading || mOnLoadMoreListener == null) {
                 return;
             }
+            Log.d(TAG, "onScrollStateChanged newState=" + newState);
 
             if (newState == RecyclerView.SCROLL_STATE_IDLE) {
                 boolean isBottom;
@@ -507,6 +545,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 //                            >= layoutManager.getItemCount() - 1;
                     isBottom = false;
                 }
+                Log.d(TAG, "onScrollStateChanged isBottom=" + isBottom);
 
                 if (isBottom) {
                     mIsLoading = true;

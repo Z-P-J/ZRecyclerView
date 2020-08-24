@@ -36,6 +36,8 @@ public class EasyRecyclerLayout<T> extends FrameLayout
 
     private static final String TAG = "EasyRecyclerLayout";
 
+    private static final String PAYLOAD_CHECK_BOX = "easy_refresh_check_box";
+
     private final Set<Integer> selectedList = new ArraySet<>();
 
     private IEasy.OnItemClickListener<T> onItemClickListener;
@@ -158,39 +160,46 @@ public class EasyRecyclerLayout<T> extends FrameLayout
 
         final RelativeLayout checkBoxContainer = holder.getView(R.id.easy_recycler_layout_check_box_container);
         final SmoothCheckBox checkBox = holder.getView(R.id.easy_recycler_layout_check_box);
-        checkBox.setChecked(selectedList.contains(position), false);
-        checkBox.setClickable(false);
-        checkBox.setOnCheckedChangeListener(null);
+
         if (showCheckBox) {
             checkBoxContainer.setVisibility(enableSelection ? VISIBLE : GONE);
         } else {
             checkBoxContainer.setVisibility(selectMode ? VISIBLE : GONE);
         }
+
+        if (checkBoxContainer.getVisibility() == VISIBLE) {
+            checkBox.setChecked(selectedList.contains(position), false);
+//        checkBox.setChecked(isSelected(list.get(position), position), false);
+            checkBox.setClickable(false);
+            checkBox.setOnCheckedChangeListener(null);
+            checkBox.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    checkBoxContainer.performClick();
+                }
+            });
+            checkBoxContainer.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (checkBox.isChecked()) {
+                        checkBox.setChecked(false, true);
+                        unSelect(holder.getRealPosition());
+                    } else {
+                        checkBox.setChecked(true, true);
+                        onSelected(holder.getRealPosition());
+                    }
+                }
+            });
+        } else {
+            checkBoxContainer.setOnClickListener(null);
+        }
+
         contentChild.setPaddingRelative(
                 contentChild.getPaddingStart(),
                 contentChild.getPaddingTop(),
                 checkBoxContainer.getVisibility() == VISIBLE ? 0 : contentChild.getPaddingStart(),
                 contentChild.getPaddingBottom()
         );
-
-        checkBox.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                checkBoxContainer.performClick();
-            }
-        });
-        checkBoxContainer.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (checkBox.isChecked()) {
-                    checkBox.setChecked(false, true);
-                    unSelect(holder.getRealPosition());
-                } else {
-                    checkBox.setChecked(true, true);
-                    onSelected(holder.getRealPosition());
-                }
-            }
-        });
 
         Log.d(TAG, "onBindViewHolder position=" + position + " selected=" + selectedList.contains(position));
         holder.setItemClickCallback(new IEasy.OnItemClickCallback() {
@@ -211,6 +220,16 @@ public class EasyRecyclerLayout<T> extends FrameLayout
                 return false;
             }
         });
+
+        if (payloads != null && !payloads.isEmpty()) {
+            for (Object payload : payloads) {
+                if (PAYLOAD_CHECK_BOX.equals(payload)) {
+
+                    return;
+                }
+            }
+        }
+
         if (onBindViewHolderListener != null) {
             onBindViewHolderListener.onBindViewHolder(holder, list, position, payloads);
         }
@@ -218,9 +237,9 @@ public class EasyRecyclerLayout<T> extends FrameLayout
 
     @Override
     public boolean onLoadMore(EasyAdapter.Enabled enabled, int currentPage) {
-        if (isSelectMode()) {
-            return false;
-        }
+//        if (isSelectMode()) {
+//            return false;
+//        }
         if (onLoadMoreListener != null) {
             return onLoadMoreListener.onLoadMore(enabled, currentPage);
         }
@@ -269,6 +288,14 @@ public class EasyRecyclerLayout<T> extends FrameLayout
             onSelectChangeListener.onUnSelectAll();
         }
     }
+
+//    @Override
+//    public boolean isSelected(T item, int position) {
+//        if (onSelectChangeListener != null) {
+//            return onSelectChangeListener.isSelected(item, position);
+//        }
+//        return false;
+//    }
 
 
     public EasyRecyclerLayout<T> setItemRes(@LayoutRes final int res) {
@@ -423,8 +450,8 @@ public class EasyRecyclerLayout<T> extends FrameLayout
         return this;
     }
 
-    public EasyRecyclerLayout<T> setFooterView(@LayoutRes int layoutRes, IEasy.OnCreateFooterListener callback) {
-        easyRecyclerView.setFooterView(layoutRes, callback);
+    public EasyRecyclerLayout<T> setFooterView(@LayoutRes int layoutRes, IEasy.OnBindFooterListener listener) {
+        easyRecyclerView.setFooterView(layoutRes, listener);
         return this;
     }
 
@@ -622,10 +649,10 @@ public class EasyRecyclerLayout<T> extends FrameLayout
             return;
         }
         refreshLayout.setEnabled(false);
-        easyRecyclerView.getAdapter().setLoadMoreEnabled(false);
+//        easyRecyclerView.getAdapter().setLoadMoreEnabled(false);
         selectMode = true;
 //        easyRecyclerView.notifyDataSetChanged();
-        notifyVisibleItemChanged();
+        notifyVisibleItemChanged(PAYLOAD_CHECK_BOX);
         onSelectModeChange(selectMode);
     }
 
@@ -634,11 +661,11 @@ public class EasyRecyclerLayout<T> extends FrameLayout
             return;
         }
         refreshLayout.setEnabled(enableSwipeRefresh);
-        easyRecyclerView.getAdapter().setLoadMoreEnabled(true);
+//        easyRecyclerView.getAdapter().setLoadMoreEnabled(true);
         selectMode = false;
         selectedList.clear();
 //        easyRecyclerView.notifyDataSetChanged();
-        notifyVisibleItemChanged();
+        notifyVisibleItemChanged(PAYLOAD_CHECK_BOX);
         onSelectModeChange(selectMode);
     }
 

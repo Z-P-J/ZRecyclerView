@@ -41,6 +41,10 @@ public interface IEasy {
         void onBindHeader(EasyViewHolder holder);
     }
 
+    interface OnBindFooterListener {
+        void onBindFooter(EasyViewHolder holder);
+    }
+
     interface OnCreateFooterListener {
         void onCreateFooterView(View view);
     }
@@ -66,6 +70,7 @@ public interface IEasy {
         void onSelectChange(List<T> list, int position, boolean isChecked);
         void onSelectAll();
         void onUnSelectAll();
+//        boolean isSelected(T item, int position);
     }
 
 }
