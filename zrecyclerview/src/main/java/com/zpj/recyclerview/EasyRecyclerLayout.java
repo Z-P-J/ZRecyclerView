@@ -709,7 +709,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
                 notifyItemChanged(index, PAYLOAD_CHECK_BOX);
                 return onSelected(position);
             } else {
-                onSelectMax(maxSelectCount);
+                onSelectOverMax(maxSelectCount);
                 return false;
             }
         }
