@@ -766,6 +766,10 @@ public class EasyRecyclerLayout<T> extends FrameLayout
         return new ArrayList<>(selectedList);
     }
 
+    public void clearSelectedPosition() {
+        selectedList.clear();
+    }
+
     public void addSelectedPosition(int position) {
         if (!selectedList.contains(position)) {
             selectedList.add(position);

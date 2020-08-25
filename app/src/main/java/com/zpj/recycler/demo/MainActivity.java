@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
 //                    }
 //                })
                 .setEnableSelection(true)
-                .setMaxSelectCount(1)
+                .setMaxSelectCount(3)
                 .setEnableSwipeRefresh(true)
 //                .setEnableLoadMore(true)
                 .setEnableLoadMore(true)
