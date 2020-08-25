@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
 //                    }
 //                })
                 .setEnableSelection(true)
+                .setMaxSelectCount(1)
                 .setEnableSwipeRefresh(true)
 //                .setEnableLoadMore(true)
                 .setEnableLoadMore(true)
@@ -67,6 +68,11 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onUnSelectAll() {
 
+                    }
+
+                    @Override
+                    public void onSelectOverMax(int maxSelectCount) {
+                        Toast.makeText(MainActivity.this, "最多只能选择" + maxSelectCount + "项", Toast.LENGTH_SHORT).show();
                     }
 
 //                    @Override
@@ -117,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
                 .onItemLongClick(new IEasy.OnItemLongClickListener<Integer>() {
                     @Override
                     public boolean onLongClick(EasyViewHolder holder, View view, Integer data) {
-                        recyclerLayout.getSelectedSet().add(holder.getRealPosition());
+                        recyclerLayout.addSelectedPosition(holder.getRealPosition());
                         recyclerLayout.enterSelectMode();
                         return true;
                     }

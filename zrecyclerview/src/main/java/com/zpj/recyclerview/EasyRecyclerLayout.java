@@ -11,6 +11,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,7 +39,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
 
     private static final String PAYLOAD_CHECK_BOX = "easy_refresh_check_box";
 
-    private final Set<Integer> selectedList = new ArraySet<>();
+    private final List<Integer> selectedList = new ArrayList<>();
 
     private IEasy.OnItemClickListener<T> onItemClickListener;
     private IEasy.OnItemLongClickListener<T> onItemLongClickListener;
@@ -55,6 +56,8 @@ public class EasyRecyclerLayout<T> extends FrameLayout
     private SwipeRefreshLayout refreshLayout;
 
     private int itemRes = -1;
+
+    private int maxSelectCount = Integer.MAX_VALUE;
 
     private boolean showCheckBox = false;
 
@@ -182,11 +185,13 @@ public class EasyRecyclerLayout<T> extends FrameLayout
                 @Override
                 public void onClick(View v) {
                     if (checkBox.isChecked()) {
-                        checkBox.setChecked(false, true);
-                        unSelect(holder.getRealPosition());
+                        if (unSelect(holder.getRealPosition())) {
+                            checkBox.setChecked(false, true);
+                        }
                     } else {
-                        checkBox.setChecked(true, true);
-                        onSelected(holder.getRealPosition());
+                        if (onSelected(holder.getRealPosition())) {
+                            checkBox.setChecked(true, true);
+                        }
                     }
                 }
             });
@@ -208,11 +213,13 @@ public class EasyRecyclerLayout<T> extends FrameLayout
                 Log.d(TAG, "shouldIgnoreClick selectMode=" + selectMode);
                 if (selectMode) {
                     if (checkBox.isChecked()) {
-                        checkBox.setChecked(false, true);
-                        unSelect(holder.getRealPosition());
+                        if (unSelect(holder.getRealPosition())) {
+                            checkBox.setChecked(false, true);
+                        }
                     } else {
-                        checkBox.setChecked(true, true);
-                        onSelected(holder.getRealPosition());
+                        if (onSelected(holder.getRealPosition())) {
+                            checkBox.setChecked(true, true);
+                        }
                     }
 //                            easyRecyclerView.notifyItemChanged(holder.getHolderPosition());
                     return true;
@@ -286,6 +293,13 @@ public class EasyRecyclerLayout<T> extends FrameLayout
     public void onUnSelectAll() {
         if (onSelectChangeListener != null) {
             onSelectChangeListener.onUnSelectAll();
+        }
+    }
+
+    @Override
+    public void onSelectOverMax(int maxSelectCount) {
+        if (onSelectChangeListener != null) {
+            onSelectChangeListener.onSelectOverMax(maxSelectCount);
         }
     }
 
@@ -391,6 +405,13 @@ public class EasyRecyclerLayout<T> extends FrameLayout
 
     public EasyRecyclerLayout<T> setEnableSelection(boolean enableSelection) {
         this.enableSelection = enableSelection;
+        return this;
+    }
+
+    public EasyRecyclerLayout<T> setMaxSelectCount(int maxSelectCount) {
+        if (maxSelectCount > 0) {
+            this.maxSelectCount = maxSelectCount;
+        }
         return this;
     }
 
@@ -680,24 +701,39 @@ public class EasyRecyclerLayout<T> extends FrameLayout
         onSelectChange(easyRecyclerView.getData(), position, isChecked);
     }
 
-    private void onSelected(int position) {
+    private boolean onSelected(int position) {
+        if (selectedList.size() >= maxSelectCount) {
+            if (maxSelectCount == 1) {
+                int index = selectedList.get(0);
+                unSelect(index);
+                notifyItemChanged(index, PAYLOAD_CHECK_BOX);
+                return onSelected(position);
+            } else {
+                onSelectMax(maxSelectCount);
+                return false;
+            }
+        }
         if (!selectedList.contains(position)) {
             selectedList.add(position);
             onSelectChange(position, true);
             if (selectedList.size() == easyRecyclerView.getData().size()) {
                 onSelectAll();
             }
+            return true;
         }
+        return false;
     }
 
-    private void unSelect(int position) {
+    private boolean unSelect(int position) {
         if (selectedList.contains(position)) {
             selectedList.remove(Integer.valueOf(position));
             onSelectChange(position, false);
             if (selectedList.size() == 0) {
                 onUnSelectAll();
             }
+            return true;
         }
+        return false;
     }
 
     public void selectAll() {
@@ -706,8 +742,10 @@ public class EasyRecyclerLayout<T> extends FrameLayout
         }
         selectedList.clear();
         for (int i = 0; i < easyRecyclerView.getAdapter().getItemCount(); i++) {
-            selectedList.add(i);
-            onSelectChange(i, true);
+            if (!selectedList.contains(i)) {
+                selectedList.add(i);
+                onSelectChange(i, true);
+            }
 //            notifyItemChanged(i);
         }
         notifyVisibleItemChanged();
@@ -724,8 +762,14 @@ public class EasyRecyclerLayout<T> extends FrameLayout
         onUnSelectAll();
     }
 
-    public Set<Integer> getSelectedSet() {
-        return selectedList;
+    public List<Integer> getSelectedPositionList() {
+        return new ArrayList<>(selectedList);
+    }
+
+    public void addSelectedPosition(int position) {
+        if (!selectedList.contains(position)) {
+            selectedList.add(position);
+        }
     }
 
     public int getSelectedCount() {

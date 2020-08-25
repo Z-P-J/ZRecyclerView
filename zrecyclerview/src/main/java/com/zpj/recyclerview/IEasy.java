@@ -70,6 +70,7 @@ public interface IEasy {
         void onSelectChange(List<T> list, int position, boolean isChecked);
         void onSelectAll();
         void onUnSelectAll();
+        void onSelectOverMax(int maxSelectCount);
 //        boolean isSelected(T item, int position);
     }
 
