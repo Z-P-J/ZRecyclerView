@@ -4,152 +4,51 @@ import android.annotation.SuppressLint;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 
-import com.zpj.recyclerview.R;
-import com.zpj.widget.statelayout.StateLayout;
-
 import java.util.ArrayList;
 import java.util.List;
 
-public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
+public class MultiRecyclerViewWrapper {
 
     protected final RecyclerView recyclerView;
 
+    protected List<MultiData> list;
+
+    protected EasyStateAdapter<MultiData> easyAdapter;
     protected RecyclerView.LayoutManager layoutManager;
-
-    protected EasyStateAdapter<T> easyAdapter;
-
-    protected List<T> list;
-
-    protected int itemRes = -1;
 
     protected View headerView;
     protected IEasy.OnBindHeaderListener onBindHeaderListener;
     protected IEasy.OnBindFooterListener onBindFooterListener;
+    protected IEasy.OnLoadRetryListener onLoadRetryListener;
     protected View footerView;
 
-    protected boolean enableLoadMore = false;
+    private int maxSpan = 4;
 
-    protected IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener;
-    protected IEasy.OnGetChildLayoutIdListener onGetChildLayoutIdListener;
-    protected IEasy.OnBindViewHolderListener<T> onBindViewHolderListener;
-    protected IEasy.OnCreateViewHolderListener<T> onCreateViewHolder;
-    protected IEasy.OnLoadMoreListener onLoadMoreListener;
-    protected IEasy.OnLoadRetryListener onLoadRetryListener;
 
-    protected final SparseArray<IEasy.OnClickListener<T>> onClickListeners = new SparseArray<>();
-    protected final SparseArray<IEasy.OnLongClickListener<T>> onLongClickListeners = new SparseArray<>();
-    protected IEasy.OnItemClickListener<T> onItemClickListener;
-    protected IEasy.OnItemLongClickListener<T> onItemLongClickListener;
-
-    public EasyRecyclerView(@NonNull RecyclerView recyclerView) {
+    public MultiRecyclerViewWrapper(@NonNull RecyclerView recyclerView) {
         this.recyclerView = recyclerView;
     }
 
-    public EasyRecyclerView<T> setItemAnimator(RecyclerView.ItemAnimator animator) {
-        recyclerView.setItemAnimator(animator);
-        return this;
-    }
-
-    public EasyRecyclerView<T> setItemRes(int res) {
-        this.itemRes = res;
-        return this;
-    }
-
-    public EasyRecyclerView<T> setData(List<T> list) {
-        this.list = list;
-        return this;
-    }
-
-    public EasyRecyclerView<T> setLayoutManager(RecyclerView.LayoutManager layoutManager) {
-        this.layoutManager = layoutManager;
-        return this;
-    }
-
-    public EasyRecyclerView<T> addItemDecoration(RecyclerView.ItemDecoration decor) {
-        this.recyclerView.addItemDecoration(decor);
-        return this;
-    }
-
-    public EasyRecyclerView<T> addItemDecoration(RecyclerView.ItemDecoration decor, int index) {
-        this.recyclerView.addItemDecoration(decor, index);
-        return this;
-    }
-
-    public EasyRecyclerView<T> setItemViewCacheSize(int size) {
-        recyclerView.setItemViewCacheSize(size);
-        return this;
-    }
-
-    public EasyRecyclerView<T> setHasFixedSize(boolean hasFixedSize) {
-        recyclerView.setHasFixedSize(hasFixedSize);
-        return this;
-    }
-
-    public EasyRecyclerView<T> setLayoutFrozen(boolean layoutFrozen) {
-        recyclerView.setLayoutFrozen(layoutFrozen);
-        return this;
-    }
-
-    public EasyRecyclerView<T> setOnFlingListener(RecyclerView.OnFlingListener listener) {
-        recyclerView.setOnFlingListener(listener);
-        return this;
-    }
-
-    public EasyRecyclerView<T> setRecyclerListener(RecyclerView.RecyclerListener listener) {
-        recyclerView.setRecyclerListener(listener);
-        return this;
-    }
-
-    public EasyRecyclerView<T> setScrollingTouchSlop(int slop) {
-        recyclerView.setScrollingTouchSlop(slop);
-        return this;
-    }
-
-    public EasyRecyclerView<T> setEdgeEffectFactory(RecyclerView.EdgeEffectFactory factory) {
-        recyclerView.setEdgeEffectFactory(factory);
-        return this;
-    }
-
-    public EasyRecyclerView<T> setRecycledViewPool(RecyclerView.RecycledViewPool pool) {
-        recyclerView.setRecycledViewPool(pool);
-        return this;
-    }
-
-    public EasyRecyclerView<T> setNestedScrollingEnabled(boolean enabled) {
-        recyclerView.setNestedScrollingEnabled(enabled);
-        return this;
-    }
-
-    public EasyRecyclerView<T> setPreserveFocusAfterLayout(boolean preserveFocusAfterLayout) {
-        recyclerView.setPreserveFocusAfterLayout(preserveFocusAfterLayout);
-        return this;
-    }
-
-    public EasyRecyclerView<T> setViewCacheExtension(RecyclerView.ViewCacheExtension extension) {
-        recyclerView.setViewCacheExtension(extension);
-        return this;
-    }
-
-    public EasyRecyclerView<T> setChildDrawingOrderCallback(RecyclerView.ChildDrawingOrderCallback callback) {
-        recyclerView.setChildDrawingOrderCallback(callback);
-        return this;
-    }
-
-    public EasyRecyclerView<T> setHeaderView(View headerView) {
+    public MultiRecyclerViewWrapper setHeaderView(View headerView) {
         this.headerView = headerView;
         return this;
     }
 
+    public MultiRecyclerViewWrapper setData(List<MultiData> list) {
+        this.list = list;
+        return this;
+    }
+
     @SuppressLint("ResourceType")
-    public EasyRecyclerView<T> setHeaderView(@LayoutRes int layoutRes, IEasy.OnBindHeaderListener l) {
+    public MultiRecyclerViewWrapper setHeaderView(@LayoutRes int layoutRes, IEasy.OnBindHeaderListener l) {
         if (layoutRes > 0 && l != null) {
             this.headerView = LayoutInflater.from(recyclerView.getContext()).inflate(layoutRes, null, false);
             onBindHeaderListener = l;
@@ -157,114 +56,33 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
         return this;
     }
 
-    public EasyRecyclerView<T> setFooterView(View headerView) {
+    public MultiRecyclerViewWrapper setFooterView(View headerView) {
         this.footerView = headerView;
         return this;
     }
 
-    public EasyRecyclerView<T> setFooterView(@LayoutRes int layoutRes, IEasy.OnBindFooterListener listener) {
+    public MultiRecyclerViewWrapper setFooterView(@LayoutRes int layoutRes, IEasy.OnBindFooterListener listener) {
         this.footerView = LayoutInflater.from(recyclerView.getContext()).inflate(layoutRes, null, false);
         onBindFooterListener = listener;
         return this;
     }
 
-    public EasyRecyclerView<T> onLoadMore(IEasy.OnLoadMoreListener onLoadMoreListener) {
-        this.onLoadMoreListener = onLoadMoreListener;
-        this.enableLoadMore = true;
-        return this;
-    }
-
-    public EasyRecyclerView<T> setOnLoadRetryListener(IEasy.OnLoadRetryListener onLoadRetryListener) {
+    public MultiRecyclerViewWrapper setOnLoadRetryListener(IEasy.OnLoadRetryListener onLoadRetryListener) {
         this.onLoadRetryListener = onLoadRetryListener;
         return this;
     }
 
-    public EasyRecyclerView<T> onGetChildViewType(IEasy.OnGetChildViewTypeListener<T> listener) {
-        this.onGetChildViewTypeListener = listener;
-        return this;
-    }
-
-    public EasyRecyclerView<T> onGetChildLayoutId(IEasy.OnGetChildLayoutIdListener listener) {
-        this.onGetChildLayoutIdListener = listener;
-        return this;
-    }
-
-    public EasyRecyclerView<T> onBindViewHolder(IEasy.OnBindViewHolderListener<T> callback) {
-        this.onBindViewHolderListener = callback;
-        return this;
-    }
-
-    public EasyRecyclerView<T> onCreateViewHolder(IEasy.OnCreateViewHolderListener<T> callback) {
-        this.onCreateViewHolder = callback;
-        return this;
-    }
-
-    public IEasy.OnCreateViewHolderListener<T> getOnCreateViewHolder() {
-        return onCreateViewHolder;
-    }
-
-    public EasyRecyclerView<T> addOnScrollListener(final RecyclerView.OnScrollListener onScrollListener) {
-        recyclerView.addOnScrollListener(onScrollListener);
-        return this;
-    }
-
-    public EasyRecyclerView<T> onViewClick(@IdRes int id, IEasy.OnClickListener<T> listener) {
-        onClickListeners.put(id, listener);
-        return this;
-    }
-
-    public EasyRecyclerView<T> onViewClick(IEasy.OnClickListener<T> listener, int... ids) {
-        for (int id : ids) {
-            onClickListeners.put(id, listener);
-        }
-        return this;
-    }
-
-    public EasyRecyclerView<T> onViewLongClick(@IdRes int id, IEasy.OnLongClickListener<T> listener) {
-        onLongClickListeners.put(id, listener);
-        return this;
-    }
-
-    public EasyRecyclerView<T> onViewLongClick(IEasy.OnLongClickListener<T> listener, int... ids) {
-        for (int id : ids) {
-            onLongClickListeners.put(id, listener);
-        }
-        return this;
-    }
-
-    public EasyRecyclerView<T> onItemClick(IEasy.OnItemClickListener<T> listener) {
-        this.onItemClickListener = listener;
-        return this;
-    }
-
-    public EasyRecyclerView<T> onItemLongClick(IEasy.OnItemLongClickListener<T> listener) {
-        this.onItemLongClickListener = listener;
-        return this;
-    }
-
-    public EasyRecyclerView<T> setLoadMoreEnabled(boolean enabled) {
-        this.enableLoadMore = enabled;
+    public MultiRecyclerViewWrapper setMaxSpan(int maxSpan) {
+        this.maxSpan = maxSpan;
         return this;
     }
 
     public void build() {
-//        if (itemRes <= 0) {
-//            throw new RuntimeException("You must set the itemRes!");
-//        }
         if (list == null) {
             list = new ArrayList<>(0);
         }
-        if (layoutManager == null) {
-            layoutManager = new LinearLayoutManager(recyclerView.getContext());
-        }
-        easyAdapter = new EasyStateAdapter<>(
-                recyclerView.getContext(), list,
-                itemRes, onGetChildViewTypeListener,
-                onGetChildLayoutIdListener, onCreateViewHolder,
-                onBindViewHolderListener, onItemClickListener,
-                onItemLongClickListener, onClickListeners,
-                onLongClickListeners, onLoadRetryListener
-        );
+        layoutManager = new GridLayoutManager(recyclerView.getContext(), maxSpan);
+        easyAdapter = new MultiAdapter(recyclerView.getContext(), list, onLoadRetryListener);
         if (headerView != null) {
             easyAdapter.setHeaderView(headerView);
             easyAdapter.setOnBindHeaderListener(onBindHeaderListener);
@@ -272,15 +90,15 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
         if (footerView != null) {
             easyAdapter.setFooterView(footerView);
             easyAdapter.setOnBindFooterListener(onBindFooterListener);
-        } else if (onLoadMoreListener != null && enableLoadMore) {
+        } else {
             footerView = LayoutInflater.from(recyclerView.getContext()).inflate(R.layout.easy_base_footer, null, false);
             easyAdapter.setFooterView(footerView);
             easyAdapter.setOnBindFooterListener(onBindFooterListener);
         }
-        easyAdapter.setOnLoadMoreListener(this);
-        easyAdapter.setLoadMoreEnabled(onLoadMoreListener != null && enableLoadMore);
+        easyAdapter.setLoadMoreEnabled(true);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(easyAdapter);
+        easyAdapter.showContent();
     }
 
     /**
@@ -502,7 +320,7 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
         recyclerView.smoothScrollToPosition(position);
     }
 
-    public EasyStateAdapter<T> getAdapter() {
+    public EasyStateAdapter<MultiData> getAdapter() {
         return easyAdapter;
     }
 
@@ -518,15 +336,9 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
         recyclerView.post(runnable);
     }
 
-    public List<T> getData() {
+    public List<MultiData> getData() {
         return list;
     }
 
-    @Override
-    public boolean onLoadMore(EasyAdapter.Enabled enabled, int currentPage) {
-        if (onLoadMoreListener != null) {
-            return onLoadMoreListener.onLoadMore(enabled, currentPage);
-        }
-        return false;
-    }
+
 }

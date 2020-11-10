@@ -2,14 +2,13 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingTop="16dp"
-    android:paddingBottom="16dp"
+    android:padding="16dp"
     >
 
     <LinearLayout
         android:id="@+id/ll_container_progress"
         android:layout_width="match_parent"
-        android:layout_height="32dp"
+        android:layout_height="wrap_content"
         android:gravity="center"
         >
 
@@ -18,17 +17,18 @@
             android:id="@+id/progress_bar"
             style="@style/Widget.AppCompat.ProgressBar"
             android:layout_gravity="center"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:textColor="@android:color/black"
+            android:textColor="#999999"
             android:layout_marginStart="8dp"
             android:text="加载中..."
+            android:textSize="16sp"
             />
 
     </LinearLayout>
@@ -36,14 +36,17 @@
     <TextView
         android:id="@+id/tv_msg"
         android:layout_width="match_parent"
-        android:layout_height="32dp"
+        android:layout_height="wrap_content"
         android:text="@string/easy_has_no_more"
         android:maxLines="2"
         android:ellipsize="end"
         android:paddingHorizontal="16dp"
         android:layout_gravity="center"
         android:gravity="center"
+        android:textColor="#999999"
+        android:textSize="16sp"
         android:visibility="gone"
+        android:minHeight="24dp"
         />
 
 </FrameLayout>

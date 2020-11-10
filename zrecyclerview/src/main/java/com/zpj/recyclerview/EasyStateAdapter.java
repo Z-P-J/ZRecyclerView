@@ -22,14 +22,14 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
 
     private static final String TAG = "EasyStateAdapter";
 
-    private static final int TYPE_STATE = -3;
+    protected static final int TYPE_STATE = -3;
 
-    private final Context context;
+    protected final Context context;
 
-    private EasyState state = STATE_CONTENT;
-    private EasyState preState = STATE_CONTENT;
+    protected EasyState state = STATE_CONTENT;
+    protected EasyState preState = STATE_CONTENT;
 
-    private final StateLayout stateLayout;
+    protected final StateLayout stateLayout;
 
     EasyStateAdapter(final Context context, List<T> list, int itemRes,
                      IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener,

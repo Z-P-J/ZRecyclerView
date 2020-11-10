@@ -21,30 +21,30 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
     private static final String TAG = "EasyAdapter";
 
-    private static final int TYPE_HEADER = -1;
-    private static final int TYPE_CHILD = 0;
-    private static final int TYPE_FOOTER = -2;
+    protected static final int TYPE_HEADER = -1;
+    protected static final int TYPE_CHILD = 0;
+    protected static final int TYPE_FOOTER = -2;
 
 
     protected final List<T> list;
 
-    private int itemRes;
+    protected int itemRes;
 
     protected int currentPage = -1;
 
     protected View headerView;
     protected View footerView;
 
-    private final IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener;
-    private final IEasy.OnGetChildLayoutIdListener onGetChildLayoutIdListener;
-    private final IEasy.OnBindViewHolderListener<T> onBindViewHolderListener;
-    private final IEasy.OnCreateViewHolderListener<T> onCreateViewHolder;
-    private IEasy.OnBindHeaderListener onBindHeaderListener;
-    private IEasy.OnBindFooterListener onBindFooterListener;
-    private final IEasy.OnItemClickListener<T> onItemClickListener;
-    private final IEasy.OnItemLongClickListener<T> onItemLongClickListener;
-    private final SparseArray<IEasy.OnClickListener<T>> onClickListeners;
-    private final SparseArray<IEasy.OnLongClickListener<T>> onLongClickListeners;
+    protected final IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener;
+    protected final IEasy.OnGetChildLayoutIdListener onGetChildLayoutIdListener;
+    protected final IEasy.OnBindViewHolderListener<T> onBindViewHolderListener;
+    protected final IEasy.OnCreateViewHolderListener<T> onCreateViewHolder;
+    protected IEasy.OnBindHeaderListener onBindHeaderListener;
+    protected IEasy.OnBindFooterListener onBindFooterListener;
+    protected final IEasy.OnItemClickListener<T> onItemClickListener;
+    protected final IEasy.OnItemLongClickListener<T> onItemLongClickListener;
+    protected final SparseArray<IEasy.OnClickListener<T>> onClickListeners;
+    protected final SparseArray<IEasy.OnLongClickListener<T>> onLongClickListeners;
 
     EasyAdapter(List<T> list, int itemRes,
                 IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener,
@@ -251,6 +251,10 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         super.onAttachedToRecyclerView(recyclerView);
         recyclerView.addOnScrollListener(mOnScrollListener);
         RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
+        initLayoutManagerOnAttachedToRecyclerView(manager);
+    }
+
+    protected void initLayoutManagerOnAttachedToRecyclerView(RecyclerView.LayoutManager manager) {
         if (manager instanceof GridLayoutManager) {
             final GridLayoutManager gridManager = ((GridLayoutManager) manager);
             gridManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
@@ -347,7 +351,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         }
     }
 
-    private boolean canScroll() {
+    protected boolean canScroll() {
         if (mRecyclerView == null) {
             throw new NullPointerException("mRecyclerView is null, you should setAdapter(recyclerAdapter);");
         }
@@ -363,7 +367,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         return footerView != null && position == getItemCount() - 1;
     }
 
-    private int getRealPosition(RecyclerView.ViewHolder holder) {
+    protected int getRealPosition(RecyclerView.ViewHolder holder) {
         int position = holder.getLayoutPosition();
         return headerView == null ? position : position - 1;
     }
@@ -403,8 +407,8 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         setLoadMoreEnabled(true);
     }
 
-    private RecyclerView mRecyclerView;
-    private IEasy.OnLoadMoreListener mOnLoadMoreListener;
+    protected RecyclerView mRecyclerView;
+    protected IEasy.OnLoadMoreListener mOnLoadMoreListener;
 
     protected Enabled mEnabled;
     protected boolean mIsLoading;
@@ -517,39 +521,35 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         }
     };
 
-    private final RecyclerView.OnScrollListener mOnScrollListener = new RecyclerView.OnScrollListener() {
-        @Override
-        public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-            super.onScrollStateChanged(recyclerView, newState);
+    protected void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+        Log.d(TAG, "onScrollStateChanged getLoadMoreEnabled=" + getLoadMoreEnabled() + "  mIsLoading=" + mIsLoading);
+        if (footerView == null || !getLoadMoreEnabled() || mIsLoading || mOnLoadMoreListener == null) {
+            return;
+        }
+        Log.d(TAG, "onScrollStateChanged newState=" + newState);
 
-            Log.d(TAG, "onScrollStateChanged getLoadMoreEnabled=" + getLoadMoreEnabled() + "  mIsLoading=" + mIsLoading);
-            if (footerView == null || !getLoadMoreEnabled() || mIsLoading || mOnLoadMoreListener == null) {
-                return;
-            }
-            Log.d(TAG, "onScrollStateChanged newState=" + newState);
+        if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+            boolean isBottom;
+            RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+            if (layoutManager instanceof LinearLayoutManager) {
+                isBottom = ((LinearLayoutManager) layoutManager).findLastVisibleItemPosition()
+                        >= layoutManager.getItemCount() - 1;
+            } else if (layoutManager instanceof StaggeredGridLayoutManager) {
+                StaggeredGridLayoutManager sgLayoutManager = (StaggeredGridLayoutManager) layoutManager;
+                int[] into = new int[sgLayoutManager.getSpanCount()];
+                sgLayoutManager.findLastVisibleItemPositions(into);
 
-            if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                boolean isBottom;
-                RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
-                if (layoutManager instanceof LinearLayoutManager) {
-                    isBottom = ((LinearLayoutManager) layoutManager).findLastVisibleItemPosition()
-                            >= layoutManager.getItemCount() - 1;
-                } else if (layoutManager instanceof StaggeredGridLayoutManager) {
-                    StaggeredGridLayoutManager sgLayoutManager = (StaggeredGridLayoutManager) layoutManager;
-                    int[] into = new int[sgLayoutManager.getSpanCount()];
-                    sgLayoutManager.findLastVisibleItemPositions(into);
-
-                    isBottom = last(into) >= layoutManager.getItemCount() - 1;
-                } else {
+                isBottom = last(into) >= layoutManager.getItemCount() - 1;
+            } else {
 //                    isBottom = ((GridLayoutManager) layoutManager).findLastVisibleItemPosition()
 //                            >= layoutManager.getItemCount() - 1;
-                    isBottom = false;
-                }
-                Log.d(TAG, "onScrollStateChanged isBottom=" + isBottom);
+                isBottom = false;
+            }
+            Log.d(TAG, "onScrollStateChanged isBottom=" + isBottom);
 
-                if (isBottom) {
-                    mIsLoading = true;
-                    onLoadMore();
+            if (isBottom) {
+                mIsLoading = true;
+                onLoadMore();
 //                    ProgressBar progressBar = footerView.findViewById(R.id.progress_bar);
 //                    TextView tvMsg = footerView.findViewById(R.id.tv_msg);
 //                    if (list.isEmpty() || currentPage < -1) {
@@ -571,8 +571,25 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 //                            tvMsg.setVisibility(View.VISIBLE);
 //                        }
 //                    }
-                }
             }
+        }
+    }
+
+    protected int last(int[] lastPositions) {
+        int last = lastPositions[0];
+        for (int value : lastPositions) {
+            if (value > last) {
+                last = value;
+            }
+        }
+        return last;
+    }
+
+    private final RecyclerView.OnScrollListener mOnScrollListener = new RecyclerView.OnScrollListener() {
+        @Override
+        public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+            super.onScrollStateChanged(recyclerView, newState);
+            EasyAdapter.this.onScrollStateChanged(recyclerView, newState);
         }
 
         @Override
@@ -580,15 +597,6 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             super.onScrolled(recyclerView, dx, dy);
         }
 
-        private int last(int[] lastPositions) {
-            int last = lastPositions[0];
-            for (int value : lastPositions) {
-                if (value > last) {
-                    last = value;
-                }
-            }
-            return last;
-        }
     };
 
     private RecyclerView.AdapterDataObserver mObserver = new RecyclerView.AdapterDataObserver() {

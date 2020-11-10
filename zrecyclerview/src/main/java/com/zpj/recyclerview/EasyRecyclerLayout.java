@@ -409,7 +409,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
     }
 
     public EasyRecyclerLayout<T> setMaxSelectCount(int maxSelectCount) {
-        if (maxSelectCount > 0) {
+        if (maxSelectCount >= 0) {
             this.maxSelectCount = maxSelectCount;
         }
         return this;
@@ -740,8 +740,13 @@ public class EasyRecyclerLayout<T> extends FrameLayout
         if (!selectMode && showCheckBox) {
             selectMode = true;
         }
-        selectedList.clear();
+        if (maxSelectCount == Integer.MAX_VALUE) {
+            selectedList.clear();
+        }
         for (int i = 0; i < easyRecyclerView.getAdapter().getItemCount(); i++) {
+            if (selectedList.size() >= maxSelectCount) {
+                break;
+            }
             if (!selectedList.contains(i)) {
                 selectedList.add(i);
                 onSelectChange(i, true);

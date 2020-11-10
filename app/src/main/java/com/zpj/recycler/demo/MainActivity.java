@@ -1,5 +1,6 @@
 package com.zpj.recycler.demo;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -117,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
                 .onItemClick(new IEasy.OnItemClickListener<Integer>() {
                     @Override
                     public void onClick(EasyViewHolder holder, View view, Integer data) {
+                        startActivity(new Intent(MainActivity.this, TestActivity.class));
                         Toast.makeText(MainActivity.this, "第" + data + "个", Toast.LENGTH_SHORT).show();
                     }
                 })

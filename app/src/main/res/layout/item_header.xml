@@ -6,10 +6,10 @@
     android:layout_height="wrap_content"
     android:padding="16dp"
     android:text="1234"
-    android:textSize="16sp"
+    android:textSize="24sp"
     android:textStyle="bold"
-    android:textColor="@android:color/black"
-    android:background="?attr/selectableItemBackground"
+    android:textColor="@android:color/white"
+    android:background="@color/colorPrimary"
     >
 
 </TextView>
