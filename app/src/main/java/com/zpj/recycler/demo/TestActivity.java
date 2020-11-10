@@ -7,6 +7,7 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Toast;
 
@@ -30,7 +31,32 @@ public class TestActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test);
-        MultiRecyclerView recyclerView = findViewById(R.id.recycler_view);
+//        MultiRecyclerView recyclerView = findViewById(R.id.recycler_view);
+//
+//        List<MultiData> list = new ArrayList<>();
+//        list.add(new HeaderData("测试"));
+//        list.add(new StringData());
+//        list.add(new HeaderData("标题1"));
+//        list.add(new RecyclerData());
+//        list.add(new HeaderData("标题2"));
+//        list.add(new IntegerData());
+//        list.add(new HeaderData("标题3"));
+//        list.add(new StringData());
+//
+//        list.add(new IntegerData());
+//        list.add(new IntegerData());
+//        list.add(new IntegerData());
+//        list.add(new IntegerData());
+//        list.add(new IntegerData());
+//        list.add(new IntegerData());
+//        list.add(new IntegerData());
+//        list.add(new IntegerData());
+//        list.add(new IntegerData());
+//        list.add(new IntegerData());
+//        list.add(new IntegerData());
+//
+//        recyclerView.init(list);
+
 
         List<MultiData> list = new ArrayList<>();
         list.add(new HeaderData("测试"));
@@ -54,35 +80,11 @@ public class TestActivity extends AppCompatActivity {
         list.add(new IntegerData());
         list.add(new IntegerData());
 
-        recyclerView.init(list);
-
-
-//        List<MultiData> list = new ArrayList<>();
-//        list.add(new HeaderData("测试"));
-//        list.add(new StringData());
-//        list.add(new HeaderData("标题1"));
-//        list.add(new RecyclerData());
-//        list.add(new HeaderData("标题2"));
-//        list.add(new IntegerData());
-//        list.add(new HeaderData("标题3"));
-//        list.add(new StringData());
-//
-//        list.add(new IntegerData());
-//        list.add(new IntegerData());
-//        list.add(new IntegerData());
-//        list.add(new IntegerData());
-//        list.add(new IntegerData());
-//        list.add(new IntegerData());
-//        list.add(new IntegerData());
-//        list.add(new IntegerData());
-//        list.add(new IntegerData());
-//        list.add(new IntegerData());
-//        list.add(new IntegerData());
-//
-//        MultiRecyclerViewWrapper wrapper = new MultiRecyclerViewWrapper((RecyclerView) findViewById(R.id.recycler_view));
-//        wrapper.setData(list)
-//                .setMaxSpan(4)
-//                .build();
+        MultiRecyclerViewWrapper wrapper = new MultiRecyclerViewWrapper((RecyclerView) findViewById(R.id.recycler_view));
+        wrapper.setData(list)
+                .setHeaderView(LayoutInflater.from(this).inflate(R.layout.item_header, null, false))
+                .setMaxSpan(4)
+                .build();
 
     }
 

@@ -244,6 +244,9 @@ public class MultiAdapter extends EasyStateAdapter<MultiData> {
                     if (isHeaderPosition(position) || isFooterPosition(position)) {
                         return gridManager.getSpanCount();
                     }
+                    if (headerView != null) {
+                        position--;
+                    }
                     int count = 0;
                     for (MultiData data : list) {
                         if (position >= count && position < count + data.getCount()) {
