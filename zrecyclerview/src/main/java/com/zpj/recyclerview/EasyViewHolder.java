@@ -1,5 +1,6 @@
 package com.zpj.recyclerview;
 
+import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -28,6 +29,18 @@ public final class EasyViewHolder extends RecyclerView.ViewHolder
         this.itemView = view;
         itemView.setOnClickListener(this);
         itemView.setOnLongClickListener(this);
+    }
+
+    public boolean post(Runnable runnable) {
+        return this.itemView.post(runnable);
+    }
+
+    public boolean postDelayed(Runnable action, long delayMillis) {
+        return this.itemView.postDelayed(action, delayMillis);
+    }
+
+    public Context getContext() {
+        return this.itemView.getContext();
     }
 
     void setTag(Object tag) {

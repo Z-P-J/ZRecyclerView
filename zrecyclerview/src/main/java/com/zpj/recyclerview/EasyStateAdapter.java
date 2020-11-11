@@ -319,5 +319,4 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
         notifyDataSetChanged();
     }
 
-
 }

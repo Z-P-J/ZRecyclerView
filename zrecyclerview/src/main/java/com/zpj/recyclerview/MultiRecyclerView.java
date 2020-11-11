@@ -26,16 +26,16 @@ public class MultiRecyclerView extends RecyclerView {
 
     }
 
-    public void init(List<MultiData> list) {
-        int max = 1;
-        for (MultiData data : list) {
-            if (data.getSpanCount() > max) {
-                max = data.getSpanCount();
-            }
-        }
+    public void init(List<MultiData> list, int maxSpan) {
+//        int max = 1;
+//        for (MultiData data : list) {
+//            if (data.getSpanCount() > max) {
+//                max = data.getSpanCount();
+//            }
+//        }
 
         recyclerView.setData(list)
-                .setMaxSpan(max)
+                .setMaxSpan(maxSpan)
                 .build();
 
 

@@ -1,6 +1,7 @@
 package com.zpj.recyclerview;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -676,5 +677,129 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             mIsLoading = false;
         }
     };
+
+    public void post(Runnable runnable) {
+        if (mRecyclerView != null) {
+            mRecyclerView.post(runnable);
+        }
+    }
+
+    public void postDelayed(Runnable runnable, long delayMillis) {
+        if (mRecyclerView != null) {
+            mRecyclerView.postDelayed(runnable, delayMillis);
+        }
+    }
+
+
+    public void postNotifyDataSetChanged() {
+        if (mRecyclerView != null) {
+            mRecyclerView.post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyDataSetChanged();
+                }
+            });
+        }
+    }
+
+    public void postNotifyItemChanged(final int position) {
+        if (mRecyclerView != null) {
+            mRecyclerView.post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyItemChanged(position);
+                }
+            });
+        }
+    }
+
+    public void postNotifyItemChanged(final int position, @Nullable final Object payload) {
+        if (mRecyclerView != null) {
+            mRecyclerView.post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyItemChanged(position, payload);
+                }
+            });
+        }
+    }
+
+    public void postNotifyItemRangeChanged(final int positionStart, final int itemCount) {
+        if (mRecyclerView != null) {
+            mRecyclerView.post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyItemRangeChanged(positionStart, itemCount);
+                }
+            });
+        }
+    }
+
+    public void postNotifyItemRangeChanged(final int positionStart, final int itemCount, @Nullable final Object payload) {
+        if (mRecyclerView != null) {
+            mRecyclerView.post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyItemRangeChanged(positionStart, itemCount, payload);
+                }
+            });
+        }
+    }
+
+    public void postNotifyItemInserted(final int position) {
+        if (mRecyclerView != null) {
+            mRecyclerView.post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyItemInserted(position);
+                }
+            });
+        }
+    }
+
+    public void postNotifyItemMoved(final int fromPosition, final int toPosition) {
+        if (mRecyclerView != null) {
+            mRecyclerView.post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyItemMoved(fromPosition, toPosition);
+                }
+            });
+        }
+    }
+
+    public void postNotifyItemRangeInserted(final int positionStart, final int itemCount) {
+        if (mRecyclerView != null) {
+            mRecyclerView.post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyItemRangeInserted(positionStart, itemCount);
+                }
+            });
+        }
+    }
+
+    public void postNotifyItemRemoved(final int position) {
+        if (mRecyclerView != null) {
+            mRecyclerView.post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyItemRemoved(position);
+                }
+            });
+        }
+    }
+
+    public void postNotifyItemRangeRemoved(final int positionStart, final int itemCount) {
+        if (mRecyclerView != null) {
+            mRecyclerView.post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyItemRangeRemoved(positionStart, itemCount);
+                }
+            });
+        }
+    }
+
 
 }

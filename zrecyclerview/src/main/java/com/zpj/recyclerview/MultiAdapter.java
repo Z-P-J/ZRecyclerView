@@ -93,7 +93,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData> {
             return TYPE_FOOTER;
         } else {
             if (headerView != null) {
-                position -= 1;
+                position--;
             }
             return onGetViewType(list, position);
         }
@@ -211,7 +211,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData> {
         MultiData multiData = null;
         for (int i = list.size() - 1; i >= 0; i--) {
             MultiData data = list.get(i);
-            if (!data.isDataLoaded()) {
+            if (data.hasMore()) {
                 multiData = data;
             }
         }
@@ -220,7 +220,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData> {
 //                multiData = data;
 //            }
 //        }
-        if (multiData != null && multiData.load(mRecyclerView, this)) {
+        if (multiData != null && multiData.load(this)) {
             if (llContainerProgress != null) {
                 llContainerProgress.setVisibility(View.VISIBLE);
             }
@@ -250,7 +250,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData> {
                     int count = 0;
                     for (MultiData data : list) {
                         if (position >= count && position < count + data.getCount()) {
-                            return data.getSpanCount();
+                            return data.getSpanCount(data.getViewType(position - count));
                         }
                         count  += data.getCount();
                     }
@@ -276,6 +276,10 @@ public class MultiAdapter extends EasyStateAdapter<MultiData> {
             if (data.hasViewType(viewType)) {
                 return data.getLayoutId(viewType);
             }
+//            int id = data.getLayoutId(viewType);
+//            if (id > 0) {
+//                return id;
+//            }
         }
         return 0;
     }
