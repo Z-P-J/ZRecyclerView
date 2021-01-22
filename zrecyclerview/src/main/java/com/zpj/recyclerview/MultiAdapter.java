@@ -6,46 +6,30 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.text.TextUtils;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.zpj.widget.statelayout.StateLayout;
+import com.zpj.statemanager.BaseStateConfig;
 
 import java.util.List;
 
 import static com.zpj.recyclerview.EasyState.STATE_CONTENT;
-import static com.zpj.recyclerview.EasyState.STATE_EMPTY;
-import static com.zpj.recyclerview.EasyState.STATE_ERROR;
-import static com.zpj.recyclerview.EasyState.STATE_LOADING;
-import static com.zpj.recyclerview.EasyState.STATE_NO_NETWORK;
 
-public class MultiAdapter extends EasyStateAdapter<MultiData> {
+public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
 
     private static final String TAG = "MultiAdapter";
 
-//    private final IEasy.OnGetChildViewTypeListener<MultiData> onGetChildViewTypeListener;
-//    private final IEasy.OnGetChildLayoutIdListener onGetChildLayoutIdListener;
-//    private final IEasy.OnBindViewHolderListener<MultiData> onBindViewHolderListener;
-//    private final IEasy.OnCreateViewHolderListener<MultiData> onCreateViewHolder;
-//    private final IEasy.OnItemClickListener<MultiData> onItemClickListener;
-//    private final IEasy.OnItemLongClickListener<MultiData> onItemLongClickListener;
-
-    MultiAdapter(final Context context, List<MultiData> list, final IEasy.OnLoadRetryListener onLoadRetryListener) {
+    MultiAdapter(final Context context, List<MultiData<?>> list, final IEasy.OnLoadRetryListener onLoadRetryListener) {
         super(context, list, 0, null, null,
                 null, null, null,
                 null, null, null, onLoadRetryListener);
-//        this.onGetChildViewTypeListener = onGetChildViewTypeListener;
-//        this.onGetChildLayoutIdListener = onGetChildLayoutIdListener;
-//        this.onBindViewHolderListener = onBindViewHolderListener;
-//        this.onCreateViewHolder = onCreateViewHolder;
-//        this.onItemClickListener = onClickListener;
-//        this.onItemLongClickListener = onLongClickListener;
+        for (MultiData<?> data : list) {
+            data.setAdapter(this);
+        }
     }
 
     @NonNull
@@ -59,9 +43,11 @@ public class MultiAdapter extends EasyStateAdapter<MultiData> {
         } else if (viewType == TYPE_FOOTER) {
             return new EasyViewHolder(footerView);
         } else {
-            int res = onGetChildLayoutId(viewType);
-            View view = LayoutInflater.from(viewGroup.getContext()).inflate(res, viewGroup, false);
-            return new EasyViewHolder(view);
+            return new EasyViewHolder(onCreateView(viewGroup.getContext(), viewGroup, viewType));
+
+//            int res = onGetChildLayoutId(viewType);
+//            View view = LayoutInflater.from(viewGroup.getContext()).inflate(res, viewGroup, false);
+//            return new EasyViewHolder(view);
         }
     }
 
@@ -71,7 +57,10 @@ public class MultiAdapter extends EasyStateAdapter<MultiData> {
             return 1;
         }
         int count = 0;
-        for (MultiData data : list) {
+        for (MultiData<?> data : list) {
+            if (!data.isLoaded || data.hasMore) {
+                break;
+            }
             count += data.getCount();
         }
         if (headerView != null) {
@@ -158,7 +147,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData> {
 
         position = getRealPosition(holder);
         int count = 0;
-        for (MultiData data : list) {
+        for (MultiData<?> data : list) {
             if (position >= count && position < count + data.getCount()) {
                 data.onBindViewHolder(holder, position - count, payloads);
                 break;
@@ -208,19 +197,20 @@ public class MultiAdapter extends EasyStateAdapter<MultiData> {
             currentPage = -1;
         }
 
-        MultiData multiData = null;
-        for (int i = list.size() - 1; i >= 0; i--) {
-            MultiData data = list.get(i);
-            if (data.hasMore()) {
-                multiData = data;
-            }
-        }
-//        for (MultiData data : list) {
-//            if (!data.isDataLoaded()) {
+        MultiData<?> multiData = null;
+//        for (int i = list.size() - 1; i >= 0; i--) {
+//            MultiData<?> data = list.get(i);
+//            if (data.hasMore()) {
 //                multiData = data;
 //            }
 //        }
-        if (multiData != null && multiData.load(this)) {
+        for (MultiData<?> data : list) {
+            if (data.hasMore()) {
+                multiData = data;
+                break;
+            }
+        }
+        if (multiData != null && multiData.load()) {
             if (llContainerProgress != null) {
                 llContainerProgress.setVisibility(View.VISIBLE);
             }
@@ -238,6 +228,25 @@ public class MultiAdapter extends EasyStateAdapter<MultiData> {
     protected void initLayoutManagerOnAttachedToRecyclerView(RecyclerView.LayoutManager manager) {
         if (manager instanceof GridLayoutManager) {
             final GridLayoutManager gridManager = ((GridLayoutManager) manager);
+//            gridManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+//                @Override
+//                public int getSpanSize(int position) {
+//                    if (isHeaderPosition(position) || isFooterPosition(position)) {
+//                        return gridManager.getSpanCount();
+//                    }
+//                    if (headerView != null) {
+//                        position--;
+//                    }
+//                    int count = 0;
+//                    for (MultiData<?> data : list) {
+//                        if (position >= count && position < count + data.getCount()) {
+//                            return data.getSpanCount(data.getViewType(position - count));
+//                        }
+//                        count  += data.getCount();
+//                    }
+//                    return gridManager.getSpanCount();
+//                }
+//            });
             gridManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
                 @Override
                 public int getSpanSize(int position) {
@@ -248,9 +257,10 @@ public class MultiAdapter extends EasyStateAdapter<MultiData> {
                         position--;
                     }
                     int count = 0;
-                    for (MultiData data : list) {
+                    for (MultiData<?> data : list) {
                         if (position >= count && position < count + data.getCount()) {
-                            return data.getSpanCount(data.getViewType(position - count));
+                            int columnCount = data.getColumnCount(data.getViewType(position - count));
+                            return gridManager.getSpanCount() / columnCount;
                         }
                         count  += data.getCount();
                     }
@@ -260,9 +270,9 @@ public class MultiAdapter extends EasyStateAdapter<MultiData> {
         }
     }
 
-    public int onGetViewType(List<MultiData> list, int position) {
+    public int onGetViewType(List<MultiData<?>> list, int position) {
         int count = 0;
-        for (MultiData data : list) {
+        for (MultiData<?> data : list) {
             if (position >= count && position < count + data.getCount()) {
                 return data.getViewType(position - count);
             }
@@ -272,7 +282,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData> {
     }
 
     public int onGetChildLayoutId(int viewType) {
-        for (MultiData data : list) {
+        for (MultiData<?> data : list) {
             if (data.hasViewType(viewType)) {
                 return data.getLayoutId(viewType);
             }
@@ -282,6 +292,84 @@ public class MultiAdapter extends EasyStateAdapter<MultiData> {
 //            }
         }
         return 0;
+    }
+
+    private View onCreateView(Context context, ViewGroup container, int viewType) {
+        for (MultiData<?> data : list) {
+            if (data.hasViewType(viewType)) {
+
+                return data.onCreateView(context, container, viewType);
+
+//                if (data instanceof StateMultiData) {
+//                    StateMultiData<?> stateMultiData = (StateMultiData<?>) data;
+//                    View view = stateConfig.onCreateView(context, stateMultiData.getState());
+//                    if (view != null) {
+//                        return view;
+//                    }
+////                    switch (stateMultiData.getState()) {
+////                        case STATE_LOADING:
+////                            return stateConfig.getLoadingViewHolder().onCreateView(context);
+////                        case STATE_EMPTY:
+////                            return stateConfig.getEmptyViewHolder().onCreateView(context);
+////                        case STATE_ERROR:
+////                            return stateConfig.getErrorViewHolder().onCreateView(context);
+////                        case STATE_LOGIN:
+////                            return stateConfig.getLoginViewHolder().onCreateView(context);
+////                        case STATE_NO_NETWORK:
+////                            return stateConfig.getNoNetworkViewHolder().onCreateView(context);
+////                        case STATE_CONTENT:
+////                        default:
+////                            break;
+////                    }
+//                }
+//
+//                return LayoutInflater.from(context).inflate(data.getLayoutId(viewType), container, false);
+            }
+        }
+        return null;
+    }
+
+    public void notifyDataSetChange(MultiData<?> data) {
+        int count = 0;
+        for (MultiData<?> multiData : list) {
+            if (multiData == data) {
+                notifyItemRangeChanged(count, data.getCount());
+            }
+            count  += multiData.getCount();
+        }
+    }
+
+    public void notifyItemRangeInserted(MultiData<?> data) {
+        int count = 0;
+        for (MultiData<?> multiData : list) {
+            if (multiData == data) {
+                notifyItemRangeInserted(count, data.getCount());
+            }
+            count  += multiData.getCount();
+        }
+    }
+
+    public void notifyItemRangeInserted(MultiData<?> data, int positionStart, int count) {
+        int num = 0;
+        for (MultiData<?> multiData : list) {
+            if (multiData == data) {
+                if (positionStart >= data.getCount()) {
+                    return;
+                }
+                if (positionStart + count > data.getCount()) {
+                    notifyItemRangeInserted(num + positionStart, data.getCount() - positionStart);
+                } else {
+                    notifyItemRangeInserted(num + positionStart, count);
+                }
+
+//                if (positionStart + count <= data.getCount()) {
+//                    notifyItemRangeInserted(num + positionStart, count);
+//                } else {
+//                    notifyItemRangeInserted(num + positionStart, count);
+//                }
+            }
+            num  += multiData.getCount();
+        }
     }
 
 

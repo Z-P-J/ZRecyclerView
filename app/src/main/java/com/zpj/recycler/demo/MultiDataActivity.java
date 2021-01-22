@@ -5,13 +5,19 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 
+import com.zpj.recycler.demo.mutildata.IntMultiData;
+import com.zpj.recycler.demo.mutildata.RecyclerViewHeaderMultiData;
+import com.zpj.recycler.demo.mutildata.StringMultiData;
+import com.zpj.recycler.demo.mutildata.StringMultiData2;
+import com.zpj.recycler.demo.mutildata.StringSingleTypeMultiData;
+import com.zpj.recycler.demo.mutildata.StringSingleTypeMultiData2;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecyclerViewWrapper;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestActivity extends AppCompatActivity {
+public class MultiDataActivity extends AppCompatActivity {
 
     public static final int TYPE_TITLE = 111;
     public static final int TYPE_TEXT = 222;
@@ -48,24 +54,25 @@ public class TestActivity extends AppCompatActivity {
 //        recyclerView.init(list);
 
 
-        List<MultiData> list = new ArrayList<>();
+        List<MultiData<?>> list = new ArrayList<>();
+        list.add(new StringMultiData2("StringMultiData0"));
 
-//        list.add(new TitleBarData("sdfgthkjdsejbdg"));
+        list.add(new StringSingleTypeMultiData2());
 
-        list.add(new StringMultiData("测试"));
-        list.add(new RecyclerViewHeaderMultiData("00000"));
+        list.add(new StringMultiData("StringMultiData1"));
+        list.add(new RecyclerViewHeaderMultiData("Recycler1"));
 
-        list.add(new IntMultiData("标题2"));
-        list.add(new StringMultiData("标题3"));
+        list.add(new IntMultiData("IntMultiData"));
+        list.add(new StringMultiData("StringMultiData2"));
 
-        list.add(new RecyclerViewHeaderMultiData("11111"));
+        list.add(new RecyclerViewHeaderMultiData("Recycler2"));
 
         list.add(new StringSingleTypeMultiData());
-        list.add(new RecyclerViewHeaderMultiData("22222"));
+        list.add(new RecyclerViewHeaderMultiData("Recycler3"));
         list.add(new StringSingleTypeMultiData());
-        list.add(new RecyclerViewHeaderMultiData("33333"));
+        list.add(new RecyclerViewHeaderMultiData("Recycler4"));
         list.add(new StringSingleTypeMultiData());
-        list.add(new RecyclerViewHeaderMultiData("44444"));
+        list.add(new RecyclerViewHeaderMultiData("Recycler5"));
         list.add(new StringSingleTypeMultiData());
         list.add(new StringSingleTypeMultiData());
         list.add(new StringSingleTypeMultiData());
@@ -76,7 +83,6 @@ public class TestActivity extends AppCompatActivity {
         MultiRecyclerViewWrapper wrapper = new MultiRecyclerViewWrapper((RecyclerView) findViewById(R.id.recycler_view));
         wrapper.setData(list)
                 .setHeaderView(LayoutInflater.from(this).inflate(R.layout.item_header, null, false))
-                .setMaxSpan(4)
                 .build();
 
 

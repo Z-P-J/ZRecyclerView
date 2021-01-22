@@ -70,6 +70,10 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         mEnabled = new Enabled(mOnEnabledListener);
     }
 
+    public List<T> getData() {
+        return list;
+    }
+
     @NonNull
     @Override
     public EasyViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
@@ -427,8 +431,11 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     }
 
     private void notifyFooterHolderChanged() {
+        Log.d(TAG, "notifyFooterHolderChanged getLoadMoreEnabled=" + getLoadMoreEnabled());
         if (getLoadMoreEnabled()) {
-            notifyItemChanged(getItemCount());
+            mShouldRemove = false;
+            postNotifyItemChanged(getItemCount() - 1);
+//            notifyItemChanged(getItemCount() - 1);
         } else if (mShouldRemove) {
             mShouldRemove = false;
 
@@ -436,11 +443,14 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
               fix IndexOutOfBoundsException when setLoadMoreEnabled(false) and then use onItemRangeInserted
               @see android.support.v7.widget.RecyclerView.Recycler#validateViewHolderForOffsetPosition(RecyclerView.ViewHolder)
              */
-            int position = getItemCount();
+            int position = getItemCount() - 1;
+            Log.d(TAG, "notifyFooterHolderChanged isFooterPosition(position)=" + isFooterPosition(position));
             if (isFooterPosition(position)) {
-                notifyItemRemoved(position);
+//                notifyItemRemoved(position);
+                postNotifyItemRemoved(position);
             } else {
-                notifyItemChanged(position);
+//                notifyItemChanged(position);
+                postNotifyItemChanged(position);
             }
 //            RecyclerView.ViewHolder viewHolder =
 //                    mRecyclerView.findViewHolderForAdapterPosition(position);
@@ -600,7 +610,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
     };
 
-    private RecyclerView.AdapterDataObserver mObserver = new RecyclerView.AdapterDataObserver() {
+    private final RecyclerView.AdapterDataObserver mObserver = new RecyclerView.AdapterDataObserver() {
         @Override
         public void onChanged() {
             if (mShouldRemove) {
@@ -608,25 +618,28 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             }
 //            notifyDataSetChanged();
             mIsLoading = false;
+            Log.d(TAG, "onChanged getCount=" + getItemCount());
         }
 
         @Override
         public void onItemRangeChanged(int positionStart, int itemCount) {
-            if (mShouldRemove && positionStart == getItemCount()) {
+            if (mShouldRemove && positionStart == getItemCount() -1) {
                 mShouldRemove = false;
             }
 //            notifyItemRangeChanged(positionStart, itemCount);
             mIsLoading = false;
+            Log.d(TAG, "onItemRangeChanged getCount=" + getItemCount() + " positionStart=" + positionStart + " itemCount=" + itemCount);
         }
 
-        @Override
-        public void onItemRangeChanged(int positionStart, int itemCount, Object payload) {
-            if (mShouldRemove && positionStart == getItemCount()) {
-                mShouldRemove = false;
-            }
-//            notifyItemRangeChanged(positionStart, itemCount, payload);
-            mIsLoading = false;
-        }
+//        @Override
+//        public void onItemRangeChanged(int positionStart, int itemCount, Object payload) {
+//            if (mShouldRemove && positionStart == getItemCount() - 1) {
+//                mShouldRemove = false;
+//            }
+////            notifyItemRangeChanged(positionStart, itemCount, payload);
+//            mIsLoading = false;
+//            Log.d(TAG, "onItemRangeChanged getCount=" + getItemCount() + " positionStart=" + positionStart + " itemCount=" + itemCount + " payload=" + payload);
+//        }
 
         @Override
         public void onItemRangeInserted(int positionStart, int itemCount) {
@@ -636,13 +649,21 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 //                notifyItemRemoved(0);
 //            }
 //            notifyItemRangeInserted(positionStart, itemCount);
-            notifyFooterHolderChanged();
+            Log.d(TAG, "onItemRangeInserted positionStart=" + positionStart + " itemCount=" + itemCount + " getCount=" + getItemCount());
+//            postDelayed(new Runnable() {
+//                @Override
+//                public void run() {
+//                    notifyFooterHolderChanged();
+//                }
+//            }, 1000);
             mIsLoading = false;
+//            onScrollStateChanged(mRecyclerView, RecyclerView.SCROLL_STATE_IDLE);
         }
 
         @Override
         public void onItemRangeRemoved(int positionStart, int itemCount) {
-            if (mShouldRemove && positionStart == getItemCount()) {
+            Log.d(TAG, "onItemRangeRemoved positionStart=" + positionStart + " itemCount=" + itemCount + " getCount=" + getItemCount());
+            if (mShouldRemove && positionStart == getItemCount() - 1) {
                 mShouldRemove = false;
             }
             /*
@@ -670,7 +691,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
         @Override
         public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
-            if (mShouldRemove && (fromPosition == getItemCount() || toPosition == getItemCount())) {
+            if (mShouldRemove && (fromPosition == getItemCount() - 1 || toPosition == getItemCount() - 1)) {
                 throw new IllegalArgumentException("can not move last position after setLoadMoreEnabled(false)");
             }
 //            notifyItemMoved(fromPosition, toPosition);

@@ -1,19 +1,19 @@
-package com.zpj.recycler.demo;
+package com.zpj.recycler.demo.mutildata;
 
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.zpj.recycler.demo.R;
 import com.zpj.recyclerview.EasyRecyclerView;
 import com.zpj.recyclerview.EasyViewHolder;
-import com.zpj.recyclerview.HeaderMultiData;
 import com.zpj.recyclerview.IEasy;
-import com.zpj.recyclerview.MultiAdapter;
 
 import java.util.List;
 
-public class RecyclerViewHeaderMultiData extends BaseHeaderMultiData<Integer> {
+public class RecyclerViewHeaderMultiData extends BaseHeaderMultiData2<Integer> {
 
     private EasyRecyclerView<Integer> recyclerView;
 
@@ -42,7 +42,7 @@ public class RecyclerViewHeaderMultiData extends BaseHeaderMultiData<Integer> {
     }
 
     @Override
-    public boolean loadData(final MultiAdapter adapter) {
+    public boolean loadData() {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -51,7 +51,9 @@ public class RecyclerViewHeaderMultiData extends BaseHeaderMultiData<Integer> {
                     for (int i = 0; i < 16; i++) {
                         list.add(i);
                     }
-                    adapter.postNotifyDataSetChanged();
+
+                    showContent();
+                    Log.d("loadData", "getCount=" + getCount());
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

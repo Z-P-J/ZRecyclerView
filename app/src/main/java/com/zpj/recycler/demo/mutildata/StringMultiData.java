@@ -1,37 +1,44 @@
-package com.zpj.recycler.demo;
+package com.zpj.recycler.demo.mutildata;
 
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Toast;
 
+import com.zpj.recycler.demo.R;
 import com.zpj.recyclerview.EasyViewHolder;
-import com.zpj.recyclerview.HeaderMultiData;
-import com.zpj.recyclerview.MultiAdapter;
 
 import java.util.List;
 
-public class StringMultiData extends BaseHeaderMultiData<String> {
+public class StringMultiData extends BaseHeaderMultiData2<String> {
 
     public StringMultiData(String title) {
         super(title);
     }
 
-    @Override
-    public int getChildSpanCount(int viewType) {
-        return 1;
+    public StringMultiData(String title, List<String> list) {
+        super(title, list);
     }
 
     @Override
-    public boolean loadData(final MultiAdapter adapter) {
+    public int getChildColumnCount(int viewType) {
+        return getMaxColumnCount();
+    }
+
+    @Override
+    public int getMaxColumnCount() {
+        return 4;
+    }
+
+    @Override
+    public boolean loadData() {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     Thread.sleep(1000);
-                    for (int i = 0; i < 8; i++) {
+                    for (int i = 0; i < 16; i++) {
                         list.add("" + i);
                     }
-                    adapter.postNotifyDataSetChanged();
+                    showContent();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

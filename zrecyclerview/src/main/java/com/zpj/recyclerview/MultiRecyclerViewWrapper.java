@@ -19,9 +19,9 @@ public class MultiRecyclerViewWrapper {
 
     protected final RecyclerView recyclerView;
 
-    protected List<MultiData> list;
+    protected List<MultiData<?>> list;
 
-    protected EasyStateAdapter<MultiData> easyAdapter;
+    protected EasyStateAdapter<MultiData<?>> easyAdapter;
     protected RecyclerView.LayoutManager layoutManager;
 
     protected View headerView;
@@ -29,8 +29,6 @@ public class MultiRecyclerViewWrapper {
     protected IEasy.OnBindFooterListener onBindFooterListener;
     protected IEasy.OnLoadRetryListener onLoadRetryListener;
     protected View footerView;
-
-    private int maxSpan = 4;
 
 
     public MultiRecyclerViewWrapper(@NonNull RecyclerView recyclerView) {
@@ -42,7 +40,7 @@ public class MultiRecyclerViewWrapper {
         return this;
     }
 
-    public MultiRecyclerViewWrapper setData(List<MultiData> list) {
+    public MultiRecyclerViewWrapper setData(List<MultiData<?>> list) {
         this.list = list;
         return this;
     }
@@ -72,14 +70,13 @@ public class MultiRecyclerViewWrapper {
         return this;
     }
 
-    public MultiRecyclerViewWrapper setMaxSpan(int maxSpan) {
-        this.maxSpan = maxSpan;
-        return this;
-    }
-
     public void build() {
         if (list == null) {
             list = new ArrayList<>(0);
+        }
+        int maxSpan = 1;
+        for (MultiData<?> data : list) {
+            maxSpan = lcm(data.getMaxColumnCount(), maxSpan);
         }
         layoutManager = new GridLayoutManager(recyclerView.getContext(), maxSpan);
         easyAdapter = new MultiAdapter(recyclerView.getContext(), list, onLoadRetryListener);
@@ -228,11 +225,6 @@ public class MultiRecyclerViewWrapper {
         if (manager instanceof LinearLayoutManager) {
             first = ((LinearLayoutManager) manager).findFirstVisibleItemPosition();
             last = ((LinearLayoutManager) manager).findLastVisibleItemPosition();
-//            if (payload == null) {
-//                notifyItemRangeChanged(first, last - first + 1);
-//            } else {
-//                notifyItemRangeChanged(first, last - first + 1, payload);
-//            }
         } else if (manager instanceof StaggeredGridLayoutManager) {
             StaggeredGridLayoutManager layoutManager = (StaggeredGridLayoutManager) manager;
             int[] firsts = new int[layoutManager.getSpanCount()];
@@ -241,11 +233,6 @@ public class MultiRecyclerViewWrapper {
             layoutManager.findLastVisibleItemPositions(into);
             first = first(firsts);
             last = last(into);
-//            if (payload == null) {
-//                notifyItemRangeChanged(first, last - first + 1);
-//            } else {
-//                notifyItemRangeChanged(first, last - first + 1, payload);
-//            }
         }
 
         if (getAdapter().getHeaderView() != null) {
@@ -254,7 +241,7 @@ public class MultiRecyclerViewWrapper {
 
         if (last > first) {
             int count = last - first;
-            if (last + 1 < getData().size()) {
+            if (last + 1 <= getData().size()) {
                 count += 1;
             }
             if (payload == null) {
@@ -320,7 +307,7 @@ public class MultiRecyclerViewWrapper {
         recyclerView.smoothScrollToPosition(position);
     }
 
-    public EasyStateAdapter<MultiData> getAdapter() {
+    public EasyStateAdapter<MultiData<?>> getAdapter() {
         return easyAdapter;
     }
 
@@ -336,8 +323,19 @@ public class MultiRecyclerViewWrapper {
         recyclerView.post(runnable);
     }
 
-    public List<MultiData> getData() {
+    public List<MultiData<?>> getData() {
         return list;
+    }
+
+
+
+
+    private int gcd(int x, int y) {
+        return y == 0 ? x : gcd(y , x % y);
+    }
+
+    private int lcm (int x , int y) {
+        return (x * y) / gcd(x , y);
     }
 
 

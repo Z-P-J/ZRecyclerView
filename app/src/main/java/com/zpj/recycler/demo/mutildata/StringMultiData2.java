@@ -1,38 +1,54 @@
-package com.zpj.recycler.demo;
+package com.zpj.recycler.demo.mutildata;
 
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Toast;
 
+import com.zpj.recycler.demo.R;
 import com.zpj.recyclerview.EasyViewHolder;
-import com.zpj.recyclerview.MultiAdapter;
-import com.zpj.recyclerview.SingleTypeMultiData;
+import com.zpj.statemanager.State;
 
 import java.util.List;
 
-public class StringSingleTypeMultiData extends SingleTypeMultiData<String> {
+public class StringMultiData2 extends BaseHeaderMultiData2<String> {
+
+    private boolean isFirst = true;
+
+    public StringMultiData2(String title) {
+        super(title);
+    }
+
+    public StringMultiData2(String title, List<String> list) {
+        super(title, list);
+    }
 
     @Override
-    public int getSpanCount() {
+    public int getChildColumnCount(int viewType) {
+        return getMaxColumnCount();
+    }
+
+    @Override
+    public int getMaxColumnCount() {
         return 4;
     }
 
     @Override
-    public int getLayoutId() {
-        return R.layout.layout_text;
-    }
-
-    @Override
-    public boolean loadData(final MultiAdapter adapter) {
+    public boolean loadData() {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     Thread.sleep(1000);
+                    if (isFirst) {
+                        isFirst = false;
+                        showError();
+//                        state = State.STATE_ERROR;
+//                        notifyItemRangeInserted();
+                        return;
+                    }
                     for (int i = 0; i < 16; i++) {
                         list.add("" + i);
                     }
-                    adapter.postNotifyDataSetChanged();
+                    showContent();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -42,7 +58,7 @@ public class StringSingleTypeMultiData extends SingleTypeMultiData<String> {
     }
 
     @Override
-    public void onBindViewHolder(EasyViewHolder holder, List<String> list, final int position, List<Object> payloads) {
+    public void onBindChild(EasyViewHolder holder, List<String> list, final int position, List<Object> payloads) {
         holder.setText(R.id.tv_text, "StringData position=" + position);
         holder.setOnItemClickListener(new View.OnClickListener() {
             @Override

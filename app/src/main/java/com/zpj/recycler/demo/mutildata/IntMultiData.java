@@ -1,23 +1,21 @@
-package com.zpj.recycler.demo;
+package com.zpj.recycler.demo.mutildata;
 
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Toast;
 
+import com.zpj.recycler.demo.R;
 import com.zpj.recyclerview.EasyViewHolder;
-import com.zpj.recyclerview.HeaderMultiData;
-import com.zpj.recyclerview.MultiAdapter;
 
 import java.util.List;
 
-public class IntMultiData extends BaseHeaderMultiData<Integer> {
+public class IntMultiData extends BaseHeaderMultiData2<Integer> {
 
     public IntMultiData(String title) {
         super(title);
     }
 
     @Override
-    public boolean loadData(final MultiAdapter adapter) {
+    public boolean loadData() {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -26,7 +24,7 @@ public class IntMultiData extends BaseHeaderMultiData<Integer> {
                     for (int i = 0; i < 10; i++) {
                         list.add(i);
                     }
-                    adapter.postNotifyDataSetChanged();
+                    showContent();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

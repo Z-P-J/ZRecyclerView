@@ -423,11 +423,6 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
             layoutManager.findLastVisibleItemPositions(into);
             first = first(firsts);
             last = last(into);
-//            if (payload == null) {
-//                notifyItemRangeChanged(first, last - first + 1);
-//            } else {
-//                notifyItemRangeChanged(first, last - first + 1, payload);
-//            }
         }
 
         if (getAdapter().getHeaderView() != null) {
@@ -436,7 +431,7 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
 
         if (last > first) {
             int count = last - first;
-            if (last + 1 < getData().size()) {
+            if (last + 1 <= getData().size()) {
                 count += 1;
             }
             if (payload == null) {
@@ -445,9 +440,6 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
                 notifyItemRangeChanged(first, count, payload);
             }
         }
-
-
-
     }
 
     private int first(int[] firstPositions) {

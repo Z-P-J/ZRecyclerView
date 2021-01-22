@@ -1,36 +1,31 @@
-package com.zpj.recycler.demo;
+package com.zpj.recycler.demo.mutildata;
 
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Toast;
 
+import com.zpj.recycler.demo.R;
 import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.HeaderMultiData;
-import com.zpj.recyclerview.MultiAdapter;
 
 import java.util.List;
 
-public abstract class BaseHeaderMultiData<T> extends HeaderMultiData<T> {
+public abstract class BaseHeaderMultiData2<T> extends HeaderMultiData<T> {
 
     protected final String title;
 
-    public BaseHeaderMultiData(String title) {
+    public BaseHeaderMultiData2(String title) {
+        super();
         this.title = title;
     }
 
-    @Override
-    public int getHeaderSpanCount() {
-        return 4;
+    public BaseHeaderMultiData2(String title, List<T> list) {
+        super(list);
+        this.title = title;
     }
 
     @Override
     public int getHeaderLayoutId() {
         return R.layout.item_header;
-    }
-
-    @Override
-    public int getChildSpanCount(int viewType) {
-        return 4;
     }
 
     @Override

@@ -5,40 +5,62 @@ import android.support.annotation.LayoutRes;
 
 import java.util.List;
 
-public abstract class HeaderMultiData<T> extends MultiData<T> {
+import static com.zpj.statemanager.State.STATE_CONTENT;
 
-    @Override
-    public final int getCount() {
-        if (isLoaded()) {
-            return getChildCount() + 1;
-        }
-        return super.getCount();
+public abstract class HeaderMultiData<T> extends StateMultiData<T> {
+
+    public HeaderMultiData() {
+        super();
+    }
+
+    public HeaderMultiData(List<T> list) {
+        super(list);
     }
 
     @Override
-    public final int getSpanCount(int viewType) {
-        if (viewType == getHeaderLayoutId()) {
-            return getHeaderSpanCount();
+    public final int getCount() {
+        if (state == STATE_CONTENT) {
+            if (isLoaded()) {
+                return getChildCount() + 1;
+            }
+            return 0;
         }
-        return getChildSpanCount(viewType);
+        return 2;
+    }
+
+    @Override
+    public final int getColumnCount(int viewType) {
+        if (viewType == getHeaderViewType()) {
+            return getHeaderColumnCount();
+        }
+        if (state != STATE_CONTENT) {
+            return 1;
+        }
+        return getChildColumnCount(viewType);
     }
 
     @Override
     public final int getViewType(int position) {
         if (position == 0) {
-            return getHeaderLayoutId();
+            return getHeaderViewType();
+        }
+        if (state != STATE_CONTENT) {
+            return state.hashCode();
         }
         return getChildViewType(position);
     }
 
     @Override
     public final boolean hasViewType(int viewType) {
-        return viewType == getHeaderLayoutId() || hasChildViewType(viewType);
+        if (state != STATE_CONTENT && viewType == state.hashCode()) {
+            return true;
+        }
+        return viewType == getHeaderViewType() || hasChildViewType(viewType);
     }
 
     @Override
     public final int getLayoutId(int viewType) {
-        if (viewType == getHeaderLayoutId()) {
+        if (viewType == getHeaderViewType()) {
             return getHeaderLayoutId();
         }
         return getChildLayoutId(viewType);
@@ -53,25 +75,24 @@ public abstract class HeaderMultiData<T> extends MultiData<T> {
         }
     }
 
-//    @Override
-//    public int getRealPosition(int position) {
-//        if (position > 0) {
-//            return --position;
-//        }
-//        return super.getRealPosition(position);
-//    }
-
     public int getChildCount() {
         return list.size();
     }
 
-    public abstract int getHeaderSpanCount();
+    public @IntRange(from = 1) int getHeaderColumnCount() {
+        return 1;
+    }
 
-    @IntRange(from = 1)
+    public @IntRange(from = 1) int getChildColumnCount(int viewType) {
+        return 1;
+    }
+
     @LayoutRes
-    public abstract  int getHeaderLayoutId();
+    public abstract int getHeaderLayoutId();
 
-    public abstract int getChildSpanCount(int viewType);
+    public int getHeaderViewType() {
+        return getHeaderLayoutId();
+    }
 
     public abstract int getChildViewType(int position);
 

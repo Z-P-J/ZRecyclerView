@@ -6,6 +6,7 @@ public enum EasyState {
     STATE_LOADING,
     STATE_EMPTY,
     STATE_ERROR,
+    STATE_LOGIN,
     STATE_NO_NETWORK;
 
 }
