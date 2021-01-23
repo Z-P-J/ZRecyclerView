@@ -30,8 +30,12 @@ public class MultiRecyclerViewWrapper {
     protected IEasy.OnLoadRetryListener onLoadRetryListener;
     protected View footerView;
 
+    public static MultiRecyclerViewWrapper with(@NonNull RecyclerView recyclerView) {
+        return new MultiRecyclerViewWrapper(recyclerView);
+    }
 
-    public MultiRecyclerViewWrapper(@NonNull RecyclerView recyclerView) {
+
+    private MultiRecyclerViewWrapper(@NonNull RecyclerView recyclerView) {
         this.recyclerView = recyclerView;
     }
 
@@ -70,7 +74,17 @@ public class MultiRecyclerViewWrapper {
         return this;
     }
 
-    public void build() {
+    public MultiRecyclerViewWrapper addItemDecoration(RecyclerView.ItemDecoration decor) {
+        this.recyclerView.addItemDecoration(decor);
+        return this;
+    }
+
+    public MultiRecyclerViewWrapper addItemDecoration(RecyclerView.ItemDecoration decor, int index) {
+        this.recyclerView.addItemDecoration(decor, index);
+        return this;
+    }
+
+    public MultiRecyclerViewWrapper build() {
         if (list == null) {
             list = new ArrayList<>(0);
         }
@@ -96,6 +110,7 @@ public class MultiRecyclerViewWrapper {
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(easyAdapter);
         easyAdapter.showContent();
+        return this;
     }
 
     /**

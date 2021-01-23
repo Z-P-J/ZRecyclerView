@@ -145,6 +145,13 @@ public final class EasyViewHolder extends RecyclerView.ViewHolder
         }
     }
 
+    public void setText(@IdRes int id, int textId) {
+        View view = getView(id);
+        if (view instanceof TextView) {
+            ((TextView) view).setText(textId);
+        }
+    }
+
     public void setTextColor(@IdRes int id, int color) {
         View view = getView(id);
         if (view instanceof TextView) {

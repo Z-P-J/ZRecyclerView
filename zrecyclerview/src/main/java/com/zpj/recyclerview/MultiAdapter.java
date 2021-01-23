@@ -149,6 +149,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         int count = 0;
         for (MultiData<?> data : list) {
             if (position >= count && position < count + data.getCount()) {
+                data.setAdapter(this);
                 data.onBindViewHolder(holder, position - count, payloads);
                 break;
             }
@@ -210,7 +211,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
                 break;
             }
         }
-        if (multiData != null && multiData.load()) {
+        if (multiData != null && multiData.load(this)) {
             if (llContainerProgress != null) {
                 llContainerProgress.setVisibility(View.VISIBLE);
             }
@@ -294,7 +295,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         return 0;
     }
 
-    private View onCreateView(Context context, ViewGroup container, int viewType) {
+    public View onCreateView(Context context, ViewGroup container, int viewType) {
         for (MultiData<?> data : list) {
             if (data.hasViewType(viewType)) {
 

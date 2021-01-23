@@ -80,8 +80,8 @@ public class MultiDataActivity extends AppCompatActivity {
         list.add(new StringSingleTypeMultiData());
         list.add(new StringSingleTypeMultiData());
 
-        MultiRecyclerViewWrapper wrapper = new MultiRecyclerViewWrapper((RecyclerView) findViewById(R.id.recycler_view));
-        wrapper.setData(list)
+        MultiRecyclerViewWrapper.with((RecyclerView) findViewById(R.id.recycler_view))
+                .setData(list)
                 .setHeaderView(LayoutInflater.from(this).inflate(R.layout.item_header, null, false))
                 .build();
 

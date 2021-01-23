@@ -170,7 +170,7 @@ public abstract class StateMultiData<T> extends MultiData<T> {
 
     protected void onRetry() {
         showLoading();
-        load();
+        load(getAdapter());
     }
 
     protected void onLogin() {

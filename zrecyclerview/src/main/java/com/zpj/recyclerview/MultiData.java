@@ -91,7 +91,10 @@ public abstract class MultiData<T> extends BaseStateConfig<MultiData<T>> {
 
     public abstract boolean loadData();
 
-    boolean load() {
+    boolean load(MultiAdapter adapter) {
+        if (this.adapter == null) {
+            this.adapter = adapter;
+        }
         hasMore = loadData();
         isLoaded = true;
         return !hasMore;
@@ -151,12 +154,57 @@ public abstract class MultiData<T> extends BaseStateConfig<MultiData<T>> {
         return position;
     }
 
+//    public boolean isStickPosition(int position) {
+//        return false;
+//    }
+
     public void onClick(EasyViewHolder holder, View view, T data) {
 
     }
 
     public boolean onLongClick(EasyViewHolder holder, View view, T data) {
         return false;
+    }
+
+    public int getMultiDataPosition() {
+        if (adapter != null) {
+            return adapter.list.indexOf(this);
+        }
+        return -1;
+    }
+
+    protected void scrollToPosition(final int position) {
+        final MultiAdapter adapter = getAdapter();
+        adapter.post(new Runnable() {
+            @Override
+            public void run() {
+                int num = adapter.headerView == null ? 0 : 1;
+                for (MultiData<?> data : adapter.getData()) {
+                    if (data == MultiData.this) {
+                        getAdapter().getRecyclerView().scrollToPosition(num + position);
+                        break;
+                    }
+                    num  += data.getCount();
+                }
+            }
+        });
+    }
+
+    protected void smoothScrollToPosition(final int position) {
+        final MultiAdapter adapter = getAdapter();
+        adapter.post(new Runnable() {
+            @Override
+            public void run() {
+                int num = adapter.headerView == null ? 0 : 1;
+                for (MultiData<?> data : adapter.getData()) {
+                    if (data == MultiData.this) {
+                        getAdapter().getRecyclerView().smoothScrollToPosition(num + position);
+                        break;
+                    }
+                    num  += data.getCount();
+                }
+            }
+        });
     }
 
 

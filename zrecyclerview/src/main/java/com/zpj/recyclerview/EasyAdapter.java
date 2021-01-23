@@ -699,6 +699,10 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         }
     };
 
+    public RecyclerView getRecyclerView() {
+        return mRecyclerView;
+    }
+
     public void post(Runnable runnable) {
         if (mRecyclerView != null) {
             mRecyclerView.post(runnable);

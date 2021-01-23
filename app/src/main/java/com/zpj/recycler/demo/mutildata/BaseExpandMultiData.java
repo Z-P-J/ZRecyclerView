@@ -1,13 +1,13 @@
 package com.zpj.recycler.demo.mutildata;
 
+import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.zpj.recycler.demo.R;
 import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.ExpandableMultiData;
-import com.zpj.recyclerview.HeaderMultiData;
 
 import java.util.List;
 
@@ -47,9 +47,12 @@ public abstract class BaseExpandMultiData<T> extends ExpandableMultiData<T> {
 
     @Override
     public void onBindHeader(EasyViewHolder holder, List<Object> payloads) {
+        Log.d("StickyHeaderItem1", "payloads=" + payloads);
         final TextView tvText = holder.getView(R.id.tv_text);
+        final ImageView ivArrow = holder.getView(R.id.iv_arrow);
+        ivArrow.setVisibility(View.VISIBLE);
         tvText.setText(title);
-        setIcon(tvText);
+        setIcon(ivArrow);
         holder.setOnItemClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -58,14 +61,15 @@ public abstract class BaseExpandMultiData<T> extends ExpandableMultiData<T> {
                 } else {
                     expand();
                 }
-                setIcon(tvText);
+                setIcon(ivArrow);
+                scrollToPosition(0);
             }
         });
     }
 
-    private void setIcon(TextView textView) {
+    private void setIcon(ImageView ivArrow) {
         int id = isExpand() ? R.drawable.ic_baseline_keyboard_arrow_down_24 : R.drawable.ic_baseline_keyboard_arrow_right_24;
-        textView.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, id, 0);
+        ivArrow.setImageResource(id);
     }
 
 //    @Override

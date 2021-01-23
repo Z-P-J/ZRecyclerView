@@ -101,6 +101,7 @@ public abstract class HeaderMultiData<T> extends StateMultiData<T> {
     public abstract int getChildLayoutId(int viewType);
 
     public abstract void onBindHeader(EasyViewHolder holder, List<Object> payloads);
+
     public abstract void onBindChild(EasyViewHolder holder, List<T> list, int position, List<Object> payloads);
 
 
