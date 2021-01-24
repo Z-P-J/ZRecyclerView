@@ -27,8 +27,6 @@ public final class EasyViewHolder extends RecyclerView.ViewHolder
     public EasyViewHolder(@NonNull View view) {
         super(view);
         this.itemView = view;
-        itemView.setOnClickListener(this);
-        itemView.setOnLongClickListener(this);
     }
 
     public boolean post(Runnable runnable) {
@@ -229,10 +227,12 @@ public final class EasyViewHolder extends RecyclerView.ViewHolder
     }
 
     public void setOnItemClickListener(final View.OnClickListener listener) {
+        itemView.setOnClickListener(this);
         onClickListener = listener;
     }
 
     public void setOnItemLongClickListener(final View.OnLongClickListener listener) {
+        itemView.setOnLongClickListener(this);
         onLongClickListener = listener;
     }
 

@@ -5,24 +5,21 @@ import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.util.ArraySet;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
+import com.zpj.statemanager.State;
 import com.zpj.widget.checkbox.SmoothCheckBox;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class EasyRecyclerLayout<T> extends FrameLayout
         implements IEasy.OnLoadMoreListener,
@@ -891,7 +888,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
         return easyRecyclerView.getLayoutManager();
     }
 
-    public EasyState getState() {
+    public State getState() {
         return adapter.getState();
     }
 

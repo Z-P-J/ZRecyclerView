@@ -25,13 +25,11 @@ import static com.zpj.statemanager.State.STATE_LOADING;
 import static com.zpj.statemanager.State.STATE_LOGIN;
 import static com.zpj.statemanager.State.STATE_NO_NETWORK;
 
-public abstract class MultiData<T> extends BaseStateConfig<MultiData<T>> {
+public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // extends BaseStateConfig<MultiData<T>>
 
     protected final List<T> list;
 
-
-
-    protected boolean isLoaded = false;
+//    protected boolean isLoaded = false;
     protected boolean hasMore = true;
 
     private MultiAdapter adapter;
@@ -43,7 +41,7 @@ public abstract class MultiData<T> extends BaseStateConfig<MultiData<T>> {
     public MultiData(List<T> list) {
         this();
         this.list.addAll(list);
-        isLoaded = true;
+//        isLoaded = true;
         hasMore = false;
     }
 
@@ -81,9 +79,9 @@ public abstract class MultiData<T> extends BaseStateConfig<MultiData<T>> {
         return viewType == getClass().getName().hashCode();
     }
 
-    public boolean isLoaded() {
-        return isLoaded;
-    }
+//    public boolean isLoaded() {
+//        return isLoaded;
+//    }
 
     public boolean hasMore() {
         return hasMore;
@@ -96,7 +94,7 @@ public abstract class MultiData<T> extends BaseStateConfig<MultiData<T>> {
             this.adapter = adapter;
         }
         hasMore = loadData();
-        isLoaded = true;
+//        isLoaded = true;
         return !hasMore;
     }
 
@@ -108,45 +106,45 @@ public abstract class MultiData<T> extends BaseStateConfig<MultiData<T>> {
         return LayoutInflater.from(context).inflate(getLayoutId(viewType), container, false);
     }
 
-    @Override
-    public IViewHolder getLoadingViewHolder() {
-        if (loadingViewHolder == null) {
-            return StateManager.config().getLoadingViewHolder();
-        }
-        return super.getLoadingViewHolder();
-    }
-
-    @Override
-    public IViewHolder getEmptyViewHolder() {
-        if (emptyViewHolder == null) {
-            return StateManager.config().getEmptyViewHolder();
-        }
-        return super.getEmptyViewHolder();
-    }
-
-    @Override
-    public IViewHolder getErrorViewHolder() {
-        if (errorViewHolder == null) {
-            return StateManager.config().getErrorViewHolder();
-        }
-        return super.getErrorViewHolder();
-    }
-
-    @Override
-    public IViewHolder getLoginViewHolder() {
-        if (loginViewHolder == null) {
-            return StateManager.config().getLoginViewHolder();
-        }
-        return super.getLoginViewHolder();
-    }
-
-    @Override
-    public IViewHolder getNoNetworkViewHolder() {
-        if (noNetworkViewHolder == null) {
-            return StateManager.config().getNoNetworkViewHolder();
-        }
-        return super.getNoNetworkViewHolder();
-    }
+//    @Override
+//    public IViewHolder getLoadingViewHolder() {
+//        if (loadingViewHolder == null) {
+//            return StateManager.config().getLoadingViewHolder();
+//        }
+//        return super.getLoadingViewHolder();
+//    }
+//
+//    @Override
+//    public IViewHolder getEmptyViewHolder() {
+//        if (emptyViewHolder == null) {
+//            return StateManager.config().getEmptyViewHolder();
+//        }
+//        return super.getEmptyViewHolder();
+//    }
+//
+//    @Override
+//    public IViewHolder getErrorViewHolder() {
+//        if (errorViewHolder == null) {
+//            return StateManager.config().getErrorViewHolder();
+//        }
+//        return super.getErrorViewHolder();
+//    }
+//
+//    @Override
+//    public IViewHolder getLoginViewHolder() {
+//        if (loginViewHolder == null) {
+//            return StateManager.config().getLoginViewHolder();
+//        }
+//        return super.getLoginViewHolder();
+//    }
+//
+//    @Override
+//    public IViewHolder getNoNetworkViewHolder() {
+//        if (noNetworkViewHolder == null) {
+//            return StateManager.config().getNoNetworkViewHolder();
+//        }
+//        return super.getNoNetworkViewHolder();
+//    }
 
     public abstract void onBindViewHolder(final EasyViewHolder holder, final List<T> list, final int position, final List<Object> payloads);
 

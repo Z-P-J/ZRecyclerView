@@ -1,21 +1,21 @@
 package com.zpj.recyclerview;
 
 import android.annotation.SuppressLint;
-import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
+
+import com.zpj.statemanager.BaseStateConfig;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MultiRecyclerViewWrapper {
+public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewWrapper> {
 
     protected final RecyclerView recyclerView;
 
@@ -27,7 +27,6 @@ public class MultiRecyclerViewWrapper {
     protected View headerView;
     protected IEasy.OnBindHeaderListener onBindHeaderListener;
     protected IEasy.OnBindFooterListener onBindFooterListener;
-    protected IEasy.OnLoadRetryListener onLoadRetryListener;
     protected View footerView;
 
     public static MultiRecyclerViewWrapper with(@NonNull RecyclerView recyclerView) {
@@ -69,11 +68,6 @@ public class MultiRecyclerViewWrapper {
         return this;
     }
 
-    public MultiRecyclerViewWrapper setOnLoadRetryListener(IEasy.OnLoadRetryListener onLoadRetryListener) {
-        this.onLoadRetryListener = onLoadRetryListener;
-        return this;
-    }
-
     public MultiRecyclerViewWrapper addItemDecoration(RecyclerView.ItemDecoration decor) {
         this.recyclerView.addItemDecoration(decor);
         return this;
@@ -93,7 +87,7 @@ public class MultiRecyclerViewWrapper {
             maxSpan = lcm(data.getMaxColumnCount(), maxSpan);
         }
         layoutManager = new GridLayoutManager(recyclerView.getContext(), maxSpan);
-        easyAdapter = new MultiAdapter(recyclerView.getContext(), list, onLoadRetryListener);
+        easyAdapter = new MultiAdapter(recyclerView.getContext(), list, this);
         if (headerView != null) {
             easyAdapter.setHeaderView(headerView);
             easyAdapter.setOnBindHeaderListener(onBindHeaderListener);

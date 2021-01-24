@@ -7,26 +7,27 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.zpj.statemanager.BaseStateConfig;
+import com.zpj.statemanager.IViewHolder;
+import com.zpj.statemanager.State;
 
 import java.util.List;
 
-import static com.zpj.recyclerview.EasyState.STATE_CONTENT;
+import static com.zpj.statemanager.State.STATE_LOGIN;
 
 public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
 
     private static final String TAG = "MultiAdapter";
 
-    MultiAdapter(final Context context, List<MultiData<?>> list, final IEasy.OnLoadRetryListener onLoadRetryListener) {
+    MultiAdapter(final Context context, List<MultiData<?>> list, final EasyStateConfig<?> config) {
         super(context, list, 0, null, null,
                 null, null, null,
-                null, null, null, onLoadRetryListener);
+                null, null, null, config);
         for (MultiData<?> data : list) {
             data.setAdapter(this);
         }
@@ -35,33 +36,38 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
     @NonNull
     @Override
     public EasyViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
-        if (viewType == TYPE_STATE) {
-            Log.d(TAG, "onCreateViewHolder TYPE_STATE");
-            return new EasyViewHolder(stateLayout);
+        if (viewType == State.STATE_EMPTY.hashCode() || viewType == State.STATE_LOADING.hashCode()
+                || viewType == State.STATE_ERROR.hashCode() || viewType == STATE_LOGIN.hashCode()
+                || viewType == State.STATE_NO_NETWORK.hashCode()) {
+            IViewHolder viewHolder = config.getViewHolder(state);
+            if (viewHolder != null) {
+                View view = viewHolder.onCreateView(context);
+                ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                view.setLayoutParams(layoutParams);
+                return new EasyViewHolder(view);
+            }
         } else if (viewType == TYPE_HEADER) {
             return new EasyViewHolder(headerView);
         } else if (viewType == TYPE_FOOTER) {
             return new EasyViewHolder(footerView);
-        } else {
-            return new EasyViewHolder(onCreateView(viewGroup.getContext(), viewGroup, viewType));
-
-//            int res = onGetChildLayoutId(viewType);
-//            View view = LayoutInflater.from(viewGroup.getContext()).inflate(res, viewGroup, false);
-//            return new EasyViewHolder(view);
         }
+        return new EasyViewHolder(onCreateView(viewGroup.getContext(), viewGroup, viewType));
     }
 
     @Override
     public int getItemCount() {
-        if (state != STATE_CONTENT) {
+        if (state != State.STATE_CONTENT) {
             return 1;
         }
         int count = 0;
         for (MultiData<?> data : list) {
-            if (!data.isLoaded || data.hasMore) {
+//            if (!data.isLoaded || data.hasMore) {
+//                break;
+//            }
+            count += data.getCount();
+            if (data.hasMore()) {
                 break;
             }
-            count += data.getCount();
         }
         if (headerView != null) {
             count++;
@@ -74,8 +80,8 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
 
     @Override
     public int getItemViewType(int position) {
-        if (state != STATE_CONTENT) {
-            return TYPE_STATE;
+        if (state != State.STATE_CONTENT) {
+            return state.hashCode();
         } else if (isHeaderPosition(position)) {
             return TYPE_HEADER;
         } else if (isFooterPosition(position)) {
@@ -90,7 +96,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
 
     @Override
     public void onBindViewHolder(@NonNull EasyViewHolder holder, int position, @NonNull List<Object> payloads) {
-        if (state != STATE_CONTENT) {
+        if (state != State.STATE_CONTENT) {
             return;
         }
         holder.setRealPosition(getRealPosition(holder));

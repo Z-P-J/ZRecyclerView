@@ -7,18 +7,19 @@ import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 
-import com.zpj.recyclerview.R;
-import com.zpj.widget.statelayout.StateLayout;
+import com.zpj.statemanager.BaseStateConfig;
+import com.zpj.statemanager.BaseViewHolder;
+import com.zpj.statemanager.IViewHolder;
+import com.zpj.statemanager.State;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
+public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>> implements IEasy.OnLoadMoreListener { //  extends BaseStateConfig<EasyRecyclerView<T>>
 
     protected final RecyclerView recyclerView;
 
@@ -42,7 +43,6 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
     protected IEasy.OnBindViewHolderListener<T> onBindViewHolderListener;
     protected IEasy.OnCreateViewHolderListener<T> onCreateViewHolder;
     protected IEasy.OnLoadMoreListener onLoadMoreListener;
-    protected IEasy.OnLoadRetryListener onLoadRetryListener;
 
     protected final SparseArray<IEasy.OnClickListener<T>> onClickListeners = new SparseArray<>();
     protected final SparseArray<IEasy.OnLongClickListener<T>> onLongClickListeners = new SparseArray<>();
@@ -52,6 +52,22 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
     public EasyRecyclerView(@NonNull RecyclerView recyclerView) {
         this.recyclerView = recyclerView;
     }
+
+//    @Override
+//    public IViewHolder getViewHolder(State state) {
+//        IViewHolder viewHolder = super.getViewHolder(state);
+//        if (viewHolder instanceof BaseViewHolder) {
+//            ((BaseViewHolder) viewHolder).setOnRetry(new Runnable() {
+//                @Override
+//                public void run() {
+//                    if (onLoadRetryListener != null) {
+//                        onLoadRetryListener.onLoadRetry();
+//                    }
+//                }
+//            });
+//        }
+//        return viewHolder;
+//    }
 
     public EasyRecyclerView<T> setItemAnimator(RecyclerView.ItemAnimator animator) {
         recyclerView.setItemAnimator(animator);
@@ -174,11 +190,6 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
         return this;
     }
 
-    public EasyRecyclerView<T> setOnLoadRetryListener(IEasy.OnLoadRetryListener onLoadRetryListener) {
-        this.onLoadRetryListener = onLoadRetryListener;
-        return this;
-    }
-
     public EasyRecyclerView<T> onGetChildViewType(IEasy.OnGetChildViewTypeListener<T> listener) {
         this.onGetChildViewTypeListener = listener;
         return this;
@@ -257,13 +268,14 @@ public class EasyRecyclerView<T> implements IEasy.OnLoadMoreListener {
         if (layoutManager == null) {
             layoutManager = new LinearLayoutManager(recyclerView.getContext());
         }
+
         easyAdapter = new EasyStateAdapter<>(
                 recyclerView.getContext(), list,
                 itemRes, onGetChildViewTypeListener,
                 onGetChildLayoutIdListener, onCreateViewHolder,
                 onBindViewHolderListener, onItemClickListener,
                 onItemLongClickListener, onClickListeners,
-                onLongClickListeners, onLoadRetryListener
+                onLongClickListeners, this
         );
         if (headerView != null) {
             easyAdapter.setHeaderView(headerView);

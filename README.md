@@ -6,7 +6,7 @@
 step 1:
 
 ```java
-implementation 'com.zpj.widget:ZRecyclerView:1.1.5'
+implementation 'com.zpj.widget:ZRecyclerView:1.2.0'
 ```
 
 step 2:

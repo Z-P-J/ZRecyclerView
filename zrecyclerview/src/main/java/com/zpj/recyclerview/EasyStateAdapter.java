@@ -3,33 +3,34 @@ package com.zpj.recyclerview;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.zpj.widget.statelayout.StateLayout;
+import com.zpj.statemanager.BaseStateConfig;
+import com.zpj.statemanager.IViewHolder;
+import com.zpj.statemanager.State;
 
 import java.util.List;
 
-import static com.zpj.recyclerview.EasyState.STATE_CONTENT;
-import static com.zpj.recyclerview.EasyState.STATE_EMPTY;
-import static com.zpj.recyclerview.EasyState.STATE_ERROR;
-import static com.zpj.recyclerview.EasyState.STATE_LOADING;
-import static com.zpj.recyclerview.EasyState.STATE_NO_NETWORK;
+import static com.zpj.statemanager.State.STATE_CONTENT;
+import static com.zpj.statemanager.State.STATE_EMPTY;
+import static com.zpj.statemanager.State.STATE_ERROR;
+import static com.zpj.statemanager.State.STATE_LOADING;
+import static com.zpj.statemanager.State.STATE_LOGIN;
+import static com.zpj.statemanager.State.STATE_NO_NETWORK;
 
 public class EasyStateAdapter<T> extends EasyAdapter<T> {
 
     private static final String TAG = "EasyStateAdapter";
 
-    protected static final int TYPE_STATE = -3;
+//    protected static final int TYPE_STATE = -3;
 
     protected final Context context;
 
-    protected EasyState state = STATE_CONTENT;
-    protected EasyState preState = STATE_CONTENT;
+    protected final EasyStateConfig<?> config;
 
-    protected final StateLayout stateLayout;
+    protected State state = STATE_CONTENT;
 
     EasyStateAdapter(final Context context, List<T> list, int itemRes,
                      IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener,
@@ -40,35 +41,27 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
                      IEasy.OnItemLongClickListener<T> onLongClickListener,
                      SparseArray<IEasy.OnClickListener<T>> onClickListeners,
                      SparseArray<IEasy.OnLongClickListener<T>> onLongClickListeners,
-                     final IEasy.OnLoadRetryListener onLoadRetryListener) {
+                     final EasyStateConfig<?> config) {
         super(list, itemRes, onGetChildViewTypeListener, onGetChildLayoutIdListener,
                 onCreateViewHolder, onBindViewHolderListener, onClickListener,
                 onLongClickListener, onClickListeners, onLongClickListeners);
         this.context = context;
-        stateLayout = new StateLayout(context);
-        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        stateLayout.setLayoutParams(params);
-        stateLayout.setRefreshListener(new StateLayout.OnViewRefreshListener() {
-            @Override
-            public void refreshClick() {
-                if (onLoadRetryListener != null) {
-                    onLoadRetryListener.onLoadRetry();
-                }
-            }
-
-            @Override
-            public void loginClick() {
-
-            }
-        });
+        this.config = config;
     }
 
     @NonNull
     @Override
     public EasyViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
-        if (viewType == TYPE_STATE) {
-            Log.d(TAG, "onCreateViewHolder TYPE_STATE");
-            return new EasyViewHolder(stateLayout);
+        if (viewType == STATE_EMPTY.hashCode() || viewType == STATE_LOADING.hashCode()
+                || viewType == STATE_ERROR.hashCode() || viewType == STATE_LOGIN.hashCode()
+                || viewType == STATE_NO_NETWORK.hashCode()) {
+            IViewHolder viewHolder = config.getViewHolder(state);
+            if (viewHolder != null) {
+                View view = viewHolder.onCreateView(context);
+                ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                view.setLayoutParams(layoutParams);
+                return new EasyViewHolder(view);
+            }
         }
         return super.onCreateViewHolder(viewGroup, viewType);
     }
@@ -77,26 +70,13 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     public void onBindViewHolder(@NonNull EasyViewHolder holder, int position, @NonNull List<Object> payloads) {
         if (state == STATE_CONTENT) {
             super.onBindViewHolder(holder, position, payloads);
-        } else {
-
-//            StateLayout statusView = (StateLayout) holder.getItemView();
-//            Log.d(TAG, "onCreateViewHolder state=" + state);
-//            if (state == STATE_LOADING) {
-//                statusView.showLoadingView();
-//            } else if (state == STATE_EMPTY) {
-//                statusView.showEmptyView();
-//            } else if (state == STATE_ERROR) {
-//                statusView.showErrorView();
-//            } else if (state == STATE_NO_NETWORK) {
-//                statusView.showNoNetworkView();
-//            }
         }
     }
 
     @Override
     public int getItemViewType(int position) {
         if (state != STATE_CONTENT) {
-            return TYPE_STATE;
+            return state.hashCode();
         }
         return super.getItemViewType(position);
     }
@@ -130,27 +110,27 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
      */
     public final void showEmpty() {
         changeState(STATE_EMPTY);
-        stateLayout.showEmptyView();
+//        stateLayout.showEmptyView();
     }
 
     public void showEmptyView(int msgId) {
         changeState(STATE_EMPTY);
-        stateLayout.showEmptyView(msgId);
+//        stateLayout.showEmptyView(msgId);
     }
 
     public void showEmptyView(String msg) {
         changeState(STATE_EMPTY);
-        stateLayout.showEmptyView(msg);
+//        stateLayout.showEmptyView(msg);
     }
 
     public void showEmptyView(int msgId, int imgId) {
         changeState(STATE_EMPTY);
-        stateLayout.showEmptyView(msgId, imgId);
+//        stateLayout.showEmptyView(msgId, imgId);
     }
 
     public void showEmptyView(String msg, int imgId) {
         changeState(STATE_EMPTY);
-        stateLayout.showEmptyView(msg, imgId);
+//        stateLayout.showEmptyView(msg, imgId);
     }
 
     /**
@@ -175,7 +155,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
             return;
         }
         changeState(STATE_ERROR);
-        stateLayout.showErrorView();
+//        stateLayout.showErrorView();
     }
 
     public void showErrorView(int msgId) {
@@ -184,7 +164,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
             return;
         }
         changeState(STATE_ERROR);
-        stateLayout.showErrorView(msgId);
+//        stateLayout.showErrorView(msgId);
     }
 
     public void showErrorView(String msg) {
@@ -193,7 +173,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
             return;
         }
         changeState(STATE_ERROR);
-        stateLayout.showErrorView(msg);
+//        stateLayout.showErrorView(msg);
     }
 
     public void showErrorView(int msgId, int imgId) {
@@ -202,7 +182,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
             return;
         }
         changeState(STATE_ERROR);
-        stateLayout.showErrorView(msgId, imgId);
+//        stateLayout.showErrorView(msgId, imgId);
     }
 
     public void showErrorView(String msg, int imgId) {
@@ -211,7 +191,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
             return;
         }
         changeState(STATE_ERROR);
-        stateLayout.showErrorView(msg, imgId);
+//        stateLayout.showErrorView(msg, imgId);
     }
 
     /**
@@ -219,27 +199,27 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
      */
     public final void showLoading() {
         changeState(STATE_LOADING);
-        stateLayout.showLoadingView();
+//        stateLayout.showLoadingView();
     }
 
     public void showLoadingView(View view) {
         changeState(STATE_LOADING);
-        stateLayout.showLoadingView(view);
+//        stateLayout.showLoadingView(view);
     }
 
     public void showLoadingView(View view, boolean showTip) {
         changeState(STATE_LOADING);
-        stateLayout.showLoadingView(view, showTip);
+//        stateLayout.showLoadingView(view, showTip);
     }
 
     public void showLoadingView(int msgId) {
         changeState(STATE_LOADING);
-        stateLayout.showLoadingView(msgId);
+//        stateLayout.showLoadingView(msgId);
     }
 
     public void showLoadingView(String msg) {
         changeState(STATE_LOADING);
-        stateLayout.showLoadingView(msg);
+//        stateLayout.showLoadingView(msg);
     }
 
     /**
@@ -264,7 +244,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
             return;
         }
         changeState(STATE_NO_NETWORK);
-        stateLayout.showNoNetworkView();
+//        stateLayout.showNoNetworkView();
     }
 
     public void showNoNetworkView(int msgId) {
@@ -273,7 +253,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
             return;
         }
         changeState(STATE_NO_NETWORK);
-        stateLayout.showNoNetworkView(msgId);
+//        stateLayout.showNoNetworkView(msgId);
     }
 
     public void showNoNetworkView(String msg) {
@@ -282,7 +262,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
             return;
         }
         changeState(STATE_NO_NETWORK);
-        stateLayout.showNoNetworkView(msg);
+//        stateLayout.showNoNetworkView(msg);
     }
 
     public void showNoNetworkView(int msgId, int imgId) {
@@ -291,7 +271,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
             return;
         }
         changeState(STATE_NO_NETWORK);
-        stateLayout.showNoNetworkView(msgId, imgId);
+//        stateLayout.showNoNetworkView(msgId, imgId);
     }
 
 
@@ -307,12 +287,11 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
         notifyDataSetChanged();
     }
 
-    public EasyState getState() {
+    public State getState() {
         return state;
     }
 
-    private void changeState(EasyState state) {
-        preState = this.state;
+    private void changeState(State state) {
         this.state = state;
         setLoadMoreEnabled(false);
         list.clear();
