@@ -10,11 +10,10 @@ import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 
-import com.zpj.statemanager.BaseStateConfig;
-import com.zpj.statemanager.BaseViewHolder;
-import com.zpj.statemanager.IViewHolder;
-import com.zpj.statemanager.State;
+import com.zpj.recyclerview.footer.DefaultFooterViewHolder;
+import com.zpj.recyclerview.footer.IFooterViewHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,8 +32,9 @@ public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>> im
 
     protected View headerView;
     protected IEasy.OnBindHeaderListener onBindHeaderListener;
-    protected IEasy.OnBindFooterListener onBindFooterListener;
-    protected View footerView;
+//    protected IEasy.OnBindFooterListener onBindFooterListener;
+//    protected View footerView;
+    protected IFooterViewHolder footerViewBinder;
 
     protected boolean enableLoadMore = false;
 
@@ -173,14 +173,87 @@ public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>> im
         return this;
     }
 
-    public EasyRecyclerView<T> setFooterView(View headerView) {
-        this.footerView = headerView;
+    public EasyRecyclerView<T> setFooterViewBinder(IFooterViewHolder footerViewBinder) {
+        this.footerViewBinder = footerViewBinder;
         return this;
     }
 
-    public EasyRecyclerView<T> setFooterView(@LayoutRes int layoutRes, IEasy.OnBindFooterListener listener) {
-        this.footerView = LayoutInflater.from(recyclerView.getContext()).inflate(layoutRes, null, false);
-        onBindFooterListener = listener;
+    public EasyRecyclerView<T> setFooterView(final View footerView) {
+//        this.footerView = headerView;
+        this.footerViewBinder = new IFooterViewHolder() {
+            @Override
+            public View onCreateFooterView(ViewGroup root) {
+                return footerView;
+            }
+
+            @Override
+            public View getView() {
+                return footerView;
+            }
+
+            @Override
+            public void onBindFooter(EasyViewHolder holder) {
+
+            }
+
+            @Override
+            public void onShowLoading() {
+
+            }
+
+            @Override
+            public void onShowHasNoMore() {
+
+            }
+
+            @Override
+            public void onShowError(String msg) {
+
+            }
+        };
+        return this;
+    }
+
+    public EasyRecyclerView<T> setFooterView(@LayoutRes final int layoutRes, final IEasy.OnBindFooterListener listener) {
+//        this.footerView = LayoutInflater.from(recyclerView.getContext()).inflate(layoutRes, null, false);
+//        onBindFooterListener = listener;
+        this.footerViewBinder = new IFooterViewHolder() {
+            private View view;
+            @Override
+            public View onCreateFooterView(ViewGroup root) {
+                if (view == null) {
+                    view = LayoutInflater.from(root.getContext()).inflate(layoutRes, null, false);
+                }
+                return view;
+            }
+
+            @Override
+            public View getView() {
+                return view;
+            }
+
+            @Override
+            public void onBindFooter(EasyViewHolder holder) {
+                if (listener != null) {
+                    listener.onBindFooter(holder);
+                }
+            }
+
+            @Override
+            public void onShowLoading() {
+
+            }
+
+            @Override
+            public void onShowHasNoMore() {
+
+            }
+
+            @Override
+            public void onShowError(String msg) {
+
+            }
+        };
         return this;
     }
 
@@ -259,9 +332,6 @@ public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>> im
     }
 
     public void build() {
-//        if (itemRes <= 0) {
-//            throw new RuntimeException("You must set the itemRes!");
-//        }
         if (list == null) {
             list = new ArrayList<>(0);
         }
@@ -281,13 +351,15 @@ public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>> im
             easyAdapter.setHeaderView(headerView);
             easyAdapter.setOnBindHeaderListener(onBindHeaderListener);
         }
-        if (footerView != null) {
-            easyAdapter.setFooterView(footerView);
-            easyAdapter.setOnBindFooterListener(onBindFooterListener);
+        if (footerViewBinder != null) {
+            easyAdapter.setFooterViewBinder(footerViewBinder);
+//            easyAdapter.setFooterView(footerView);
+//            easyAdapter.setOnBindFooterListener(onBindFooterListener);
         } else if (onLoadMoreListener != null && enableLoadMore) {
-            footerView = LayoutInflater.from(recyclerView.getContext()).inflate(R.layout.easy_base_footer, null, false);
-            easyAdapter.setFooterView(footerView);
-            easyAdapter.setOnBindFooterListener(onBindFooterListener);
+//            footerView = LayoutInflater.from(recyclerView.getContext()).inflate(R.layout.easy_base_footer, null, false);
+//            easyAdapter.setFooterView(footerView);
+//            easyAdapter.setOnBindFooterListener(onBindFooterListener);
+            easyAdapter.setFooterViewBinder(new DefaultFooterViewHolder());
         }
         easyAdapter.setOnLoadMoreListener(this);
         easyAdapter.setLoadMoreEnabled(onLoadMoreListener != null && enableLoadMore);

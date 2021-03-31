@@ -6,15 +6,13 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.TextView;
+
+import com.zpj.recyclerview.footer.IFooterViewHolder;
 
 import java.util.List;
 
@@ -34,14 +32,15 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     protected int currentPage = -1;
 
     protected View headerView;
-    protected View footerView;
+//    protected View footerView;
+    protected IFooterViewHolder footerViewBinder;
 
     protected final IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener;
     protected final IEasy.OnGetChildLayoutIdListener onGetChildLayoutIdListener;
     protected final IEasy.OnBindViewHolderListener<T> onBindViewHolderListener;
     protected final IEasy.OnCreateViewHolderListener<T> onCreateViewHolder;
     protected IEasy.OnBindHeaderListener onBindHeaderListener;
-    protected IEasy.OnBindFooterListener onBindFooterListener;
+//    protected IEasy.OnBindFooterListener onBindFooterListener;
     protected final IEasy.OnItemClickListener<T> onItemClickListener;
     protected final IEasy.OnItemLongClickListener<T> onItemLongClickListener;
     protected final SparseArray<IEasy.OnClickListener<T>> onClickListeners;
@@ -80,7 +79,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         if (viewType == TYPE_HEADER) {
             return new EasyViewHolder(headerView);
         } else if (viewType == TYPE_FOOTER) {
-            return new EasyViewHolder(footerView);
+            return new EasyViewHolder(footerViewBinder.onCreateFooterView(viewGroup));
         } else {
             int res;
             if (onGetChildLayoutIdListener != null) {
@@ -147,13 +146,9 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         }
         if (isFooterPosition(position)) {
             Log.d(TAG, "isFooterPosition");
-            if (list.isEmpty()) {
-                ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-                footerView.setLayoutParams(params);
-            } else {
-                ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                footerView.setLayoutParams(params);
-            }
+            ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    list.isEmpty() ? ViewGroup.LayoutParams.MATCH_PARENT : ViewGroup.LayoutParams.WRAP_CONTENT);
+            footerViewBinder.getView().setLayoutParams(params);
             if (!canScroll() && mOnLoadMoreListener != null && !mIsLoading && getLoadMoreEnabled()) {
                 mIsLoading = true;
                 Log.d(TAG, "isFooterPosition onLoadMore");
@@ -182,9 +177,10 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
                     }
                 }
             });
-            if (onBindFooterListener != null) {
-                onBindFooterListener.onBindFooter(holder);
-            }
+//            if (onBindFooterListener != null) {
+//                onBindFooterListener.onBindFooter(holder);
+//            }
+            footerViewBinder.onBindFooter(holder);
             return;
         }
 
@@ -311,48 +307,50 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         if (headerView != null) {
             count++;
         }
-        if (footerView != null) {
+        if (footerViewBinder != null) {
             count++;
         }
         return count;
     }
 
     protected void onLoadMore() {
-        Log.d(TAG, "onLoadMore");
-        LinearLayout llContainerProgress = footerView.findViewById(R.id.ll_container_progress);
-        TextView tvMsg = footerView.findViewById(R.id.tv_msg);
+//        LinearLayout llContainerProgress = footerView.findViewById(R.id.ll_container_progress);
+//        TextView tvMsg = footerView.findViewById(R.id.tv_msg);
         if (list.isEmpty() || currentPage < -1) {
             currentPage = -1;
         }
         if (mOnLoadMoreListener.onLoadMore(mEnabled, currentPage + 1)) {
-            if (llContainerProgress != null) {
-                llContainerProgress.setVisibility(View.VISIBLE);
-            }
-            if (tvMsg != null) {
-                tvMsg.setVisibility(View.GONE);
+//            if (llContainerProgress != null) {
+//                llContainerProgress.setVisibility(View.VISIBLE);
+//            }
+//            if (tvMsg != null) {
+//                tvMsg.setVisibility(View.GONE);
+//            }
+            if (footerViewBinder != null) {
+                footerViewBinder.onShowLoading();
             }
             currentPage++;
         } else {
-//            if (llContainerProgress != null) {
-//                llContainerProgress.setVisibility(View.GONE);
-//            }
-//            if (tvMsg != null) {
-//                tvMsg.setVisibility(View.VISIBLE);
-//            }
             mIsLoading = false;
-            showFooterMsg(mRecyclerView.getContext().getString(R.string.easy_has_no_more));
+            if (footerViewBinder != null) {
+                footerViewBinder.onShowHasNoMore();
+            }
+//            showFooterMsg(mRecyclerView.getContext().getString(R.string.easy_has_no_more));
         }
     }
 
     protected void showFooterMsg(String msg) {
-        LinearLayout llContainerProgress = footerView.findViewById(R.id.ll_container_progress);
-        TextView tvMsg = getFooterView().findViewById(R.id.tv_msg);
-        if (llContainerProgress != null) {
-            llContainerProgress.setVisibility(View.GONE);
-        }
-        if (tvMsg != null) {
-            tvMsg.setVisibility(View.VISIBLE);
-            tvMsg.setText(msg);
+//        LinearLayout llContainerProgress = footerView.findViewById(R.id.ll_container_progress);
+//        TextView tvMsg = getFooterView().findViewById(R.id.tv_msg);
+//        if (llContainerProgress != null) {
+//            llContainerProgress.setVisibility(View.GONE);
+//        }
+//        if (tvMsg != null) {
+//            tvMsg.setVisibility(View.VISIBLE);
+//            tvMsg.setText(msg);
+//        }
+        if (footerViewBinder != null) {
+            footerViewBinder.onShowError(msg);
         }
     }
 
@@ -369,7 +367,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     }
 
     protected boolean isFooterPosition(int position) {
-        return footerView != null && position == getItemCount() - 1;
+        return footerViewBinder != null && position == getItemCount() - 1;
     }
 
     protected int getRealPosition(RecyclerView.ViewHolder holder) {
@@ -388,23 +386,31 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         this.onBindHeaderListener = onBindHeaderListener;
     }
 
-    public void setOnBindFooterListener(IEasy.OnBindFooterListener onBindFooterListener) {
-        this.onBindFooterListener = onBindFooterListener;
-    }
+//    public void setOnBindFooterListener(IEasy.OnBindFooterListener onBindFooterListener) {
+//        this.onBindFooterListener = onBindFooterListener;
+//    }
 
     public View getHeaderView() {
         return headerView;
     }
 
     public void setFooterView(@NonNull View footerView) {
-        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        footerView.setLayoutParams(params);
-        this.footerView = footerView;
-        notifyItemInserted(getItemCount() - 1);
+//        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+//        footerView.setLayoutParams(params);
+//        this.footerView = footerView;
+//        notifyItemInserted(getItemCount() - 1);
     }
 
-    public View getFooterView() {
-        return footerView;
+    public void setFooterViewBinder(IFooterViewHolder footerViewBinder) {
+        this.footerViewBinder = footerViewBinder;
+    }
+
+    //    public View getFooterView() {
+//        return footerView;
+//    }
+
+    public IFooterViewHolder getFooterViewBinder() {
+        return footerViewBinder;
     }
 
     public void setOnLoadMoreListener(IEasy.OnLoadMoreListener mOnLoadMoreListener) {
@@ -534,7 +540,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
     protected void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
         Log.d(TAG, "onScrollStateChanged getLoadMoreEnabled=" + getLoadMoreEnabled() + "  mIsLoading=" + mIsLoading);
-        if (footerView == null || !getLoadMoreEnabled() || mIsLoading || mOnLoadMoreListener == null) {
+        if (footerViewBinder == null || !getLoadMoreEnabled() || mIsLoading || mOnLoadMoreListener == null) {
             return;
         }
         Log.d(TAG, "onScrollStateChanged newState=" + newState);
@@ -561,27 +567,6 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             if (isBottom) {
                 mIsLoading = true;
                 onLoadMore();
-//                    ProgressBar progressBar = footerView.findViewById(R.id.progress_bar);
-//                    TextView tvMsg = footerView.findViewById(R.id.tv_msg);
-//                    if (list.isEmpty() || currentPage < -1) {
-//                        currentPage = -1;
-//                    }
-//                    if (mOnLoadMoreListener.onLoadMore(mEnabled, currentPage + 1)) {
-//                        if (progressBar != null) {
-//                            progressBar.setVisibility(View.VISIBLE);
-//                        }
-//                        if (tvMsg != null) {
-//                            tvMsg.setVisibility(View.GONE);
-//                        }
-//                        currentPage++;
-//                    } else if (footerView != null) {
-//                        if (progressBar != null) {
-//                            progressBar.setVisibility(View.GONE);
-//                        }
-//                        if (tvMsg != null) {
-//                            tvMsg.setVisibility(View.VISIBLE);
-//                        }
-//                    }
             }
         }
     }

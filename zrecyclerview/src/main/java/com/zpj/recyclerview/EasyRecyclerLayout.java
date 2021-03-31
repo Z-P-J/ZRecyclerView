@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
+import com.zpj.recyclerview.footer.IFooterViewHolder;
 import com.zpj.statemanager.State;
 import com.zpj.widget.checkbox.SmoothCheckBox;
 
@@ -158,7 +159,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
         FrameLayout container = holder.getView(R.id.easy_container);
         View contentChild = container.getChildAt(0);
 
-        final RelativeLayout checkBoxContainer = holder.getView(R.id.easy_recycler_layout_check_box_container);
+        final View checkBoxContainer = holder.getView(R.id.easy_recycler_layout_check_box_container);
         final SmoothCheckBox checkBox = holder.getView(R.id.easy_recycler_layout_check_box);
 
         if (showCheckBox) {
@@ -170,7 +171,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
         if (checkBoxContainer.getVisibility() == VISIBLE) {
             checkBox.setChecked(selectedList.contains(position), false);
 //        checkBox.setChecked(isSelected(list.get(position), position), false);
-            checkBox.setClickable(false);
+//            checkBox.setClickable(false);
             checkBox.setOnCheckedChangeListener(null);
             checkBox.setOnClickListener(new OnClickListener() {
                 @Override
@@ -196,7 +197,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
             checkBoxContainer.setOnClickListener(null);
         }
 
-        contentChild.setPaddingRelative(
+        contentChild.setPadding(
                 contentChild.getPaddingStart(),
                 contentChild.getPaddingTop(),
                 checkBoxContainer.getVisibility() == VISIBLE ? 0 : contentChild.getPaddingStart(),
@@ -463,12 +464,17 @@ public class EasyRecyclerLayout<T> extends FrameLayout
         return this;
     }
 
-    public EasyRecyclerLayout<T> setFooterView(View headerView) {
-        easyRecyclerView.setFooterView(headerView);
+    public EasyRecyclerLayout<T> setFooterViewBinder(IFooterViewHolder footerViewBinder) {
+        easyRecyclerView.setFooterViewBinder(footerViewBinder);
         return this;
     }
 
-    public EasyRecyclerLayout<T> setFooterView(@LayoutRes int layoutRes, IEasy.OnBindFooterListener listener) {
+    public EasyRecyclerLayout<T> setFooterView(final View footerView) {
+        easyRecyclerView.setFooterView(footerView);
+        return this;
+    }
+
+    public EasyRecyclerLayout<T> setFooterView(@LayoutRes final int layoutRes, final IEasy.OnBindFooterListener listener) {
         easyRecyclerView.setFooterView(layoutRes, listener);
         return this;
     }

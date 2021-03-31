@@ -13,7 +13,7 @@ import com.zpj.recyclerview.IEasy;
 
 import java.util.List;
 
-public class RecyclerViewHeaderMultiData extends BaseHeaderMultiData2<Integer> {
+public class RecyclerViewHeaderMultiData extends BaseHeaderMultiData<Integer> {
 
     private EasyRecyclerView<Integer> recyclerView;
 

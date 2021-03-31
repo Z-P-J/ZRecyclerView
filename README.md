@@ -1,12 +1,18 @@
 # ZRecyclerView
  A RecyclerView which is implemented to make it easier to use.
 
+ <div>
+     <img src="./demo1.gif" width="30%">
+     <img src="./demo2.gif" width="30%">
+     <img src="./demo3.gif" width="30%">
+ </div>
+
 ## Usage
 
 step 1:
-
+#### Latest Version：[![Download](https://api.bintray.com/packages/z-p-j/maven/ZRecyclerView/images/download.svg?version-1.0.0)](https://bintray.com/z-p-j/maven/ZRecyclerView/1.0.0/link)
 ```java
-implementation 'com.zpj.widget:ZRecyclerView:1.2.0'
+implementation 'com.zpj.widget:ZRecyclerView:1.2.1'
 ```
 
 step 2:
@@ -91,3 +97,34 @@ step 3:
 
 
 ## MultiData的使用（TODO）
+为了使复杂布局的实现更简单，我自创了一种MultiData的方式来实现复杂布局，支持多种实体类，结合MultiRecyclerViewWrapper来方便我们使用。
+#### 1. 创建MultiRecyclerViewWrapper对象
+~~~java
+List<MultiData<?>> list = new ArrayList<>();
+MultiRecyclerViewWrapper wrapper = MultiRecyclerViewWrapper.with(recyclerView);
+~~~
+#### 2. 自定义MultiData
+MultiData是一个抽象类，我们需要继承它并实现一些方法
+~~~java
+/*
+加载数据，一般在子线程中加载数据
+return：true:表示还有更多数据，false:数据加载完成
+*/
+public boolean loadData() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(1000);
+                    for (int i = 0; i < 16; i++) {
+                        list.add("" + i);
+                    }
+                    showContent();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+        return false;
+}
+~~~

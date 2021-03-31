@@ -138,11 +138,11 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
      */
 
     private void showErrorFooter(String msg) {
-        String errorMsg = "~ 出错了 ~";
-        if (!TextUtils.isEmpty(msg)) {
-            errorMsg += ("\n错误信息：" + msg);
-        }
-        showFooterMsg(errorMsg);
+//        String errorMsg = "~ 出错了 ~";
+//        if (!TextUtils.isEmpty(msg)) {
+//            errorMsg += ("\n错误信息：" + msg);
+//        }
+        showFooterMsg(msg);
         if (mIsLoading) {
             currentPage--;
             mIsLoading = false;
@@ -150,7 +150,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     }
 
     public final void showError() {
-        if (getFooterView() != null && !list.isEmpty()) {
+        if (getFooterViewBinder() != null && !list.isEmpty()) {
             showErrorFooter(null);
             return;
         }
@@ -159,7 +159,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     }
 
     public void showErrorView(int msgId) {
-        if (getFooterView() != null && !list.isEmpty()) {
+        if (getFooterViewBinder() != null && !list.isEmpty()) {
             showErrorFooter(context.getString(msgId));
             return;
         }
@@ -168,7 +168,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     }
 
     public void showErrorView(String msg) {
-        if (getFooterView() != null && !list.isEmpty()) {
+        if (getFooterViewBinder() != null && !list.isEmpty()) {
             showErrorFooter(msg);
             return;
         }
@@ -177,7 +177,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     }
 
     public void showErrorView(int msgId, int imgId) {
-        if (getFooterView() != null && !list.isEmpty()) {
+        if (getFooterViewBinder() != null && !list.isEmpty()) {
             showErrorFooter(context.getString(msgId));
             return;
         }
@@ -186,7 +186,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     }
 
     public void showErrorView(String msg, int imgId) {
-        if (getFooterView() != null && !list.isEmpty()) {
+        if (getFooterViewBinder() != null && !list.isEmpty()) {
             showErrorFooter(msg);
             return;
         }
@@ -227,11 +227,11 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
      */
 
     private void showNoNetworkFooter(String msg) {
-        String errorMsg = "网络不可用！";
-        if (!TextUtils.isEmpty(msg)) {
-            errorMsg += ("\n错误信息：" + msg);
-        }
-        showFooterMsg(errorMsg);
+//        String errorMsg = "网络不可用！";
+//        if (!TextUtils.isEmpty(msg)) {
+//            errorMsg += ("\n错误信息：" + msg);
+//        }
+        showFooterMsg(msg);
         if (mIsLoading) {
             currentPage--;
             mIsLoading = false;
@@ -239,7 +239,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     }
 
     public final void showNoNetwork() {
-        if (getFooterView() != null && !list.isEmpty()) {
+        if (getFooterViewBinder() != null && !list.isEmpty()) {
             showNoNetworkFooter(null);
             return;
         }
@@ -248,7 +248,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     }
 
     public void showNoNetworkView(int msgId) {
-        if (getFooterView() != null && !list.isEmpty()) {
+        if (getFooterViewBinder() != null && !list.isEmpty()) {
             showNoNetworkFooter(context.getString(msgId));
             return;
         }
@@ -257,7 +257,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     }
 
     public void showNoNetworkView(String msg) {
-        if (getFooterView() != null && !list.isEmpty()) {
+        if (getFooterViewBinder() != null && !list.isEmpty()) {
             showNoNetworkFooter(msg);
             return;
         }
@@ -266,7 +266,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     }
 
     public void showNoNetworkView(int msgId, int imgId) {
-        if (getFooterView() != null && !list.isEmpty()) {
+        if (getFooterViewBinder() != null && !list.isEmpty()) {
             showNoNetworkFooter(context.getString(msgId));
             return;
         }

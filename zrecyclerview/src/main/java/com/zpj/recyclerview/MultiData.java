@@ -361,8 +361,11 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
                 adapter.post(new Runnable() {
                     @Override
                     public void run() {
-                        if (adapter.footerView != null) {
-                            adapter.footerView.performClick();
+//                        if (adapter.footerView != null) {
+//                            adapter.footerView.performClick();
+//                        }
+                        if (adapter.footerViewBinder != null) {
+                            adapter.footerViewBinder.getView().performClick();
                         }
                     }
                 });
@@ -390,8 +393,11 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
                 adapter.post(new Runnable() {
                     @Override
                     public void run() {
-                        if (adapter.footerView != null) {
-                            adapter.footerView.performClick();
+//                        if (adapter.footerView != null) {
+//                            adapter.footerView.performClick();
+//                        }
+                        if (adapter.footerViewBinder != null) {
+                            adapter.footerViewBinder.getView().performClick();
                         }
                     }
                 });

@@ -6,7 +6,7 @@ import android.support.v7.widget.RecyclerView;
 
 import com.zpj.recycler.demo.mutildata.ExpandableLoadMoreMultiData;
 import com.zpj.recycler.demo.mutildata.ExpandableMultiData;
-import com.zpj.recycler.demo.mutildata.StringMultiData2;
+import com.zpj.recycler.demo.mutildata.TestErrorStringMultiData;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecyclerViewWrapper;
 import com.zpj.recyclerview.StickyHeaderItemDecoration;
@@ -26,7 +26,7 @@ public class ExpandableActivity extends AppCompatActivity {
         setContentView(R.layout.activity_test);
 
         List<MultiData<?>> list = new ArrayList<>();
-        list.add(new StringMultiData2("StringMultiData0"));
+        list.add(new TestErrorStringMultiData("StringMultiData0"));
 
         List<Integer> list1 = new ArrayList<>();
         for (int i = 0; i < 20; i++) {

@@ -49,7 +49,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         } else if (viewType == TYPE_HEADER) {
             return new EasyViewHolder(headerView);
         } else if (viewType == TYPE_FOOTER) {
-            return new EasyViewHolder(footerView);
+            return new EasyViewHolder(footerViewBinder.onCreateFooterView(viewGroup));
         }
         return new EasyViewHolder(onCreateView(viewGroup.getContext(), viewGroup, viewType));
     }
@@ -72,7 +72,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         if (headerView != null) {
             count++;
         }
-        if (footerView != null) {
+        if (footerViewBinder != null) {
             count++;
         }
         return count;
@@ -109,13 +109,9 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         }
         if (isFooterPosition(position)) {
             Log.d(TAG, "isFooterPosition");
-            if (list.isEmpty()) {
-                ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-                footerView.setLayoutParams(params);
-            } else {
-                ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                footerView.setLayoutParams(params);
-            }
+            ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    list.isEmpty() ? ViewGroup.LayoutParams.MATCH_PARENT : ViewGroup.LayoutParams.WRAP_CONTENT);
+            footerViewBinder.getView().setLayoutParams(params);
             if (!canScroll() && !mIsLoading && getLoadMoreEnabled()) {
                 mIsLoading = true;
                 Log.d(TAG, "isFooterPosition onLoadMore");
@@ -144,9 +140,10 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
                     }
                 }
             });
-            if (onBindFooterListener != null) {
-                onBindFooterListener.onBindFooter(holder);
-            }
+//            if (onBindFooterListener != null) {
+//                onBindFooterListener.onBindFooter(holder);
+//            }
+            footerViewBinder.onBindFooter(holder);
             return;
         }
 
@@ -166,7 +163,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
     @Override
     protected void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
         Log.d(TAG, "onScrollStateChanged getLoadMoreEnabled=" + getLoadMoreEnabled() + "  mIsLoading=" + mIsLoading);
-        if (footerView == null || !getLoadMoreEnabled() || mIsLoading) {
+        if (footerViewBinder == null || !getLoadMoreEnabled() || mIsLoading) {
             return;
         }
         Log.d(TAG, "onScrollStateChanged newState=" + newState);
@@ -198,8 +195,8 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
     @Override
     protected void onLoadMore() {
         Log.d(TAG, "onLoadMore");
-        LinearLayout llContainerProgress = footerView.findViewById(R.id.ll_container_progress);
-        TextView tvMsg = footerView.findViewById(R.id.tv_msg);
+//        LinearLayout llContainerProgress = footerView.findViewById(R.id.ll_container_progress);
+//        TextView tvMsg = footerView.findViewById(R.id.tv_msg);
         if (list.isEmpty() || currentPage < -1) {
             currentPage = -1;
         }
@@ -218,16 +215,21 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
             }
         }
         if (multiData != null && multiData.load(this)) {
-            if (llContainerProgress != null) {
-                llContainerProgress.setVisibility(View.VISIBLE);
-            }
-            if (tvMsg != null) {
-                tvMsg.setVisibility(View.GONE);
+//            if (llContainerProgress != null) {
+//                llContainerProgress.setVisibility(View.VISIBLE);
+//            }
+//            if (tvMsg != null) {
+//                tvMsg.setVisibility(View.GONE);
+//            }
+            if (footerViewBinder != null) {
+                footerViewBinder.onShowLoading();
             }
             currentPage++;
         } else {
             mIsLoading = false;
-            showFooterMsg(mRecyclerView.getContext().getString(R.string.easy_has_no_more));
+            if (footerViewBinder != null) {
+                footerViewBinder.onShowHasNoMore();
+            }
         }
     }
 

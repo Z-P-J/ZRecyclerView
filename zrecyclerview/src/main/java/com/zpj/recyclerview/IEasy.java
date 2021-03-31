@@ -45,9 +45,9 @@ public interface IEasy {
         void onBindFooter(EasyViewHolder holder);
     }
 
-    interface OnCreateFooterListener {
-        void onCreateFooterView(View view);
-    }
+//    interface OnCreateFooterListener {
+//        void onCreateFooterView(View view);
+//    }
 
     interface OnLoadMoreListener {
         boolean onLoadMore(EasyAdapter.Enabled enabled, int currentPage);

@@ -8,7 +8,7 @@ import com.zpj.recyclerview.EasyViewHolder;
 
 import java.util.List;
 
-public class StringMultiData extends BaseHeaderMultiData2<String> {
+public class StringMultiData extends BaseHeaderMultiData<String> {
 
     public StringMultiData(String title) {
         super(title);

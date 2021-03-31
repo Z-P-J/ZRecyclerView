@@ -5,12 +5,15 @@ import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.zpj.recyclerview.EasyAdapter;
 import com.zpj.recyclerview.EasyRecyclerLayout;
 import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.IEasy;
+import com.zpj.recyclerview.footer.SimpleFooterViewHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,6 +83,27 @@ public class RecyclerActivity extends AppCompatActivity {
 //                    public boolean isSelected(Integer item, int position) {
 //                        return false;
 //                    }
+                })
+//                .setFooterViewBinder(new SimpleFooterViewHolder(R.layout.layout_loading_footer, R.layout.layout_text))
+                .setFooterViewBinder(new SimpleFooterViewHolder(R.layout.layout_loading_footer, R.layout.layout_error_footer) {
+
+                    @Override
+                    public void onShowHasNoMore() {
+                        super.onShowHasNoMore();
+                        showInfo("没有更多了！");
+                    }
+
+                    @Override
+                    public void onShowError(String msg) {
+                        super.onShowError(msg);
+                        showInfo("出错了！" + msg);
+                    }
+
+                    private void showInfo(String msg) {
+                        TextView tvInfo = textView.findViewById(R.id.tv_info);
+                        tvInfo.setText(msg);
+                    }
+
                 })
                 .onLoadMore(new IEasy.OnLoadMoreListener() {
                     @Override
