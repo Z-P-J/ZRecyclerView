@@ -3,27 +3,13 @@ package com.zpj.recyclerview;
 import android.content.Context;
 import android.support.annotation.IntRange;
 import android.support.annotation.Nullable;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
-
-import com.zpj.statemanager.BaseStateConfig;
-import com.zpj.statemanager.IViewHolder;
-import com.zpj.statemanager.State;
-import com.zpj.statemanager.StateManager;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.zpj.statemanager.State.STATE_CONTENT;
-import static com.zpj.statemanager.State.STATE_EMPTY;
-import static com.zpj.statemanager.State.STATE_ERROR;
-import static com.zpj.statemanager.State.STATE_LOADING;
-import static com.zpj.statemanager.State.STATE_LOGIN;
-import static com.zpj.statemanager.State.STATE_NO_NETWORK;
 
 public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // extends BaseStateConfig<MultiData<T>>
 
@@ -364,8 +350,8 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
 //                        if (adapter.footerView != null) {
 //                            adapter.footerView.performClick();
 //                        }
-                        if (adapter.footerViewBinder != null) {
-                            adapter.footerViewBinder.getView().performClick();
+                        if (adapter.footerViewHolder != null) {
+                            adapter.footerViewHolder.getView().performClick();
                         }
                     }
                 });
@@ -396,8 +382,8 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
 //                        if (adapter.footerView != null) {
 //                            adapter.footerView.performClick();
 //                        }
-                        if (adapter.footerViewBinder != null) {
-                            adapter.footerViewBinder.getView().performClick();
+                        if (adapter.footerViewHolder != null) {
+                            adapter.footerViewHolder.getView().performClick();
                         }
                     }
                 });

@@ -2,12 +2,10 @@ package com.zpj.recyclerview;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.zpj.statemanager.BaseStateConfig;
 import com.zpj.statemanager.IViewHolder;
 import com.zpj.statemanager.State;
 
@@ -150,7 +148,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     }
 
     public final void showError() {
-        if (getFooterViewBinder() != null && !list.isEmpty()) {
+        if (getFooterViewHolder() != null && !list.isEmpty()) {
             showErrorFooter(null);
             return;
         }
@@ -159,7 +157,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     }
 
     public void showErrorView(int msgId) {
-        if (getFooterViewBinder() != null && !list.isEmpty()) {
+        if (getFooterViewHolder() != null && !list.isEmpty()) {
             showErrorFooter(context.getString(msgId));
             return;
         }
@@ -168,7 +166,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     }
 
     public void showErrorView(String msg) {
-        if (getFooterViewBinder() != null && !list.isEmpty()) {
+        if (getFooterViewHolder() != null && !list.isEmpty()) {
             showErrorFooter(msg);
             return;
         }
@@ -177,7 +175,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     }
 
     public void showErrorView(int msgId, int imgId) {
-        if (getFooterViewBinder() != null && !list.isEmpty()) {
+        if (getFooterViewHolder() != null && !list.isEmpty()) {
             showErrorFooter(context.getString(msgId));
             return;
         }
@@ -186,7 +184,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     }
 
     public void showErrorView(String msg, int imgId) {
-        if (getFooterViewBinder() != null && !list.isEmpty()) {
+        if (getFooterViewHolder() != null && !list.isEmpty()) {
             showErrorFooter(msg);
             return;
         }
@@ -239,7 +237,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     }
 
     public final void showNoNetwork() {
-        if (getFooterViewBinder() != null && !list.isEmpty()) {
+        if (getFooterViewHolder() != null && !list.isEmpty()) {
             showNoNetworkFooter(null);
             return;
         }
@@ -248,7 +246,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     }
 
     public void showNoNetworkView(int msgId) {
-        if (getFooterViewBinder() != null && !list.isEmpty()) {
+        if (getFooterViewHolder() != null && !list.isEmpty()) {
             showNoNetworkFooter(context.getString(msgId));
             return;
         }
@@ -257,7 +255,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     }
 
     public void showNoNetworkView(String msg) {
-        if (getFooterViewBinder() != null && !list.isEmpty()) {
+        if (getFooterViewHolder() != null && !list.isEmpty()) {
             showNoNetworkFooter(msg);
             return;
         }
@@ -266,7 +264,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     }
 
     public void showNoNetworkView(int msgId, int imgId) {
-        if (getFooterViewBinder() != null && !list.isEmpty()) {
+        if (getFooterViewHolder() != null && !list.isEmpty()) {
             showNoNetworkFooter(context.getString(msgId));
             return;
         }

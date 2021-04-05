@@ -8,30 +8,17 @@ import android.widget.TextView;
 import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.R;
 
-public class DefaultFooterViewHolder implements IFooterViewHolder {
+public class DefaultFooterViewHolder extends AbsFooterViewHolder {
 
-    protected View view;
     protected View progressContainer;
     protected TextView tvMsg;
 
     @Override
     public View onCreateFooterView(ViewGroup root) {
-        if (view == null) {
-            view = LayoutInflater.from(root.getContext()).inflate(R.layout.easy_base_footer, null, false);
-            progressContainer = view.findViewById(R.id.ll_container_progress);
-            tvMsg = view.findViewById(R.id.tv_msg);
-        }
+        View view = LayoutInflater.from(root.getContext()).inflate(R.layout.easy_base_footer, null, false);
+        progressContainer = view.findViewById(R.id.ll_container_progress);
+        tvMsg = view.findViewById(R.id.tv_msg);
         return view;
-    }
-
-    @Override
-    public View getView() {
-        return view;
-    }
-
-    @Override
-    public void onBindFooter(EasyViewHolder holder) {
-
     }
 
     @Override
@@ -46,7 +33,7 @@ public class DefaultFooterViewHolder implements IFooterViewHolder {
 
     @Override
     public void onShowHasNoMore() {
-        onShowMessage(view.getResources().getString(R.string.easy_has_no_more));
+        onShowMessage(getView().getResources().getString(R.string.easy_has_no_more));
     }
 
     @Override

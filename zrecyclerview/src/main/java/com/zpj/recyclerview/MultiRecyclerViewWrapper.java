@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.zpj.recyclerview.footer.AbsFooterViewHolder;
 import com.zpj.recyclerview.footer.DefaultFooterViewHolder;
 import com.zpj.recyclerview.footer.IFooterViewHolder;
 
@@ -78,35 +79,10 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
 
     public MultiRecyclerViewWrapper setFooterView(final View footerView) {
 //        this.footerView = headerView;
-        this.footerViewBinder = new IFooterViewHolder() {
+        this.footerViewBinder = new AbsFooterViewHolder() {
             @Override
             public View onCreateFooterView(ViewGroup root) {
                 return footerView;
-            }
-
-            @Override
-            public View getView() {
-                return footerView;
-            }
-
-            @Override
-            public void onBindFooter(EasyViewHolder holder) {
-
-            }
-
-            @Override
-            public void onShowLoading() {
-
-            }
-
-            @Override
-            public void onShowHasNoMore() {
-
-            }
-
-            @Override
-            public void onShowError(String msg) {
-
             }
         };
         return this;
@@ -115,20 +91,11 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
     public MultiRecyclerViewWrapper setFooterView(@LayoutRes final int layoutRes, final IEasy.OnBindFooterListener listener) {
 //        this.footerView = LayoutInflater.from(recyclerView.getContext()).inflate(layoutRes, null, false);
 //        onBindFooterListener = listener;
-        this.footerViewBinder = new IFooterViewHolder() {
-            private View view;
+        this.footerViewBinder = new AbsFooterViewHolder() {
 
             @Override
             public View onCreateFooterView(ViewGroup root) {
-                if (view == null) {
-                    view = LayoutInflater.from(root.getContext()).inflate(layoutRes, null, false);
-                }
-                return view;
-            }
-
-            @Override
-            public View getView() {
-                return view;
+                return LayoutInflater.from(root.getContext()).inflate(layoutRes, null, false);
             }
 
             @Override
@@ -136,21 +103,6 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
                 if (listener != null) {
                     listener.onBindFooter(holder);
                 }
-            }
-
-            @Override
-            public void onShowLoading() {
-
-            }
-
-            @Override
-            public void onShowHasNoMore() {
-
-            }
-
-            @Override
-            public void onShowError(String msg) {
-
             }
         };
         return this;
@@ -183,12 +135,12 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
         if (footerViewBinder != null) {
 //            easyAdapter.setFooterView(footerView);
 //            easyAdapter.setOnBindFooterListener(onBindFooterListener);
-            easyAdapter.setFooterViewBinder(footerViewBinder);
+            easyAdapter.setFooterViewHolder(footerViewBinder);
         } else {
 //            footerView = LayoutInflater.from(recyclerView.getContext()).inflate(R.layout.easy_base_footer, null, false);
 //            easyAdapter.setFooterView(footerView);
 //            easyAdapter.setOnBindFooterListener(onBindFooterListener);
-            easyAdapter.setFooterViewBinder(new DefaultFooterViewHolder());
+            easyAdapter.setFooterViewHolder(new DefaultFooterViewHolder());
         }
         easyAdapter.setLoadMoreEnabled(true);
         recyclerView.setLayoutManager(layoutManager);

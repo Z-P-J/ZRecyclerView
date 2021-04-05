@@ -7,6 +7,8 @@ import com.zpj.recyclerview.EasyViewHolder;
 
 public interface IFooterViewHolder {
 
+    EasyViewHolder onCreateViewHolder(ViewGroup root);
+
     View onCreateFooterView(ViewGroup root);
 
     View getView();

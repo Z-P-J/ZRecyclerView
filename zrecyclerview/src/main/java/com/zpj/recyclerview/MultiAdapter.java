@@ -9,10 +9,7 @@ import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
-import com.zpj.statemanager.BaseStateConfig;
 import com.zpj.statemanager.IViewHolder;
 import com.zpj.statemanager.State;
 
@@ -49,7 +46,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         } else if (viewType == TYPE_HEADER) {
             return new EasyViewHolder(headerView);
         } else if (viewType == TYPE_FOOTER) {
-            return new EasyViewHolder(footerViewBinder.onCreateFooterView(viewGroup));
+            return footerViewHolder.onCreateViewHolder(viewGroup);
         }
         return new EasyViewHolder(onCreateView(viewGroup.getContext(), viewGroup, viewType));
     }
@@ -72,7 +69,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         if (headerView != null) {
             count++;
         }
-        if (footerViewBinder != null) {
+        if (footerViewHolder != null) {
             count++;
         }
         return count;
@@ -111,7 +108,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
             Log.d(TAG, "isFooterPosition");
             ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                     list.isEmpty() ? ViewGroup.LayoutParams.MATCH_PARENT : ViewGroup.LayoutParams.WRAP_CONTENT);
-            footerViewBinder.getView().setLayoutParams(params);
+            footerViewHolder.getView().setLayoutParams(params);
             if (!canScroll() && !mIsLoading && getLoadMoreEnabled()) {
                 mIsLoading = true;
                 Log.d(TAG, "isFooterPosition onLoadMore");
@@ -143,7 +140,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
 //            if (onBindFooterListener != null) {
 //                onBindFooterListener.onBindFooter(holder);
 //            }
-            footerViewBinder.onBindFooter(holder);
+            footerViewHolder.onBindFooter(holder);
             return;
         }
 
@@ -163,7 +160,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
     @Override
     protected void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
         Log.d(TAG, "onScrollStateChanged getLoadMoreEnabled=" + getLoadMoreEnabled() + "  mIsLoading=" + mIsLoading);
-        if (footerViewBinder == null || !getLoadMoreEnabled() || mIsLoading) {
+        if (footerViewHolder == null || !getLoadMoreEnabled() || mIsLoading) {
             return;
         }
         Log.d(TAG, "onScrollStateChanged newState=" + newState);
@@ -221,14 +218,14 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
 //            if (tvMsg != null) {
 //                tvMsg.setVisibility(View.GONE);
 //            }
-            if (footerViewBinder != null) {
-                footerViewBinder.onShowLoading();
+            if (footerViewHolder != null) {
+                footerViewHolder.onShowLoading();
             }
             currentPage++;
         } else {
             mIsLoading = false;
-            if (footerViewBinder != null) {
-                footerViewBinder.onShowHasNoMore();
+            if (footerViewHolder != null) {
+                footerViewHolder.onShowHasNoMore();
             }
         }
     }

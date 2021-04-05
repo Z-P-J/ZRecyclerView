@@ -33,7 +33,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
     protected View headerView;
 //    protected View footerView;
-    protected IFooterViewHolder footerViewBinder;
+    protected IFooterViewHolder footerViewHolder;
 
     protected final IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener;
     protected final IEasy.OnGetChildLayoutIdListener onGetChildLayoutIdListener;
@@ -79,7 +79,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         if (viewType == TYPE_HEADER) {
             return new EasyViewHolder(headerView);
         } else if (viewType == TYPE_FOOTER) {
-            return new EasyViewHolder(footerViewBinder.onCreateFooterView(viewGroup));
+            return footerViewHolder.onCreateViewHolder(viewGroup);
         } else {
             int res;
             if (onGetChildLayoutIdListener != null) {
@@ -148,7 +148,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             Log.d(TAG, "isFooterPosition");
             ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                     list.isEmpty() ? ViewGroup.LayoutParams.MATCH_PARENT : ViewGroup.LayoutParams.WRAP_CONTENT);
-            footerViewBinder.getView().setLayoutParams(params);
+            footerViewHolder.getView().setLayoutParams(params);
             if (!canScroll() && mOnLoadMoreListener != null && !mIsLoading && getLoadMoreEnabled()) {
                 mIsLoading = true;
                 Log.d(TAG, "isFooterPosition onLoadMore");
@@ -180,7 +180,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 //            if (onBindFooterListener != null) {
 //                onBindFooterListener.onBindFooter(holder);
 //            }
-            footerViewBinder.onBindFooter(holder);
+            footerViewHolder.onBindFooter(holder);
             return;
         }
 
@@ -307,7 +307,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         if (headerView != null) {
             count++;
         }
-        if (footerViewBinder != null) {
+        if (footerViewHolder != null) {
             count++;
         }
         return count;
@@ -326,14 +326,14 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 //            if (tvMsg != null) {
 //                tvMsg.setVisibility(View.GONE);
 //            }
-            if (footerViewBinder != null) {
-                footerViewBinder.onShowLoading();
+            if (footerViewHolder != null) {
+                footerViewHolder.onShowLoading();
             }
             currentPage++;
         } else {
             mIsLoading = false;
-            if (footerViewBinder != null) {
-                footerViewBinder.onShowHasNoMore();
+            if (footerViewHolder != null) {
+                footerViewHolder.onShowHasNoMore();
             }
 //            showFooterMsg(mRecyclerView.getContext().getString(R.string.easy_has_no_more));
         }
@@ -349,8 +349,8 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 //            tvMsg.setVisibility(View.VISIBLE);
 //            tvMsg.setText(msg);
 //        }
-        if (footerViewBinder != null) {
-            footerViewBinder.onShowError(msg);
+        if (footerViewHolder != null) {
+            footerViewHolder.onShowError(msg);
         }
     }
 
@@ -367,7 +367,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     }
 
     protected boolean isFooterPosition(int position) {
-        return footerViewBinder != null && position == getItemCount() - 1;
+        return footerViewHolder != null && position == getItemCount() - 1;
     }
 
     protected int getRealPosition(RecyclerView.ViewHolder holder) {
@@ -401,16 +401,16 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 //        notifyItemInserted(getItemCount() - 1);
     }
 
-    public void setFooterViewBinder(IFooterViewHolder footerViewBinder) {
-        this.footerViewBinder = footerViewBinder;
+    public void setFooterViewHolder(IFooterViewHolder footerViewHolder) {
+        this.footerViewHolder = footerViewHolder;
     }
 
     //    public View getFooterView() {
 //        return footerView;
 //    }
 
-    public IFooterViewHolder getFooterViewBinder() {
-        return footerViewBinder;
+    public IFooterViewHolder getFooterViewHolder() {
+        return footerViewHolder;
     }
 
     public void setOnLoadMoreListener(IEasy.OnLoadMoreListener mOnLoadMoreListener) {
@@ -540,7 +540,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
     protected void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
         Log.d(TAG, "onScrollStateChanged getLoadMoreEnabled=" + getLoadMoreEnabled() + "  mIsLoading=" + mIsLoading);
-        if (footerViewBinder == null || !getLoadMoreEnabled() || mIsLoading || mOnLoadMoreListener == null) {
+        if (footerViewHolder == null || !getLoadMoreEnabled() || mIsLoading || mOnLoadMoreListener == null) {
             return;
         }
         Log.d(TAG, "onScrollStateChanged newState=" + newState);
