@@ -1,6 +1,8 @@
 package com.zpj.recyclerview;
 
 import android.support.annotation.LayoutRes;
+import android.support.annotation.NonNull;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -72,6 +74,20 @@ public interface IEasy {
         void onUnSelectAll();
         void onSelectOverMax(int maxSelectCount);
 //        boolean isSelected(T item, int position);
+    }
+
+    interface AdapterInjector {
+
+        void onViewRecycled(@NonNull EasyViewHolder holder);
+
+        void onViewAttachedToWindow(@NonNull EasyViewHolder holder);
+
+        void onViewDetachedFromWindow(@NonNull EasyViewHolder holder);
+
+        void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView);
+
+        void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView);
+
     }
 
 }

@@ -25,6 +25,9 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
     protected List<MultiData<?>> list;
 
     protected EasyStateAdapter<MultiData<?>> easyAdapter;
+
+    protected IEasy.AdapterInjector adapterInjector;
+
     protected RecyclerView.LayoutManager layoutManager;
 
     protected View headerView;
@@ -118,6 +121,14 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
         return this;
     }
 
+    public MultiRecyclerViewWrapper setAdapterInjector(IEasy.AdapterInjector adapterInjector) {
+        this.adapterInjector = adapterInjector;
+        if (easyAdapter != null) {
+            easyAdapter.setAdapterInjector(adapterInjector);
+        }
+        return this;
+    }
+
     public MultiRecyclerViewWrapper build() {
         if (list == null) {
             list = new ArrayList<>(0);
@@ -128,6 +139,7 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
         }
         layoutManager = new GridLayoutManager(recyclerView.getContext(), maxSpan);
         easyAdapter = new MultiAdapter(recyclerView.getContext(), list, this);
+        easyAdapter.setAdapterInjector(adapterInjector);
         if (headerView != null) {
             easyAdapter.setHeaderView(headerView);
             easyAdapter.setOnBindHeaderListener(onBindHeaderListener);

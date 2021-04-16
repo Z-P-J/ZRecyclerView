@@ -27,6 +27,8 @@ public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>> im
 
     protected EasyStateAdapter<T> easyAdapter;
 
+    protected IEasy.AdapterInjector adapterInjector;
+
     protected List<T> list;
 
     protected int itemRes = -1;
@@ -283,6 +285,14 @@ public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>> im
         return this;
     }
 
+    public EasyRecyclerView<T> setAdapterInjector(IEasy.AdapterInjector adapterInjector) {
+        this.adapterInjector = adapterInjector;
+        if (easyAdapter != null) {
+            easyAdapter.setAdapterInjector(adapterInjector);
+        }
+        return this;
+    }
+
     public void build() {
         if (list == null) {
             list = new ArrayList<>(0);
@@ -299,6 +309,7 @@ public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>> im
                 onItemLongClickListener, onClickListeners,
                 onLongClickListeners, this
         );
+        easyAdapter.setAdapterInjector(adapterInjector);
         if (headerView != null) {
             easyAdapter.setHeaderView(headerView);
             easyAdapter.setOnBindHeaderListener(onBindHeaderListener);

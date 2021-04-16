@@ -308,6 +308,11 @@ public class EasyRecyclerLayout<T> extends FrameLayout
 //        return false;
 //    }
 
+    public EasyRecyclerLayout<T> setAdapterInjector(IEasy.AdapterInjector adapterInjector) {
+        easyRecyclerView.setAdapterInjector(adapterInjector);
+        return this;
+    }
+
 
     public EasyRecyclerLayout<T> setItemRes(@LayoutRes final int res) {
         this.itemRes = res;

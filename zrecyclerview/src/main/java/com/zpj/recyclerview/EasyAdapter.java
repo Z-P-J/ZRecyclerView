@@ -46,6 +46,8 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     protected final SparseArray<IEasy.OnClickListener<T>> onClickListeners;
     protected final SparseArray<IEasy.OnLongClickListener<T>> onLongClickListeners;
 
+    protected IEasy.AdapterInjector adapterInjector;
+
     EasyAdapter(List<T> list, int itemRes,
                 IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener,
                 IEasy.OnGetChildLayoutIdListener onGetChildLayoutIdListener,
@@ -247,12 +249,23 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     }
 
     @Override
+    public void onViewRecycled(@NonNull EasyViewHolder holder) {
+        super.onViewRecycled(holder);
+        if (adapterInjector != null) {
+            adapterInjector.onViewRecycled(holder);
+        }
+    }
+
+    @Override
     public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
         mRecyclerView = recyclerView;
         super.onAttachedToRecyclerView(recyclerView);
         recyclerView.addOnScrollListener(mOnScrollListener);
         RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
         initLayoutManagerOnAttachedToRecyclerView(manager);
+        if (adapterInjector != null) {
+            adapterInjector.onAttachedToRecyclerView(recyclerView);
+        }
     }
 
     protected void initLayoutManagerOnAttachedToRecyclerView(RecyclerView.LayoutManager manager) {
@@ -273,6 +286,9 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         recyclerView.removeOnScrollListener(mOnScrollListener);
         unregisterAdapterDataObserver(mObserver);
         mRecyclerView = null;
+        if (adapterInjector != null) {
+            adapterInjector.onDetachedFromRecyclerView(recyclerView);
+        }
     }
 
     @Override
@@ -283,6 +299,17 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
                 && (isHeaderPosition(holder.getLayoutPosition()) || isFooterPosition(holder.getLayoutPosition()))) {
             StaggeredGridLayoutManager.LayoutParams p = (StaggeredGridLayoutManager.LayoutParams) lp;
             p.setFullSpan(true);
+        }
+        if (adapterInjector != null) {
+            adapterInjector.onViewAttachedToWindow(holder);
+        }
+    }
+
+    @Override
+    public void onViewDetachedFromWindow(@NonNull EasyViewHolder holder) {
+        super.onViewDetachedFromWindow(holder);
+        if (adapterInjector != null) {
+            adapterInjector.onViewDetachedFromWindow(holder);
         }
     }
 
@@ -373,6 +400,14 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     protected int getRealPosition(RecyclerView.ViewHolder holder) {
         int position = holder.getLayoutPosition();
         return headerView == null ? position : position - 1;
+    }
+
+    public void setAdapterInjector(IEasy.AdapterInjector adapterInjector) {
+        this.adapterInjector = adapterInjector;
+    }
+
+    public IEasy.AdapterInjector getAdapterInjector() {
+        return adapterInjector;
     }
 
     public void setHeaderView(@NonNull View headerView) {
