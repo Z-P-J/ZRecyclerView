@@ -19,7 +19,8 @@ import com.zpj.recyclerview.footer.IFooterViewHolder;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>> implements IEasy.OnLoadMoreListener { //  extends BaseStateConfig<EasyRecyclerView<T>>
+public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>>
+        implements IEasy.OnLoadMoreListener {
 
     protected final RecyclerView recyclerView;
 

@@ -58,9 +58,6 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         }
         int count = 0;
         for (MultiData<?> data : list) {
-//            if (!data.isLoaded || data.hasMore) {
-//                break;
-//            }
             count += data.getCount();
             if (data.hasMore()) {
                 break;
