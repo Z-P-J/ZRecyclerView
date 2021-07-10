@@ -1,5 +1,5 @@
 # ZRecyclerView
- A RecyclerView which is implemented to make it easier to use.
+ A RecyclerView library which is implemented to make it easier to use.
 
  <div>
      <img src="./demo1.gif" width="30%">
@@ -10,14 +10,14 @@
 ## Usage
 
 step 1:
-#### Latest Version：[![Download](https://api.bintray.com/packages/z-p-j/maven/ZRecyclerView/images/download.svg?version-1.0.0)](https://bintray.com/z-p-j/maven/ZRecyclerView/1.0.0/link)
-```java
-implementation 'com.zpj.widget:ZRecyclerView:1.2.1'
+#### Latest Version：[![](https://jitpack.io/v/Z-P-J/ZRecyclerView.svg)](https://jitpack.io/#Z-P-J/ZRecyclerView)
+```text
+implementation 'com.github.Z-P-J:ZRecyclerView:1.0.0'
 ```
 
 step 2:
 
-```java
+```xml
 <com.zpj.recyclerview.EasyRecyclerLayout
         android:id="@+id/recycler_layout"
         android:layout_width="match_parent"
@@ -96,7 +96,7 @@ step 3:
 ```
 
 
-## MultiData的使用（TODO）
+## MultiData的使用（TODO完善文档，可参考[MultiDataActivity](https://github.com/Z-P-J/ZRecyclerView/blob/master/app/src/main/java/com/zpj/recycler/demo/MultiDataActivity.java)）
 为了使复杂布局的实现更简单，我自创了一种MultiData的方式来实现复杂布局，支持多种实体类，结合MultiRecyclerViewWrapper来方便我们使用。
 #### 1. 创建MultiRecyclerViewWrapper对象
 ~~~java
@@ -128,3 +128,4 @@ public boolean loadData() {
         return false;
 }
 ~~~
+#### 3. todo完善文档
