@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -158,6 +157,7 @@ public class RecyclerActivity extends AppCompatActivity {
                 .build();
 //        recyclerLayout.showLoading();
 //        recyclerLayout.showErrorView("test");
+
     }
 
     @Override
