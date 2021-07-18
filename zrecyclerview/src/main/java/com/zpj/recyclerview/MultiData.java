@@ -13,38 +13,36 @@ import java.util.List;
 
 public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // extends BaseStateConfig<MultiData<T>>
 
-    protected final List<T> list;
+    protected final List<T> mData;
 
-//    protected boolean isLoaded = false;
     protected boolean hasMore = true;
 
-    private MultiAdapter adapter;
+    private MultiAdapter mAdapter;
 
     public MultiData() {
-        list = new ArrayList<>();
+        mData = new ArrayList<>();
     }
 
-    public MultiData(List<T> list) {
+    public MultiData(List<T> mData) {
         this();
-        this.list.addAll(list);
-//        isLoaded = true;
+        this.mData.addAll(mData);
         hasMore = false;
     }
 
-    public void setAdapter(MultiAdapter adapter) {
-        this.adapter = adapter;
+    public void setAdapter(MultiAdapter mAdapter) {
+        this.mAdapter = mAdapter;
     }
 
     public MultiAdapter getAdapter() {
-        return adapter;
+        return mAdapter;
     }
 
-    public List<T> getDataSet() {
-        return list;
+    public List<T> getData() {
+        return mData;
     }
 
     public int getCount() {
-        return list.size();
+        return mData.size();
     }
 
     public @IntRange(from = 1) int getMaxColumnCount() {
@@ -65,10 +63,6 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
         return viewType == getClass().getName().hashCode();
     }
 
-//    public boolean isLoaded() {
-//        return isLoaded;
-//    }
-
     public boolean hasMore() {
         return hasMore;
     }
@@ -76,8 +70,8 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
     public abstract boolean loadData();
 
     boolean load(MultiAdapter adapter) {
-        if (this.adapter == null) {
-            this.adapter = adapter;
+        if (this.mAdapter == null) {
+            this.mAdapter = adapter;
         }
         hasMore = loadData();
 //        isLoaded = true;
@@ -85,52 +79,12 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
     }
 
     void onBindViewHolder(EasyViewHolder holder, int position, List<Object> payloads) {
-        onBindViewHolder(holder, list, getRealPosition(position), payloads);
+        onBindViewHolder(holder, mData, getRealPosition(position), payloads);
     }
 
     protected View onCreateView(Context context, ViewGroup container, int viewType) {
         return LayoutInflater.from(context).inflate(getLayoutId(viewType), container, false);
     }
-
-//    @Override
-//    public IViewHolder getLoadingViewHolder() {
-//        if (loadingViewHolder == null) {
-//            return StateManager.config().getLoadingViewHolder();
-//        }
-//        return super.getLoadingViewHolder();
-//    }
-//
-//    @Override
-//    public IViewHolder getEmptyViewHolder() {
-//        if (emptyViewHolder == null) {
-//            return StateManager.config().getEmptyViewHolder();
-//        }
-//        return super.getEmptyViewHolder();
-//    }
-//
-//    @Override
-//    public IViewHolder getErrorViewHolder() {
-//        if (errorViewHolder == null) {
-//            return StateManager.config().getErrorViewHolder();
-//        }
-//        return super.getErrorViewHolder();
-//    }
-//
-//    @Override
-//    public IViewHolder getLoginViewHolder() {
-//        if (loginViewHolder == null) {
-//            return StateManager.config().getLoginViewHolder();
-//        }
-//        return super.getLoginViewHolder();
-//    }
-//
-//    @Override
-//    public IViewHolder getNoNetworkViewHolder() {
-//        if (noNetworkViewHolder == null) {
-//            return StateManager.config().getNoNetworkViewHolder();
-//        }
-//        return super.getNoNetworkViewHolder();
-//    }
 
     public abstract void onBindViewHolder(final EasyViewHolder holder, final List<T> list, final int position, final List<Object> payloads);
 
@@ -151,8 +105,8 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
     }
 
     public int getMultiDataPosition() {
-        if (adapter != null) {
-            return adapter.list.indexOf(this);
+        if (mAdapter != null) {
+            return mAdapter.list.indexOf(this);
         }
         return -1;
     }
@@ -192,9 +146,23 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
     }
 
 
+    public void notifyItemMove(int from, int to) {
+        if (mAdapter == null) {
+            return;
+        }
+        int count = mAdapter.headerView == null ? 0 : 1;
+        for (MultiData<?> data : mAdapter.getData()) {
+            if (data == this) {
+                Log.d("notifyItemMove", "count=" + count + " getCount=" + getCount());
+                mAdapter.postNotifyItemMoved(from + count, to + count);
+                break;
+            }
+            count  += data.getCount();
+        }
+    }
 
     public void notifyDataSetChange() {
-        if (adapter == null) {
+        if (mAdapter == null) {
             return;
         }
 //        int count = 0;
@@ -206,8 +174,8 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
 //            }
 //            count  += data.getCount();
 //        }
-//
-        adapter.postNotifyDataSetChanged();
+        // TODO 优化MultiData的notifyDataSetChange：先看是否需要notifyItemInsert还是直接notifyItemRangeChanged
+        mAdapter.postNotifyDataSetChanged();
 
     }
 
@@ -228,14 +196,14 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
     }
 
     public void notifyItemChanged(final int position, @Nullable final Object payload) {
-        if (adapter == null) {
+        if (mAdapter == null) {
             return;
         }
-        int count = adapter.headerView == null ? 0 : 1;
-        for (MultiData<?> data : adapter.getData()) {
+        int count = mAdapter.headerView == null ? 0 : 1;
+        for (MultiData<?> data : mAdapter.getData()) {
             if (data == this) {
                 Log.d("postNotifyItemChanged", "count=" + count + " position=" + position + " getCount=" + getCount());
-                adapter.postNotifyItemChanged(count + position, payload);
+                mAdapter.postNotifyItemChanged(count + position, payload);
                 break;
             }
             count  += data.getCount();
@@ -264,19 +232,19 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
     }
 
     public void notifyItemRangeChanged(final int positionStart, final int count, @Nullable final Object payload) {
-        if (adapter == null) {
+        if (mAdapter == null) {
             return;
         }
-        int num = adapter.headerView == null ? 0 : 1;
-        for (MultiData<?> data : adapter.getData()) {
+        int num = mAdapter.headerView == null ? 0 : 1;
+        for (MultiData<?> data : mAdapter.getData()) {
             if (data == this) {
                 if (positionStart >= getCount()) {
                     return;
                 }
                 if (positionStart + count > getCount()) {
-                    adapter.postNotifyItemRangeChanged(num + positionStart, getCount() - positionStart, payload);
+                    mAdapter.postNotifyItemRangeChanged(num + positionStart, getCount() - positionStart, payload);
                 } else {
-                    adapter.postNotifyItemRangeChanged(num + positionStart, count, payload);
+                    mAdapter.postNotifyItemRangeChanged(num + positionStart, count, payload);
                 }
                 break;
             }
@@ -285,14 +253,14 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
     }
 
     public void notifyItemRangeRemoved() {
-        if (adapter == null) {
+        if (mAdapter == null) {
             return;
         }
-        int count = adapter.headerView == null ? 0 : 1;
-        for (MultiData<?> data : adapter.getData()) {
+        int count = mAdapter.headerView == null ? 0 : 1;
+        for (MultiData<?> data : mAdapter.getData()) {
             if (data == this) {
                 Log.d("notifyItemRangeRemoved", "count=" + count + " getCount=" + getCount());
-                adapter.postNotifyItemRangeRemoved(count, getCount());
+                mAdapter.postNotifyItemRangeRemoved(count, getCount());
                 break;
             }
             count  += data.getCount();
@@ -300,19 +268,19 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
     }
 
     public void notifyItemRangeRemoved(int positionStart, int count) {
-        if (adapter == null) {
+        if (mAdapter == null) {
             return;
         }
-        int num = adapter.headerView == null ? 0 : 1;
-        for (MultiData<?> data : adapter.getData()) {
+        int num = mAdapter.headerView == null ? 0 : 1;
+        for (MultiData<?> data : mAdapter.getData()) {
             if (data == this) {
                 if (positionStart >= getCount()) {
                     return;
                 }
                 if (positionStart + count > getCount()) {
-                    adapter.postNotifyItemRangeRemoved(num + positionStart, getCount() - positionStart);
+                    mAdapter.postNotifyItemRangeRemoved(num + positionStart, getCount() - positionStart);
                 } else {
-                    adapter.postNotifyItemRangeRemoved(num + positionStart, count);
+                    mAdapter.postNotifyItemRangeRemoved(num + positionStart, count);
                 }
                 break;
             }
@@ -321,14 +289,14 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
     }
 
     public void notifyItemRemoved(int position) {
-        if (adapter == null) {
+        if (mAdapter == null) {
             return;
         }
-        int count = adapter.headerView == null ? 0 : 1;
-        for (MultiData<?> data : adapter.getData()) {
+        int count = mAdapter.headerView == null ? 0 : 1;
+        for (MultiData<?> data : mAdapter.getData()) {
             if (data == this) {
                 Log.d("postNotifyItemRemoved", "count=" + count + " position=" + position + " getCount=" + getCount());
-                adapter.postNotifyItemRemoved(count + position);
+                mAdapter.postNotifyItemRemoved(count + position);
                 break;
             }
             count  += data.getCount();
@@ -336,22 +304,19 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
     }
 
     public void notifyItemRangeInserted() {
-        if (adapter == null) {
+        if (mAdapter == null) {
             return;
         }
-        int count = adapter.headerView == null ? 0 : 1;
-        for (MultiData<?> data : adapter.getData()) {
+        int count = mAdapter.headerView == null ? 0 : 1;
+        for (MultiData<?> data : mAdapter.getData()) {
             if (data == this) {
                 Log.d("notifyItemRangeInserted", "count=" + count + " getCount=" + getCount());
-                adapter.postNotifyItemRangeInserted(count, getCount());
-                adapter.post(new Runnable() {
+                mAdapter.postNotifyItemRangeInserted(count, getCount());
+                mAdapter.post(new Runnable() {
                     @Override
                     public void run() {
-//                        if (adapter.footerView != null) {
-//                            adapter.footerView.performClick();
-//                        }
-                        if (adapter.footerViewHolder != null) {
-                            adapter.footerViewHolder.getView().performClick();
+                        if (mAdapter.footerViewHolder != null) {
+                            mAdapter.footerViewHolder.getView().performClick();
                         }
                     }
                 });
@@ -362,28 +327,25 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
     }
 
     public void notifyItemRangeInserted(int positionStart, int count) {
-        if (adapter == null) {
+        if (mAdapter == null) {
             return;
         }
-        int num = adapter.headerView == null ? 0 : 1;
-        for (MultiData<?> data : adapter.getData()) {
+        int num = mAdapter.headerView == null ? 0 : 1;
+        for (MultiData<?> data : mAdapter.getData()) {
             if (data == this) {
                 if (positionStart >= getCount()) {
                     return;
                 }
                 if (positionStart + count > getCount()) {
-                    adapter.postNotifyItemRangeInserted(num + positionStart, getCount() - positionStart);
+                    mAdapter.postNotifyItemRangeInserted(num + positionStart, getCount() - positionStart);
                 } else {
-                    adapter.postNotifyItemRangeInserted(num + positionStart, count);
+                    mAdapter.postNotifyItemRangeInserted(num + positionStart, count);
                 }
-                adapter.post(new Runnable() {
+                mAdapter.post(new Runnable() {
                     @Override
                     public void run() {
-//                        if (adapter.footerView != null) {
-//                            adapter.footerView.performClick();
-//                        }
-                        if (adapter.footerViewHolder != null) {
-                            adapter.footerViewHolder.getView().performClick();
+                        if (mAdapter.footerViewHolder != null) {
+                            mAdapter.footerViewHolder.getView().performClick();
                         }
                     }
                 });

@@ -49,7 +49,7 @@ public class RecyclerViewHeaderMultiData extends BaseHeaderMultiData<Integer> {
                 try {
                     Thread.sleep(1000);
                     for (int i = 0; i < 16; i++) {
-                        list.add(i);
+                        mData.add(i);
                     }
 
                     showContent();

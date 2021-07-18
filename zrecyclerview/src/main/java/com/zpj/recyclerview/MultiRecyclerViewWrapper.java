@@ -7,6 +7,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,7 +25,9 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
 
     protected List<MultiData<?>> list;
 
-    protected EasyStateAdapter<MultiData<?>> easyAdapter;
+    protected MultiAdapter easyAdapter;
+
+    protected ItemTouchHelper mItemTouchHelper;
 
     protected IEasy.AdapterInjector adapterInjector;
 
@@ -133,12 +136,63 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
         if (list == null) {
             list = new ArrayList<>(0);
         }
+        easyAdapter = new MultiAdapter(recyclerView.getContext(), list, this);
+
         int maxSpan = 1;
         for (MultiData<?> data : list) {
             maxSpan = lcm(data.getMaxColumnCount(), maxSpan);
+            data.setAdapter(easyAdapter);
+            if (data instanceof DragAndSwipeMultiData && mItemTouchHelper == null) {
+                mItemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.Callback() {
+                    @Override
+                    public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                        int position = easyAdapter.getRealPosition(viewHolder);
+                        int count = 0;
+                        for (MultiData<?> data : list) {
+                            if (data instanceof DragAndSwipeMultiData && position >= count && position < count + data.getCount()) {
+                                DragAndSwipeMultiData<?> dragAndSwipeMultiData = (DragAndSwipeMultiData<?>) data;
+                                return makeMovementFlags(dragAndSwipeMultiData.getDragDirection(position),
+                                        dragAndSwipeMultiData.getSwipeDirection(position));
+                            }
+                            count  += data.getCount();
+                        }
+                        return 0;
+                    }
+
+                    @Override
+                    public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder viewHolder1) {
+                        final int pos = easyAdapter.getRealPosition(viewHolder);
+                        final int pos1 = easyAdapter.getRealPosition(viewHolder1);
+                        int count = 0;
+                        for (MultiData<?> data : list) {
+                            if (data instanceof DragAndSwipeMultiData && pos >= count && pos < count + data.getCount()
+                                    && pos1 >= count && pos1 < count + data.getCount()) {
+                                DragAndSwipeMultiData<?> dragAndSwipeMultiData = (DragAndSwipeMultiData<?>) data;
+                                return dragAndSwipeMultiData.onMove(pos - count, pos1 - count);
+                            }
+                            count  += data.getCount();
+                        }
+                        return false;
+                    }
+
+                    @Override
+                    public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, final int i) {
+                        final int pos = easyAdapter.getRealPosition(viewHolder);
+                        int count = 0;
+                        for (MultiData<?> data : list) {
+                            if (data instanceof DragAndSwipeMultiData && pos >= count && pos < count + data.getCount()) {
+                                DragAndSwipeMultiData<?> dragAndSwipeMultiData = (DragAndSwipeMultiData<?>) data;
+                                dragAndSwipeMultiData.onSwiped(pos - count, i);
+                                break;
+                            }
+                            count  += data.getCount();
+                        }
+                    }
+                });
+                mItemTouchHelper.attachToRecyclerView(recyclerView);
+            }
         }
         layoutManager = new GridLayoutManager(recyclerView.getContext(), maxSpan);
-        easyAdapter = new MultiAdapter(recyclerView.getContext(), list, this);
         easyAdapter.setAdapterInjector(adapterInjector);
         if (headerView != null) {
             easyAdapter.setHeaderView(headerView);

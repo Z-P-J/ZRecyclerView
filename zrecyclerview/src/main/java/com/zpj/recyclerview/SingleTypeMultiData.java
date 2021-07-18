@@ -38,6 +38,14 @@ public abstract class SingleTypeMultiData<T> extends StateMultiData<T> {
     }
 
     @Override
+    public final boolean hasViewType(int viewType) {
+        if (state != STATE_CONTENT && viewType == state.hashCode()) {
+            return true;
+        }
+        return viewType == getViewType();
+    }
+
+    @Override
     public final int getLayoutId(int viewType) {
         return getLayoutId();
     }

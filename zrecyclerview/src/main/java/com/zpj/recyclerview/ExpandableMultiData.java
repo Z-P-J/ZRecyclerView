@@ -62,7 +62,7 @@ public abstract class ExpandableMultiData<T> extends HeaderMultiData<T> {
         int num = adapter.headerView == null ? 0 : 1;
         for (MultiData<?> data : adapter.getData()) {
             if (data == this) {
-                adapter.notifyItemRangeInserted(num + 1, list.size());
+                adapter.notifyItemRangeInserted(num + 1, mData.size());
                 break;
             }
             num  += data.getCount();
@@ -81,7 +81,7 @@ public abstract class ExpandableMultiData<T> extends HeaderMultiData<T> {
         int num = adapter.headerView == null ? 0 : 1;
         for (MultiData<?> data : adapter.getData()) {
             if (data == this) {
-                adapter.notifyItemRangeRemoved(num + 1, list.size());
+                adapter.notifyItemRangeRemoved(num + 1, mData.size());
                 break;
             }
             num  += data.getCount();

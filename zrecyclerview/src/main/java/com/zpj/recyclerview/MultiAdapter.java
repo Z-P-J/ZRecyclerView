@@ -25,9 +25,6 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         super(context, list, 0, null, null,
                 null, null, null,
                 null, null, null, config);
-        for (MultiData<?> data : list) {
-            data.setAdapter(this);
-        }
     }
 
     @NonNull
@@ -196,12 +193,6 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         }
 
         MultiData<?> multiData = null;
-//        for (int i = list.size() - 1; i >= 0; i--) {
-//            MultiData<?> data = list.get(i);
-//            if (data.hasMore()) {
-//                multiData = data;
-//            }
-//        }
         for (MultiData<?> data : list) {
             if (data.hasMore()) {
                 multiData = data;
@@ -209,12 +200,6 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
             }
         }
         if (multiData != null && multiData.load(this)) {
-//            if (llContainerProgress != null) {
-//                llContainerProgress.setVisibility(View.VISIBLE);
-//            }
-//            if (tvMsg != null) {
-//                tvMsg.setVisibility(View.GONE);
-//            }
             if (footerViewHolder != null) {
                 footerViewHolder.onShowLoading();
             }

@@ -1,0 +1,28 @@
+package com.zpj.recyclerview;
+
+import android.support.v7.widget.helper.ItemTouchHelper;
+
+import java.util.Collections;
+
+public abstract class DragAndSwipeMultiData<T> extends StateMultiData<T> {
+
+    public int getDragDirection(int position) {
+        return ItemTouchHelper.UP | ItemTouchHelper.DOWN;
+    }
+
+    public int getSwipeDirection(int position) {
+        return ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT;
+    }
+
+    public boolean onMove(int from, int to) {
+        Collections.swap(mData, from, to);
+        notifyItemMove(from, to);
+        return true;
+    }
+
+    public void onSwiped(int position, int direction) {
+        mData.remove(position);
+        notifyItemRemoved(position);
+    }
+
+}

@@ -1,11 +1,5 @@
 package com.zpj.recycler.demo.mutildata;
 
-import android.view.View;
-import android.widget.Toast;
-
-import com.zpj.recycler.demo.R;
-import com.zpj.recyclerview.EasyViewHolder;
-
 import java.util.List;
 
 public class ExpandableLoadMoreMultiData extends ExpandableMultiData {
@@ -26,7 +20,7 @@ public class ExpandableLoadMoreMultiData extends ExpandableMultiData {
                 try {
                     Thread.sleep(1000);
                     for (int i = 0; i < 10; i++) {
-                        list.add(i);
+                        mData.add(i);
                     }
                     showContent();
                 } catch (InterruptedException e) {

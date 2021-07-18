@@ -80,7 +80,7 @@ public abstract class HeaderMultiData<T> extends StateMultiData<T> {
     }
 
     public int getChildCount() {
-        return list.size();
+        return mData.size();
     }
 
     public @IntRange(from = 1) int getHeaderColumnCount() {

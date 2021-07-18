@@ -36,7 +36,7 @@ public class StringMultiData extends BaseHeaderMultiData<String> {
                 try {
                     Thread.sleep(1000);
                     for (int i = 0; i < 16; i++) {
-                        list.add("" + i);
+                        mData.add("" + i);
                     }
                     showContent();
                 } catch (InterruptedException e) {

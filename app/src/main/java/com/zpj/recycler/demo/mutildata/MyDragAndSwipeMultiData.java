@@ -4,14 +4,21 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.zpj.recycler.demo.R;
+import com.zpj.recyclerview.DragAndSwipeMultiData;
 import com.zpj.recyclerview.EasyViewHolder;
 
 import java.util.List;
 
-public class IntMultiData extends BaseHeaderMultiData<Integer> {
+public class MyDragAndSwipeMultiData extends DragAndSwipeMultiData<String> {
 
-    public IntMultiData(String title) {
-        super(title);
+    @Override
+    public int getLayoutId(int viewType) {
+        return R.layout.layout_text;
+    }
+
+    @Override
+    public boolean hasViewType(int viewType) {
+        return super.hasViewType(viewType);
     }
 
     @Override
@@ -21,8 +28,8 @@ public class IntMultiData extends BaseHeaderMultiData<Integer> {
             public void run() {
                 try {
                     Thread.sleep(1000);
-                    for (int i = 0; i < 10; i++) {
-                        mData.add(i);
+                    for (int i = 0; i < 16; i++) {
+                        mData.add("" + i);
                     }
                     showContent();
                 } catch (InterruptedException e) {
@@ -34,12 +41,13 @@ public class IntMultiData extends BaseHeaderMultiData<Integer> {
     }
 
     @Override
-    public void onBindChild(EasyViewHolder holder, List<Integer> list, final int position, List<Object> payloads) {
-        holder.setText(R.id.tv_text, "IntegerData 第" + list.get(position) + "个");
+    public void onBindViewHolder(EasyViewHolder holder, final List<String> list, final int position, List<Object> payloads) {
+        final String data = list.get(position);
+        holder.setText(R.id.tv_text, "StringData position=" + data);
         holder.setOnItemClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(v.getContext(), "IntegerData position=" + position, Toast.LENGTH_SHORT).show();
+                Toast.makeText(v.getContext(), "StringData position=" + data, Toast.LENGTH_SHORT).show();
             }
         });
     }

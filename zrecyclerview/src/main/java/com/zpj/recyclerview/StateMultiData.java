@@ -3,7 +3,6 @@ package com.zpj.recyclerview;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.zpj.statemanager.BaseViewHolder;
 import com.zpj.statemanager.IViewHolder;
@@ -35,7 +34,7 @@ public abstract class StateMultiData<T> extends MultiData<T> {
     }
 
     @Override
-    void onBindViewHolder(EasyViewHolder holder, int position, List<Object> payloads) {
+    void onBindViewHolder(EasyViewHolder holder, final int position, List<Object> payloads) {
         int viewType = getViewType(getRealPosition(position));
         if (viewType == STATE_EMPTY.hashCode() || viewType == STATE_LOADING.hashCode()
                 || viewType == STATE_ERROR.hashCode() || viewType == STATE_LOGIN.hashCode()
@@ -119,13 +118,13 @@ public abstract class StateMultiData<T> extends MultiData<T> {
 
     protected void showLoading() {
         this.state = STATE_LOADING;
-        this.list.clear();
+        this.mData.clear();
         notifyDataSetChange();
     }
 
     protected void showEmpty() {
         this.state = STATE_EMPTY;
-        this.list.clear();
+        this.mData.clear();
         notifyDataSetChange();
     }
 
@@ -152,19 +151,19 @@ public abstract class StateMultiData<T> extends MultiData<T> {
 //
 //        }
         this.state = STATE_ERROR;
-        this.list.clear();
+        this.mData.clear();
         notifyDataSetChange();
     }
 
     protected void showLogin() {
         this.state = STATE_LOGIN;
-        this.list.clear();
+        this.mData.clear();
         notifyDataSetChange();
     }
 
     protected void showNoNetwork() {
         this.state = STATE_NO_NETWORK;
-        this.list.clear();
+        this.mData.clear();
         notifyDataSetChange();
     }
 

@@ -6,7 +6,6 @@ import android.widget.Toast;
 
 import com.zpj.recycler.demo.R;
 import com.zpj.recyclerview.EasyViewHolder;
-import com.zpj.recyclerview.MultiAdapter;
 import com.zpj.recyclerview.SingleTypeMultiData;
 
 import java.util.List;
@@ -48,7 +47,7 @@ public class StringSingleTypeMultiData2 extends SingleTypeMultiData<String> {
                         return;
                     }
                     for (int i = 0; i < 16; i++) {
-                        list.add("" + i);
+                        mData.add("" + i);
                     }
                     showContent();
                 } catch (InterruptedException e) {
