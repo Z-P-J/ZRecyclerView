@@ -20,10 +20,6 @@ public abstract class HeaderMultiData<T> extends StateMultiData<T> {
     @Override
     public final int getCount() {
         if (state == STATE_CONTENT) {
-//            if (isLoaded()) {
-//                return getChildCount() + 1;
-//            }
-//            return 0;
             if (getChildCount() == 0 && hasMore) {
                 return 0;
             }
@@ -72,9 +68,10 @@ public abstract class HeaderMultiData<T> extends StateMultiData<T> {
 
     @Override
     public final void onBindViewHolder(EasyViewHolder holder, List<T> list, int position, List<Object> payloads) {
+
         if (position == 0) {
             onBindHeader(holder, payloads);
-        } else {
+        } else if (state == STATE_CONTENT) {
             onBindChild(holder, list, --position, payloads);
         }
     }

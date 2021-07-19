@@ -151,38 +151,15 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                     list.isEmpty() ? ViewGroup.LayoutParams.MATCH_PARENT : ViewGroup.LayoutParams.WRAP_CONTENT);
             footerViewHolder.getView().setLayoutParams(params);
-            if (!canScroll() && mOnLoadMoreListener != null && !mIsLoading && getLoadMoreEnabled()) {
-                mIsLoading = true;
-                Log.d(TAG, "isFooterPosition onLoadMore");
-                // fix Cannot call this method while RecyclerView is computing a layout or scrolling
-                mRecyclerView.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        onLoadMore();
-                    }
-                });
-            }
             holder.setOnItemClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.d(TAG, "isFooterPosition click canScroll=" + canScroll() + " mIsLoading=" + mIsLoading);
-                    if (mOnLoadMoreListener != null && !mIsLoading && getLoadMoreEnabled()) {
-                        mIsLoading = true;
-                        Log.d(TAG, "isFooterPosition onLoadMore");
-                        // fix Cannot call this method while RecyclerView is computing a layout or scrolling
-                        mRecyclerView.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                onLoadMore();
-                            }
-                        });
-                    }
+                    Log.d(TAG, "isFooterPosition click canScroll=" + canScroll() + " mIsLoading=" + mIsLoading + " isBottom=" + isBottom());
+                    tryToLoadMore();
                 }
             });
-//            if (onBindFooterListener != null) {
-//                onBindFooterListener.onBindFooter(holder);
-//            }
             footerViewHolder.onBindFooter(holder);
+            tryToLoadMore();
             return;
         }
 
@@ -340,19 +317,24 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         return count;
     }
 
+    protected void tryToLoadMore() {
+        mRecyclerView.post(new Runnable() {
+            @Override
+            public void run() {
+                onLoadMore();
+            }
+        });
+    }
+
     protected void onLoadMore() {
-//        LinearLayout llContainerProgress = footerView.findViewById(R.id.ll_container_progress);
-//        TextView tvMsg = footerView.findViewById(R.id.tv_msg);
+        if (mOnLoadMoreListener == null || mIsLoading || !getLoadMoreEnabled() || !isBottom()) {
+            return;
+        }
+        mIsLoading = true;
         if (list.isEmpty() || currentPage < -1) {
             currentPage = -1;
         }
         if (mOnLoadMoreListener.onLoadMore(mEnabled, currentPage + 1)) {
-//            if (llContainerProgress != null) {
-//                llContainerProgress.setVisibility(View.VISIBLE);
-//            }
-//            if (tvMsg != null) {
-//                tvMsg.setVisibility(View.GONE);
-//            }
             if (footerViewHolder != null) {
                 footerViewHolder.onShowLoading();
             }
@@ -362,7 +344,6 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             if (footerViewHolder != null) {
                 footerViewHolder.onShowHasNoMore();
             }
-//            showFooterMsg(mRecyclerView.getContext().getString(R.string.easy_has_no_more));
         }
     }
 
@@ -574,36 +555,30 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     };
 
     protected void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-        Log.d(TAG, "onScrollStateChanged getLoadMoreEnabled=" + getLoadMoreEnabled() + "  mIsLoading=" + mIsLoading);
-        if (footerViewHolder == null || !getLoadMoreEnabled() || mIsLoading || mOnLoadMoreListener == null) {
-            return;
-        }
         Log.d(TAG, "onScrollStateChanged newState=" + newState);
-
         if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-            boolean isBottom;
-            RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
-            if (layoutManager instanceof LinearLayoutManager) {
-                isBottom = ((LinearLayoutManager) layoutManager).findLastVisibleItemPosition()
-                        >= layoutManager.getItemCount() - 1;
-            } else if (layoutManager instanceof StaggeredGridLayoutManager) {
-                StaggeredGridLayoutManager sgLayoutManager = (StaggeredGridLayoutManager) layoutManager;
-                int[] into = new int[sgLayoutManager.getSpanCount()];
-                sgLayoutManager.findLastVisibleItemPositions(into);
-
-                isBottom = last(into) >= layoutManager.getItemCount() - 1;
-            } else {
-//                    isBottom = ((GridLayoutManager) layoutManager).findLastVisibleItemPosition()
-//                            >= layoutManager.getItemCount() - 1;
-                isBottom = false;
-            }
-            Log.d(TAG, "onScrollStateChanged isBottom=" + isBottom);
-
-            if (isBottom) {
-                mIsLoading = true;
-                onLoadMore();
-            }
+            onLoadMore();
         }
+    }
+
+    protected boolean isBottom() {
+        boolean isBottom;
+        RecyclerView.LayoutManager layoutManager = mRecyclerView.getLayoutManager();
+        Log.d(TAG, "isBottom layoutManager=" + layoutManager);
+        if (layoutManager instanceof LinearLayoutManager) {
+            int last = ((LinearLayoutManager) layoutManager).findLastVisibleItemPosition();
+            Log.d(TAG, "isBottom last=" + last + " itemCount=" + getItemCount() + " count=" + layoutManager.getItemCount() + " isFirst=" + isFooterPosition(last));
+            isBottom = isFooterPosition(last);
+        } else if (layoutManager instanceof StaggeredGridLayoutManager) {
+            StaggeredGridLayoutManager sgLayoutManager = (StaggeredGridLayoutManager) layoutManager;
+            int[] into = new int[sgLayoutManager.getSpanCount()];
+            sgLayoutManager.findLastVisibleItemPositions(into);
+
+            isBottom = isFooterPosition(last(into));
+        } else {
+            isBottom = false;
+        }
+        return isBottom;
     }
 
     protected int last(int[] lastPositions) {
@@ -639,6 +614,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 //            notifyDataSetChanged();
             mIsLoading = false;
             Log.d(TAG, "onChanged getCount=" + getItemCount());
+//            onScrollStateChanged(mRecyclerView, RecyclerView.SCROLL_STATE_IDLE);
         }
 
         @Override
@@ -648,6 +624,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             }
 //            notifyItemRangeChanged(positionStart, itemCount);
             mIsLoading = false;
+//            onScrollStateChanged(mRecyclerView, RecyclerView.SCROLL_STATE_IDLE);
             Log.d(TAG, "onItemRangeChanged getCount=" + getItemCount() + " positionStart=" + positionStart + " itemCount=" + itemCount);
         }
 
@@ -707,6 +684,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
                 setLoadMoreEnabled(true);
             }
             mIsLoading = false;
+//            onScrollStateChanged(mRecyclerView, RecyclerView.SCROLL_STATE_IDLE);
         }
 
         @Override
@@ -716,6 +694,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             }
 //            notifyItemMoved(fromPosition, toPosition);
             mIsLoading = false;
+//            onScrollStateChanged(mRecyclerView, RecyclerView.SCROLL_STATE_IDLE);
         }
     };
 

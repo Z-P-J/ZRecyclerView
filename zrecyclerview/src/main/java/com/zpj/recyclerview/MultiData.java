@@ -3,6 +3,7 @@ package com.zpj.recyclerview;
 import android.content.Context;
 import android.support.annotation.IntRange;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +19,8 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
     protected boolean hasMore = true;
 
     private MultiAdapter mAdapter;
+
+    private int mTempCount = 0;
 
     public MultiData() {
         mData = new ArrayList<>();
@@ -175,8 +178,43 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
 //            count  += data.getCount();
 //        }
         // TODO 优化MultiData的notifyDataSetChange：先看是否需要notifyItemInsert还是直接notifyItemRangeChanged
-        mAdapter.postNotifyDataSetChanged();
+//        mAdapter.postNotifyDataSetChanged();
 
+        if (getCount() == mTempCount) {
+            notifyItemRangeChanged(0, getCount());
+        } else {
+            if (getCount() > mTempCount) {
+//                notifyItemRangeInserted(mTempCount, getCount() - mTempCount);
+
+                int num = mAdapter.headerView == null ? 0 : 1;
+                for (MultiData<?> data : mAdapter.getData()) {
+                    if (data == this) {
+                        mAdapter.postNotifyItemRangeInserted(num + mTempCount, getCount() - mTempCount);
+//                        mAdapter.post(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                mAdapter.onScrollStateChanged(mAdapter.getRecyclerView(), RecyclerView.SCROLL_STATE_IDLE);
+//                            }
+//                        });
+                        break;
+                    }
+                    num  += data.getCount();
+                }
+
+            } else {
+                notifyItemRangeRemoved(getCount(), mTempCount - getCount());
+            }
+            mTempCount = getCount();
+            notifyItemRangeChanged(0, getCount());
+        }
+        mAdapter.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mAdapter.footerViewHolder != null) {
+                    mAdapter.footerViewHolder.getView().performClick();
+                }
+            }
+        });
     }
 
     public void notifyItemChanged(final int position) {
@@ -241,6 +279,7 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
                 if (positionStart >= getCount()) {
                     return;
                 }
+                mTempCount = getCount();
                 if (positionStart + count > getCount()) {
                     mAdapter.postNotifyItemRangeChanged(num + positionStart, getCount() - positionStart, payload);
                 } else {
@@ -259,6 +298,7 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
         int count = mAdapter.headerView == null ? 0 : 1;
         for (MultiData<?> data : mAdapter.getData()) {
             if (data == this) {
+                mTempCount = getCount();
                 Log.d("notifyItemRangeRemoved", "count=" + count + " getCount=" + getCount());
                 mAdapter.postNotifyItemRangeRemoved(count, getCount());
                 break;
@@ -277,6 +317,7 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
                 if (positionStart >= getCount()) {
                     return;
                 }
+                mTempCount = getCount();
                 if (positionStart + count > getCount()) {
                     mAdapter.postNotifyItemRangeRemoved(num + positionStart, getCount() - positionStart);
                 } else {
@@ -296,6 +337,7 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
         for (MultiData<?> data : mAdapter.getData()) {
             if (data == this) {
                 Log.d("postNotifyItemRemoved", "count=" + count + " position=" + position + " getCount=" + getCount());
+                mTempCount = getCount();
                 mAdapter.postNotifyItemRemoved(count + position);
                 break;
             }
@@ -311,6 +353,7 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
         for (MultiData<?> data : mAdapter.getData()) {
             if (data == this) {
                 Log.d("notifyItemRangeInserted", "count=" + count + " getCount=" + getCount());
+                mTempCount = getCount();
                 mAdapter.postNotifyItemRangeInserted(count, getCount());
                 mAdapter.post(new Runnable() {
                     @Override
@@ -336,6 +379,7 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
                 if (positionStart >= getCount()) {
                     return;
                 }
+                mTempCount = getCount();
                 if (positionStart + count > getCount()) {
                     mAdapter.postNotifyItemRangeInserted(num + positionStart, getCount() - positionStart);
                 } else {

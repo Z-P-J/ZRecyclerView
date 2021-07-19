@@ -15,6 +15,7 @@ import com.zpj.statemanager.State;
 
 import java.util.List;
 
+import static com.zpj.statemanager.State.STATE_CONTENT;
 import static com.zpj.statemanager.State.STATE_LOGIN;
 
 public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
@@ -30,9 +31,9 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
     @NonNull
     @Override
     public EasyViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
-        if (viewType == State.STATE_EMPTY.hashCode() || viewType == State.STATE_LOADING.hashCode()
+        if (state != STATE_CONTENT && (viewType == State.STATE_EMPTY.hashCode() || viewType == State.STATE_LOADING.hashCode()
                 || viewType == State.STATE_ERROR.hashCode() || viewType == STATE_LOGIN.hashCode()
-                || viewType == State.STATE_NO_NETWORK.hashCode()) {
+                || viewType == State.STATE_NO_NETWORK.hashCode())) {
             IViewHolder viewHolder = config.getViewHolder(state);
             if (viewHolder != null) {
                 View view = viewHolder.onCreateView(context);
@@ -103,38 +104,14 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
             ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                     list.isEmpty() ? ViewGroup.LayoutParams.MATCH_PARENT : ViewGroup.LayoutParams.WRAP_CONTENT);
             footerViewHolder.getView().setLayoutParams(params);
-            if (!canScroll() && !mIsLoading && getLoadMoreEnabled()) {
-                mIsLoading = true;
-                Log.d(TAG, "isFooterPosition onLoadMore");
-                // fix Cannot call this method while RecyclerView is computing a layout or scrolling
-                mRecyclerView.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        onLoadMore();
-                    }
-                });
-            }
             holder.setOnItemClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.d(TAG, "isFooterPosition click canScroll=" + canScroll() + " mIsLoading=" + mIsLoading);
-                    if (!mIsLoading && getLoadMoreEnabled()) {
-                        mIsLoading = true;
-                        Log.d(TAG, "isFooterPosition onLoadMore");
-                        // fix Cannot call this method while RecyclerView is computing a layout or scrolling
-                        mRecyclerView.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                onLoadMore();
-                            }
-                        });
-                    }
+                    tryToLoadMore();
                 }
             });
-//            if (onBindFooterListener != null) {
-//                onBindFooterListener.onBindFooter(holder);
-//            }
             footerViewHolder.onBindFooter(holder);
+            tryToLoadMore();
             return;
         }
 
@@ -152,39 +129,11 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
     }
 
     @Override
-    protected void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-        Log.d(TAG, "onScrollStateChanged getLoadMoreEnabled=" + getLoadMoreEnabled() + "  mIsLoading=" + mIsLoading);
-        if (footerViewHolder == null || !getLoadMoreEnabled() || mIsLoading) {
+    protected void onLoadMore() {
+        if (mIsLoading || !getLoadMoreEnabled() || !isBottom()) {
             return;
         }
-        Log.d(TAG, "onScrollStateChanged newState=" + newState);
-
-        if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-            boolean isBottom;
-            RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
-            if (layoutManager instanceof LinearLayoutManager) {
-                isBottom = ((LinearLayoutManager) layoutManager).findLastVisibleItemPosition()
-                        >= layoutManager.getItemCount() - 1;
-            } else if (layoutManager instanceof StaggeredGridLayoutManager) {
-                StaggeredGridLayoutManager sgLayoutManager = (StaggeredGridLayoutManager) layoutManager;
-                int[] into = new int[sgLayoutManager.getSpanCount()];
-                sgLayoutManager.findLastVisibleItemPositions(into);
-
-                isBottom = last(into) >= layoutManager.getItemCount() - 1;
-            } else {
-                isBottom = false;
-            }
-            Log.d(TAG, "onScrollStateChanged isBottom=" + isBottom);
-
-            if (isBottom) {
-                mIsLoading = true;
-                onLoadMore();
-            }
-        }
-    }
-
-    @Override
-    protected void onLoadMore() {
+        mIsLoading = true;
         Log.d(TAG, "onLoadMore");
 //        LinearLayout llContainerProgress = footerView.findViewById(R.id.ll_container_progress);
 //        TextView tvMsg = footerView.findViewById(R.id.tv_msg);

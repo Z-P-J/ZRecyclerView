@@ -43,11 +43,11 @@ public class MyDragAndSwipeMultiData extends DragAndSwipeMultiData<String> {
     @Override
     public void onBindViewHolder(EasyViewHolder holder, final List<String> list, final int position, List<Object> payloads) {
         final String data = list.get(position);
-        holder.setText(R.id.tv_text, "StringData position=" + data);
+        holder.setText(R.id.tv_text, "DragAndSwipe position=" + data);
         holder.setOnItemClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(v.getContext(), "StringData position=" + data, Toast.LENGTH_SHORT).show();
+                Toast.makeText(v.getContext(), "DragAndSwipe position=" + data, Toast.LENGTH_SHORT).show();
             }
         });
     }

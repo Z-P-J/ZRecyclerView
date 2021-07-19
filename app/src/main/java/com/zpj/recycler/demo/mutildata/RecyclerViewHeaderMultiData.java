@@ -23,7 +23,7 @@ public class RecyclerViewHeaderMultiData extends BaseHeaderMultiData<Integer> {
 
     @Override
     public int getChildCount() {
-        return 1;
+        return hasMore ? 0 : 1;
     }
 
     @Override
@@ -53,7 +53,7 @@ public class RecyclerViewHeaderMultiData extends BaseHeaderMultiData<Integer> {
                     }
 
                     showContent();
-                    Log.d("loadData", "getCount=" + getCount());
+                    Log.d("loadData", "RecyclerViewHeaderMultiData getCount=" + getCount());
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -66,6 +66,8 @@ public class RecyclerViewHeaderMultiData extends BaseHeaderMultiData<Integer> {
     public void onBindChild(EasyViewHolder holder, List<Integer> list, int position, List<Object> payloads) {
         if (recyclerView == null) {
             RecyclerView view = holder.getView(R.id.recycler_view);
+            view.setHasFixedSize(true);
+            view.setNestedScrollingEnabled(false);
             recyclerView = new EasyRecyclerView<>(view);
             recyclerView.setData(list)
                     .setItemRes(R.layout.item_text_grid)

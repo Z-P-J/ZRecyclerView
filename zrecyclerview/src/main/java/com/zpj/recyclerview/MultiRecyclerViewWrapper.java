@@ -1,6 +1,7 @@
 package com.zpj.recyclerview;
 
 import android.annotation.SuppressLint;
+import android.graphics.Canvas;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
@@ -142,15 +143,15 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
         for (MultiData<?> data : list) {
             maxSpan = lcm(data.getMaxColumnCount(), maxSpan);
             data.setAdapter(easyAdapter);
-            if (data instanceof DragAndSwipeMultiData && mItemTouchHelper == null) {
+            if (data instanceof IDragAndSwipe && mItemTouchHelper == null) {
                 mItemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.Callback() {
                     @Override
                     public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
                         int position = easyAdapter.getRealPosition(viewHolder);
                         int count = 0;
                         for (MultiData<?> data : list) {
-                            if (data instanceof DragAndSwipeMultiData && position >= count && position < count + data.getCount()) {
-                                DragAndSwipeMultiData<?> dragAndSwipeMultiData = (DragAndSwipeMultiData<?>) data;
+                            if (data instanceof IDragAndSwipe && position >= count && position < count + data.getCount()) {
+                                IDragAndSwipe dragAndSwipeMultiData = (IDragAndSwipe) data;
                                 return makeMovementFlags(dragAndSwipeMultiData.getDragDirection(position),
                                         dragAndSwipeMultiData.getSwipeDirection(position));
                             }
@@ -165,9 +166,9 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
                         final int pos1 = easyAdapter.getRealPosition(viewHolder1);
                         int count = 0;
                         for (MultiData<?> data : list) {
-                            if (data instanceof DragAndSwipeMultiData && pos >= count && pos < count + data.getCount()
+                            if (data instanceof IDragAndSwipe && pos >= count && pos < count + data.getCount()
                                     && pos1 >= count && pos1 < count + data.getCount()) {
-                                DragAndSwipeMultiData<?> dragAndSwipeMultiData = (DragAndSwipeMultiData<?>) data;
+                                IDragAndSwipe dragAndSwipeMultiData = (IDragAndSwipe) data;
                                 return dragAndSwipeMultiData.onMove(pos - count, pos1 - count);
                             }
                             count  += data.getCount();
@@ -180,14 +181,25 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
                         final int pos = easyAdapter.getRealPosition(viewHolder);
                         int count = 0;
                         for (MultiData<?> data : list) {
-                            if (data instanceof DragAndSwipeMultiData && pos >= count && pos < count + data.getCount()) {
-                                DragAndSwipeMultiData<?> dragAndSwipeMultiData = (DragAndSwipeMultiData<?>) data;
+                            if (data instanceof IDragAndSwipe && pos >= count && pos < count + data.getCount()) {
+                                IDragAndSwipe dragAndSwipeMultiData = (IDragAndSwipe) data;
                                 dragAndSwipeMultiData.onSwiped(pos - count, i);
                                 break;
                             }
                             count  += data.getCount();
                         }
                     }
+
+                    @Override
+                    public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                        super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+                    }
+
+                    @Override
+                    public void onChildDrawOver(@NonNull Canvas c, @NonNull RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                        super.onChildDrawOver(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+                    }
+
                 });
                 mItemTouchHelper.attachToRecyclerView(recyclerView);
             }

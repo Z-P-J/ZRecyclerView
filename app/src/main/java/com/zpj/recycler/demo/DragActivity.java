@@ -27,6 +27,13 @@ public class DragActivity extends AppCompatActivity {
         list.add(new StringSingleTypeMultiData());
         list.add(new MyDragAndSwipeMultiData());
         list.add(new StringSingleTypeMultiData());
+        list.add(new MyDragAndSwipeMultiData() {
+
+            @Override
+            public int getColumnCount(int viewType) {
+                return 2;
+            }
+        });
 
         MultiRecyclerViewWrapper.with((RecyclerView) findViewById(R.id.recycler_view))
                 .setData(list)
