@@ -28,6 +28,8 @@ public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>>
 
     protected EasyStateAdapter<T> easyAdapter;
 
+    protected IRefresh mRefresh;
+
     protected IEasy.AdapterInjector adapterInjector;
 
     protected List<T> list;
@@ -294,6 +296,25 @@ public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>>
         return this;
     }
 
+    public EasyRecyclerView<T> onRefresh(IRefresh.OnRefreshListener listener) {
+        mRefresh = new RefreshViewHolder();
+        mRefresh.setOnRefreshListener(listener);
+        return this;
+    }
+
+    public EasyRecyclerView<T> onRefresh(IRefresh refresh) {
+        mRefresh = refresh;
+        return this;
+    }
+
+    public EasyRecyclerView<T> onRefresh(IRefresh refresh, IRefresh.OnRefreshListener listener) {
+        mRefresh = refresh;
+        if (refresh != null) {
+            refresh.setOnRefreshListener(listener);
+        }
+        return this;
+    }
+
     public void build() {
         if (list == null) {
             list = new ArrayList<>(0);
@@ -308,7 +329,7 @@ public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>>
                 onGetChildLayoutIdListener, onCreateViewHolder,
                 onBindViewHolderListener, onItemClickListener,
                 onItemLongClickListener, onClickListeners,
-                onLongClickListeners, this
+                onLongClickListeners, mRefresh, this
         );
         easyAdapter.setAdapterInjector(adapterInjector);
         if (headerView != null) {

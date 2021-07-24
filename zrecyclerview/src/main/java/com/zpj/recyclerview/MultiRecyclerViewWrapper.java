@@ -18,13 +18,17 @@ import com.zpj.recyclerview.footer.DefaultFooterViewHolder;
 import com.zpj.recyclerview.footer.IFooterViewHolder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewWrapper> {
 
     protected final RecyclerView recyclerView;
 
-    protected List<MultiData<?>> list;
+    protected final List<MultiData<?>> mMultiDataList = new ArrayList<>();
+
+    protected IRefresh mRefresh;
 
     protected MultiAdapter easyAdapter;
 
@@ -54,9 +58,65 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
         return this;
     }
 
-    public MultiRecyclerViewWrapper setData(List<MultiData<?>> list) {
-        this.list = list;
+    public MultiRecyclerViewWrapper setMultiData(Collection<MultiData<?>> list) {
+        this.mMultiDataList.clear();
+        this.mMultiDataList.addAll(list);
         return this;
+    }
+
+    public MultiRecyclerViewWrapper setMultiData(int index, MultiData<?> data) {
+        this.mMultiDataList.set(index, data);
+        return this;
+    }
+
+    public MultiRecyclerViewWrapper setMultiData(MultiData<?> ... arr) {
+        this.mMultiDataList.clear();
+        this.mMultiDataList.addAll(Arrays.asList(arr));
+        return this;
+    }
+
+    public MultiRecyclerViewWrapper addMultiData(MultiData<?> ... arr) {
+        this.mMultiDataList.addAll(Arrays.asList(arr));
+        return this;
+    }
+
+    public MultiRecyclerViewWrapper addMultiData(int index, MultiData<?> ... arr) {
+        this.mMultiDataList.addAll(index, Arrays.asList(arr));
+        return this;
+    }
+
+    public MultiRecyclerViewWrapper addMultiData(MultiData<?> data) {
+        this.mMultiDataList.add(data);
+        return this;
+    }
+
+    public MultiRecyclerViewWrapper addMultiData(int index, MultiData<?> data) {
+        this.mMultiDataList.add(index, data);
+        return this;
+    }
+
+    public MultiRecyclerViewWrapper removeMultiData(MultiData<?> data) {
+        this.mMultiDataList.remove(data);
+        return this;
+    }
+
+    public MultiRecyclerViewWrapper removeMultiData(int index) {
+        this.mMultiDataList.remove(index);
+        return this;
+    }
+
+    public MultiRecyclerViewWrapper removeAllMultiData(Collection<MultiData<?>> list) {
+        this.mMultiDataList.removeAll(list);
+        return this;
+    }
+
+    public MultiRecyclerViewWrapper removeAllMultiData(MultiData<?> ... arr) {
+        this.mMultiDataList.removeAll(Arrays.asList(arr));
+        return this;
+    }
+
+    public List<MultiData<?>> getMultiDataList() {
+        return mMultiDataList;
     }
 
     @SuppressLint("ResourceType")
@@ -133,14 +193,30 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
         return this;
     }
 
-    public MultiRecyclerViewWrapper build() {
-        if (list == null) {
-            list = new ArrayList<>(0);
+    public MultiRecyclerViewWrapper onRefresh(IRefresh.OnRefreshListener listener) {
+        mRefresh = new RefreshViewHolder();
+        mRefresh.setOnRefreshListener(listener);
+        return this;
+    }
+
+    public MultiRecyclerViewWrapper onRefresh(IRefresh refresh) {
+        mRefresh = refresh;
+        return this;
+    }
+
+    public MultiRecyclerViewWrapper onRefresh(IRefresh refresh, IRefresh.OnRefreshListener listener) {
+        mRefresh = refresh;
+        if (refresh != null) {
+            refresh.setOnRefreshListener(listener);
         }
-        easyAdapter = new MultiAdapter(recyclerView.getContext(), list, this);
+        return this;
+    }
+
+    public MultiRecyclerViewWrapper build() {
+        easyAdapter = new MultiAdapter(recyclerView.getContext(), mMultiDataList, this, mRefresh);
 
         int maxSpan = 1;
-        for (MultiData<?> data : list) {
+        for (MultiData<?> data : mMultiDataList) {
             maxSpan = lcm(data.getMaxColumnCount(), maxSpan);
             data.setAdapter(easyAdapter);
             if (data instanceof IDragAndSwipe && mItemTouchHelper == null) {
@@ -149,7 +225,7 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
                     public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
                         int position = easyAdapter.getRealPosition(viewHolder);
                         int count = 0;
-                        for (MultiData<?> data : list) {
+                        for (MultiData<?> data : mMultiDataList) {
                             if (data instanceof IDragAndSwipe && position >= count && position < count + data.getCount()) {
                                 IDragAndSwipe dragAndSwipeMultiData = (IDragAndSwipe) data;
                                 return makeMovementFlags(dragAndSwipeMultiData.getDragDirection(position),
@@ -165,7 +241,7 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
                         final int pos = easyAdapter.getRealPosition(viewHolder);
                         final int pos1 = easyAdapter.getRealPosition(viewHolder1);
                         int count = 0;
-                        for (MultiData<?> data : list) {
+                        for (MultiData<?> data : mMultiDataList) {
                             if (data instanceof IDragAndSwipe && pos >= count && pos < count + data.getCount()
                                     && pos1 >= count && pos1 < count + data.getCount()) {
                                 IDragAndSwipe dragAndSwipeMultiData = (IDragAndSwipe) data;
@@ -180,7 +256,7 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
                     public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, final int i) {
                         final int pos = easyAdapter.getRealPosition(viewHolder);
                         int count = 0;
-                        for (MultiData<?> data : list) {
+                        for (MultiData<?> data : mMultiDataList) {
                             if (data instanceof IDragAndSwipe && pos >= count && pos < count + data.getCount()) {
                                 IDragAndSwipe dragAndSwipeMultiData = (IDragAndSwipe) data;
                                 dragAndSwipeMultiData.onSwiped(pos - count, i);
@@ -211,13 +287,8 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
             easyAdapter.setOnBindHeaderListener(onBindHeaderListener);
         }
         if (footerViewBinder != null) {
-//            easyAdapter.setFooterView(footerView);
-//            easyAdapter.setOnBindFooterListener(onBindFooterListener);
             easyAdapter.setFooterViewHolder(footerViewBinder);
         } else {
-//            footerView = LayoutInflater.from(recyclerView.getContext()).inflate(R.layout.easy_base_footer, null, false);
-//            easyAdapter.setFooterView(footerView);
-//            easyAdapter.setOnBindFooterListener(onBindFooterListener);
             easyAdapter.setFooterViewHolder(new DefaultFooterViewHolder());
         }
         easyAdapter.setLoadMoreEnabled(true);
@@ -452,7 +523,7 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
     }
 
     public List<MultiData<?>> getData() {
-        return list;
+        return mMultiDataList;
     }
 
 

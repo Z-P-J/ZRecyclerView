@@ -1,5 +1,6 @@
 # ZRecyclerView
  A RecyclerView library which is implemented to make it easier to use.
+ 安卓RecyclerView框架，无侵入式设计，支持头布局、尾布局，状态切换、上拉加载更多等功能。独创MultiData，让你更容易实现复杂布局、多布局。
 
  <div>
      <img src="./demo1.gif" width="24%">
@@ -149,7 +150,12 @@ step 2:
 
 
 ## 4. MultiData的使用（TODO完善文档，可参考[MultiDataActivity](https://github.com/Z-P-J/ZRecyclerView/blob/master/app/src/main/java/com/zpj/recycler/demo/MultiDataActivity.java)）
+
+#### 4.1 什么是MultiData?
+
 为了使复杂布局的实现更简单，我自创了一种MultiData的方式来实现复杂布局，支持多种实体类，结合MultiRecyclerViewWrapper来方便我们使用。
+MultiData你可以理解为比RecyclerView.Adapter更小的RecyclerView.Adapter，在MultiData中可以实现RecyclerView.Adapter的逻辑，比如onBindViewHolder、getViewType、getCount、notifyDataSetChange等
+
 #### 4.1 创建MultiRecyclerViewWrapper对象
 ~~~java
 List<MultiData<?>> list = new ArrayList<>();

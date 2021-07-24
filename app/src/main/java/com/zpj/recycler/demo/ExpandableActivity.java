@@ -51,7 +51,7 @@ public class ExpandableActivity extends AppCompatActivity {
 
 
         MultiRecyclerViewWrapper.with((RecyclerView) findViewById(R.id.recycler_view))
-                .setData(list)
+                .setMultiData(list)
                 .addItemDecoration(new StickyHeaderItemDecoration())
                 .build();
 

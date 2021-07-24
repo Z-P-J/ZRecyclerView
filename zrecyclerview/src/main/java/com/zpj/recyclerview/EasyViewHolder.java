@@ -7,14 +7,21 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Checkable;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 public final class EasyViewHolder extends RecyclerView.ViewHolder
         implements View.OnClickListener, View.OnLongClickListener {
+
+    private final SparseArray<View> mViews;
 
     private IEasy.OnItemClickCallback clickCallback;
     private View.OnClickListener onClickListener;
@@ -26,6 +33,7 @@ public final class EasyViewHolder extends RecyclerView.ViewHolder
 
     public EasyViewHolder(@NonNull View view) {
         super(view);
+        this.mViews = new SparseArray<>();
         this.itemView = view;
     }
 
@@ -80,7 +88,26 @@ public final class EasyViewHolder extends RecyclerView.ViewHolder
     }
 
     public <T extends View> T getView(@IdRes int id) {
-        return itemView.findViewById(id);
+        View view = mViews.get(id);
+        if (view == null) {
+            view = itemView.findViewById(id);
+            mViews.put(id, view);
+        }
+        return (T) view;
+    }
+
+    public void setChecked(@IdRes int viewId, boolean checked) {
+        View view = getView(viewId);
+        if (view instanceof Checkable) {
+            ((Checkable) view).setChecked(checked);
+        }
+    }
+
+    public void setEnabled(@IdRes int viewId, boolean enable) {
+        View view = getView(viewId);
+        if (view != null) {
+            view.setEnabled(enable);
+        }
     }
 
     public void setBackground(@IdRes int id, Drawable drawable) {
@@ -186,6 +213,13 @@ public final class EasyViewHolder extends RecyclerView.ViewHolder
         return getView(id);
     }
 
+    public void setAlpha(@IdRes int id, float alpha) {
+        View view = getView(id);
+        if (view != null) {
+            view.setAlpha(alpha);
+        }
+    }
+
     public void setImageDrawable(@IdRes int id, Drawable drawable) {
         View view = getView(id);
         if (view instanceof ImageView) {
@@ -211,6 +245,50 @@ public final class EasyViewHolder extends RecyclerView.ViewHolder
         View view = getView(id);
         if (view != null) {
             view.setLayoutParams(params);
+        }
+    }
+
+    public void setProgress(@IdRes int viewId, int progress) {
+        View view = getView(viewId);
+        if (view instanceof ProgressBar) {
+            ((ProgressBar) view).setProgress(progress);
+        }
+    }
+
+    public void setProgress(@IdRes int viewId, int progress, int max) {
+        View view = getView(viewId);
+        if (view instanceof ProgressBar) {
+            ((ProgressBar) view).setMax(max);
+            ((ProgressBar) view).setProgress(progress);
+        }
+    }
+
+    public void setMax(@IdRes int viewId, int max) {
+        View view = getView(viewId);
+        if (view instanceof  ProgressBar) {
+            ((ProgressBar) view).setMax(max);
+        }
+    }
+
+    public void setRating(@IdRes int viewId, float rating) {
+        View view = getView(viewId);
+        if (view instanceof RatingBar) {
+            ((RatingBar) view).setRating(rating);
+        }
+    }
+
+    public void setRating(@IdRes int viewId, float rating, int max) {
+        View view = getView(viewId);
+        if (view instanceof RatingBar) {
+            ((RatingBar) view).setMax(max);
+            ((RatingBar) view).setRating(rating);
+        }
+    }
+
+    public void setOnCheckedChangeListener(@IdRes int viewId, CompoundButton.OnCheckedChangeListener listener) {
+        View view = getView(viewId);
+        if (view instanceof CompoundButton) {
+            ((CompoundButton) view).setOnCheckedChangeListener(listener);
         }
     }
 

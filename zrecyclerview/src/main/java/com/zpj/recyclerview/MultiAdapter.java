@@ -22,10 +22,10 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
 
     private static final String TAG = "MultiAdapter";
 
-    MultiAdapter(final Context context, List<MultiData<?>> list, final EasyStateConfig<?> config) {
+    MultiAdapter(final Context context, List<MultiData<?>> list, final EasyStateConfig<?> config, IRefresh refresh) {
         super(context, list, 0, null, null,
                 null, null, null,
-                null, null, null, config);
+                null, null, null, refresh, config);
     }
 
     @NonNull
@@ -41,6 +41,8 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
                 view.setLayoutParams(layoutParams);
                 return new EasyViewHolder(view);
             }
+        } else if (viewType == TYPE_REFRESH) {
+            return new EasyViewHolder(mRefreshHeader.onCreateView(context, viewGroup));
         } else if (viewType == TYPE_HEADER) {
             return new EasyViewHolder(headerView);
         } else if (viewType == TYPE_FOOTER) {
@@ -61,6 +63,9 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
                 break;
             }
         }
+        if (mRefreshHeader != null) {
+            count++;
+        }
         if (headerView != null) {
             count++;
         }
@@ -74,11 +79,16 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
     public int getItemViewType(int position) {
         if (state != State.STATE_CONTENT) {
             return state.hashCode();
+        } else if (isRefreshPosition(position)) {
+            return TYPE_REFRESH;
         } else if (isHeaderPosition(position)) {
             return TYPE_HEADER;
         } else if (isFooterPosition(position)) {
             return TYPE_FOOTER;
         } else {
+            if (mRefreshHeader != null) {
+                position--;
+            }
             if (headerView != null) {
                 position--;
             }
@@ -135,8 +145,6 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         }
         mIsLoading = true;
         Log.d(TAG, "onLoadMore");
-//        LinearLayout llContainerProgress = footerView.findViewById(R.id.ll_container_progress);
-//        TextView tvMsg = footerView.findViewById(R.id.tv_msg);
         if (list.isEmpty() || currentPage < -1) {
             currentPage = -1;
         }
@@ -165,30 +173,14 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
     protected void initLayoutManagerOnAttachedToRecyclerView(RecyclerView.LayoutManager manager) {
         if (manager instanceof GridLayoutManager) {
             final GridLayoutManager gridManager = ((GridLayoutManager) manager);
-//            gridManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-//                @Override
-//                public int getSpanSize(int position) {
-//                    if (isHeaderPosition(position) || isFooterPosition(position)) {
-//                        return gridManager.getSpanCount();
-//                    }
-//                    if (headerView != null) {
-//                        position--;
-//                    }
-//                    int count = 0;
-//                    for (MultiData<?> data : list) {
-//                        if (position >= count && position < count + data.getCount()) {
-//                            return data.getSpanCount(data.getViewType(position - count));
-//                        }
-//                        count  += data.getCount();
-//                    }
-//                    return gridManager.getSpanCount();
-//                }
-//            });
             gridManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
                 @Override
                 public int getSpanSize(int position) {
                     if (isHeaderPosition(position) || isFooterPosition(position)) {
                         return gridManager.getSpanCount();
+                    }
+                    if (mRefreshHeader != null) {
+                        position--;
                     }
                     if (headerView != null) {
                         position--;
@@ -218,49 +210,23 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         return TYPE_CHILD;
     }
 
-    public int onGetChildLayoutId(int viewType) {
-        for (MultiData<?> data : list) {
-            if (data.hasViewType(viewType)) {
-                return data.getLayoutId(viewType);
-            }
-//            int id = data.getLayoutId(viewType);
-//            if (id > 0) {
-//                return id;
+//    public int onGetChildLayoutId(int viewType) {
+//        for (MultiData<?> data : list) {
+//            if (data.hasViewType(viewType)) {
+//                return data.getLayoutId(viewType);
 //            }
-        }
-        return 0;
-    }
+////            int id = data.getLayoutId(viewType);
+////            if (id > 0) {
+////                return id;
+////            }
+//        }
+//        return 0;
+//    }
 
     public View onCreateView(Context context, ViewGroup container, int viewType) {
         for (MultiData<?> data : list) {
             if (data.hasViewType(viewType)) {
-
                 return data.onCreateView(context, container, viewType);
-
-//                if (data instanceof StateMultiData) {
-//                    StateMultiData<?> stateMultiData = (StateMultiData<?>) data;
-//                    View view = stateConfig.onCreateView(context, stateMultiData.getState());
-//                    if (view != null) {
-//                        return view;
-//                    }
-////                    switch (stateMultiData.getState()) {
-////                        case STATE_LOADING:
-////                            return stateConfig.getLoadingViewHolder().onCreateView(context);
-////                        case STATE_EMPTY:
-////                            return stateConfig.getEmptyViewHolder().onCreateView(context);
-////                        case STATE_ERROR:
-////                            return stateConfig.getErrorViewHolder().onCreateView(context);
-////                        case STATE_LOGIN:
-////                            return stateConfig.getLoginViewHolder().onCreateView(context);
-////                        case STATE_NO_NETWORK:
-////                            return stateConfig.getNoNetworkViewHolder().onCreateView(context);
-////                        case STATE_CONTENT:
-////                        default:
-////                            break;
-////                    }
-//                }
-//
-//                return LayoutInflater.from(context).inflate(data.getLayoutId(viewType), container, false);
             }
         }
         return null;

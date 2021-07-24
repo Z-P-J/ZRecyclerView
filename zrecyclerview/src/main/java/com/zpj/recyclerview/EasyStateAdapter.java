@@ -39,10 +39,11 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
                      IEasy.OnItemLongClickListener<T> onLongClickListener,
                      SparseArray<IEasy.OnClickListener<T>> onClickListeners,
                      SparseArray<IEasy.OnLongClickListener<T>> onLongClickListeners,
+                     IRefresh refresh,
                      final EasyStateConfig<?> config) {
         super(list, itemRes, onGetChildViewTypeListener, onGetChildLayoutIdListener,
                 onCreateViewHolder, onBindViewHolderListener, onClickListener,
-                onLongClickListener, onClickListeners, onLongClickListeners);
+                onLongClickListener, onClickListeners, onLongClickListeners, refresh);
         this.context = context;
         this.config = config;
     }

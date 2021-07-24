@@ -49,6 +49,9 @@ public class StickyHeaderItemDecoration extends RecyclerView.ItemDecoration {
         if (!isStickHeader(currItemPosition)) {
             return;
         }
+        if (groupAdapter.mRefreshHeader != null) {
+            currItemPosition--;
+        }
         if (groupAdapter.headerView != null) {
             currItemPosition--;
         }
