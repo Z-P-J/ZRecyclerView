@@ -6,6 +6,7 @@ import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.zpj.recyclerview.refresh.IRefresher;
 import com.zpj.statemanager.IViewHolder;
 import com.zpj.statemanager.State;
 
@@ -39,7 +40,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
                      IEasy.OnItemLongClickListener<T> onLongClickListener,
                      SparseArray<IEasy.OnClickListener<T>> onClickListeners,
                      SparseArray<IEasy.OnLongClickListener<T>> onLongClickListeners,
-                     IRefresh refresh,
+                     IRefresher refresh,
                      final EasyStateConfig<?> config) {
         super(list, itemRes, onGetChildViewTypeListener, onGetChildLayoutIdListener,
                 onCreateViewHolder, onBindViewHolderListener, onClickListener,

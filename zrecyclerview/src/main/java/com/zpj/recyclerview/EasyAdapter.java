@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.zpj.recyclerview.footer.IFooterViewHolder;
+import com.zpj.recyclerview.refresh.IRefresher;
 
 import java.util.List;
 
@@ -37,7 +38,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 //    protected View footerView;
     protected IFooterViewHolder footerViewHolder;
 
-    protected final IRefresh mRefreshHeader;
+    protected final IRefresher mRefreshHeader;
 
     protected final IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener;
     protected final IEasy.OnGetChildLayoutIdListener onGetChildLayoutIdListener;
@@ -60,7 +61,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
                 IEasy.OnItemClickListener<T> onClickListener,
                 IEasy.OnItemLongClickListener<T> onLongClickListener,
                 SparseArray<IEasy.OnClickListener<T>> onClickListeners,
-                SparseArray<IEasy.OnLongClickListener<T>> onLongClickListeners, IRefresh refresh) {
+                SparseArray<IEasy.OnLongClickListener<T>> onLongClickListeners, IRefresher refresh) {
         this.list = list;
         this.itemRes = itemRes;
         this.onGetChildViewTypeListener = onGetChildViewTypeListener;

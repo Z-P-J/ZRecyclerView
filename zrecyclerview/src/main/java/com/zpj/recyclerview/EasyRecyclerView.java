@@ -15,6 +15,9 @@ import android.view.ViewGroup;
 import com.zpj.recyclerview.footer.AbsFooterViewHolder;
 import com.zpj.recyclerview.footer.DefaultFooterViewHolder;
 import com.zpj.recyclerview.footer.IFooterViewHolder;
+import com.zpj.recyclerview.refresh.DecorationRefresher;
+import com.zpj.recyclerview.refresh.IRefresher;
+import com.zpj.recyclerview.refresh.SimpleRefresher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +31,7 @@ public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>>
 
     protected EasyStateAdapter<T> easyAdapter;
 
-    protected IRefresh mRefresh;
+    protected IRefresher mRefresh;
 
     protected IEasy.AdapterInjector adapterInjector;
 
@@ -296,19 +299,22 @@ public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>>
         return this;
     }
 
-    public EasyRecyclerView<T> onRefresh(IRefresh.OnRefreshListener listener) {
-        mRefresh = new RefreshViewHolder();
+    public EasyRecyclerView<T> onRefresh(IRefresher.OnRefreshListener listener) {
+        mRefresh = new SimpleRefresher();
         mRefresh.setOnRefreshListener(listener);
         return this;
     }
 
-    public EasyRecyclerView<T> onRefresh(IRefresh refresh) {
+    public EasyRecyclerView<T> onRefresh(IRefresher refresh) {
         mRefresh = refresh;
+        if (refresh instanceof DecorationRefresher) {
+            ((DecorationRefresher) refresh).bindRecyclerView(recyclerView);
+        }
         return this;
     }
 
-    public EasyRecyclerView<T> onRefresh(IRefresh refresh, IRefresh.OnRefreshListener listener) {
-        mRefresh = refresh;
+    public EasyRecyclerView<T> onRefresh(IRefresher refresh, IRefresher.OnRefreshListener listener) {
+        onRefresh(refresh);
         if (refresh != null) {
             refresh.setOnRefreshListener(listener);
         }

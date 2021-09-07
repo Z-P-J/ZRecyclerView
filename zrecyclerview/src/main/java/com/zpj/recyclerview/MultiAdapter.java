@@ -3,13 +3,12 @@ package com.zpj.recyclerview;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.zpj.recyclerview.refresh.IRefresher;
 import com.zpj.statemanager.IViewHolder;
 import com.zpj.statemanager.State;
 
@@ -22,7 +21,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
 
     private static final String TAG = "MultiAdapter";
 
-    MultiAdapter(final Context context, List<MultiData<?>> list, final EasyStateConfig<?> config, IRefresh refresh) {
+    MultiAdapter(final Context context, List<MultiData<?>> list, final EasyStateConfig<?> config, IRefresher refresh) {
         super(context, list, 0, null, null,
                 null, null, null,
                 null, null, null, refresh, config);

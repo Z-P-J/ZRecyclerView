@@ -1,15 +1,19 @@
-package com.zpj.recyclerview;
+package com.zpj.recyclerview.refresh;
 
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 
-public interface IRefresh {
+public interface IRefresher {
 
-    int STATE_NORMAL = 0;             // 正常
-    int STATE_RELEASE_TO_REFRESH = 1; // 释放刷新
-    int STATE_REFRESHING = 2;         // 正在刷新
-    int STATE_DONE = 3;               // 刷新完成
+    // 正常
+    int STATE_NORMAL = 0;
+    // 释放刷新
+    int STATE_RELEASE_TO_REFRESH = 1;
+    // 正在刷新
+    int STATE_REFRESHING = 2;
+    // 刷新完成
+    int STATE_DONE = 3;
 
     void setOnRefreshListener(OnRefreshListener listener);
 
@@ -42,7 +46,7 @@ public interface IRefresh {
     void stopRefresh();
 
     interface OnRefreshListener {
-        void onRefresh(IRefresh refresh);
+        void onRefresh(IRefresher refresh);
     }
 
 

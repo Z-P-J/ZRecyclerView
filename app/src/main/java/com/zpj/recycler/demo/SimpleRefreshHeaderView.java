@@ -16,9 +16,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.zpj.recyclerview.IRefresh;
+import com.zpj.recyclerview.refresh.IRefresher;
 
-public class SimpleRefreshHeaderView extends LinearLayout implements IRefresh {
+public class SimpleRefreshHeaderView extends LinearLayout implements IRefresher {
 
     private static final int ROTATE_ANIM_DURATION = 180;
 

@@ -1,4 +1,4 @@
-package com.zpj.recyclerview;
+package com.zpj.recyclerview.refresh;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -9,7 +9,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
-public class RefreshViewHolder implements IRefresh {
+import com.zpj.recyclerview.R;
+
+public class SimpleRefresher implements IRefresher {
 
     private int mState = STATE_NORMAL;
     private OnRefreshListener mListener;
