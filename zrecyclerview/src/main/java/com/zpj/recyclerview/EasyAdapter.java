@@ -35,7 +35,6 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     protected int currentPage = -1;
 
     protected View headerView;
-//    protected View footerView;
     protected IFooterViewHolder footerViewHolder;
 
     protected final IRefresher mRefreshHeader;
@@ -45,7 +44,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     protected final IEasy.OnBindViewHolderListener<T> onBindViewHolderListener;
     protected final IEasy.OnCreateViewHolderListener<T> onCreateViewHolder;
     protected IEasy.OnBindHeaderListener onBindHeaderListener;
-//    protected IEasy.OnBindFooterListener onBindFooterListener;
+    //    protected IEasy.OnBindFooterListener onBindFooterListener;
     protected final IEasy.OnItemClickListener<T> onItemClickListener;
     protected final IEasy.OnItemLongClickListener<T> onItemLongClickListener;
     protected final SparseArray<IEasy.OnClickListener<T>> onClickListeners;
@@ -117,35 +116,6 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull final EasyViewHolder holder, int position, @NonNull List<Object> payloads) {
-//        if (payloads.isEmpty()) {
-////            onBindViewHolder(holder, position);
-//            if (isHeaderPosition(position)) return;
-//            if (isFooterPosition(position)) {
-//                if (!canScroll() && mOnLoadMoreListener != null && !mIsLoading) {
-//                    mIsLoading = true;
-//                    // fix Cannot call this method while RecyclerView is computing a layout or scrolling
-//                    mRecyclerView.post(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            if (mOnLoadMoreListener.onLoadMore(mEnabled, currentPage + 1)) {
-//                                footerView.setVisibility(View.VISIBLE);
-//                                currentPage++;
-//                            } else if (footerView != null){
-//                                footerView.setVisibility(View.GONE);
-//                            }
-//                        }
-//                    });
-//                }
-//                return;
-//            }
-//            if (onBindViewHolderListener != null) {
-//                onBindViewHolderListener.onBindViewHolder(holder, list, getRealPosition(holder));
-//            }
-//        } else {
-//            if (onBindViewHolderListener != null) {
-//                onBindViewHolderListener.onBindViewHolder(holder, list, getRealPosition(holder), payloads);
-//            }
-//        }
         holder.setRealPosition(getRealPosition(holder));
         holder.setViewType(getItemViewType(position));
         if (isRefreshPosition(position)) {
@@ -251,38 +221,56 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             recyclerView.setOnTouchListener(new View.OnTouchListener() {
                 private float downX = -1;
                 private float downY = -1;
+                private float offset = 0;
                 private boolean isMoveDown;
+
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
                     int action = event.getAction();
                     Log.d(TAG, "action=" + MotionEvent.actionToString(action));
                     if (MotionEvent.ACTION_DOWN == action) {
                         isMoveDown = false;
-                        downX = event.getRawX();
-                        downY = event.getRawY();
-                        return false;
-                    } else if (MotionEvent.ACTION_MOVE == action) {
-                        if (downX < 0) {
+                        if (mRefreshHeader != null
+                                && mRefreshHeader.getView() != null
+                                && mRefreshHeader.getView().getParent() != null
+                                && mRefreshHeader.getState() == IRefresher.STATE_NORMAL) {
                             downX = event.getRawX();
                             downY = event.getRawY();
+                            offset = mRefreshHeader.getDelta();
                         }
-                        float deltaX = event.getRawX() - downX;
-                        float deltaY = event.getRawY() - downY;
-                        if (isMoveDown || (deltaY > 0 && mRefreshHeader != null && mRefreshHeader.getView() != null
-                                && mRefreshHeader.getView().getParent() != null)) {
-                            isMoveDown = true;
+                        return false;
+                    } else if (MotionEvent.ACTION_MOVE == action) {
+                        if (isMoveDown) {
+                            float deltaY = event.getRawY() - downY + offset;
                             mRefreshHeader.onMove(deltaY);
                             event.setAction(MotionEvent.ACTION_DOWN);
+                            return false;
+                        } else if (mRefreshHeader != null
+                                && mRefreshHeader.getView() != null
+                                && mRefreshHeader.getView().getParent() != null
+                                && mRefreshHeader.getState() == IRefresher.STATE_NORMAL) {
+                            if (downY < 0) {
+                                downY = event.getRawY();
+                                offset = mRefreshHeader.getDelta();
+                                mRefreshHeader.onDown();
+                                event.setAction(MotionEvent.ACTION_DOWN);
+                            } else {
+                                float deltaY = event.getRawY() - downY + offset;
+                                if (deltaY > 0) {
+                                    isMoveDown = true;
+                                    mRefreshHeader.onMove(deltaY);
+                                    event.setAction(MotionEvent.ACTION_DOWN);
+                                }
+                            }
                             return false;
                         }
                     } else if (MotionEvent.ACTION_UP == action) {
                         if (isMoveDown) {
+                            isMoveDown = false;
                             downX = -1;
                             downY = -1;
+                            offset = 0;
                             mRefreshHeader.onRelease();
-                            isMoveDown = false;
-//                            mRefreshHeader.onRelease();
-//                            event.setAction(MotionEvent.ACTION_CANCEL);
                             return false;
                         }
                     }
@@ -696,7 +684,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
         @Override
         public void onItemRangeChanged(int positionStart, int itemCount) {
-            if (mShouldRemove && positionStart == getItemCount() -1) {
+            if (mShouldRemove && positionStart == getItemCount() - 1) {
                 mShouldRemove = false;
             }
 //            notifyItemRangeChanged(positionStart, itemCount);

@@ -8,7 +8,8 @@ public abstract class AbsRefresher implements IRefresher {
 
     protected int mState = STATE_NORMAL;
     protected OnRefreshListener mListener;
-    private View mView;
+    protected View mView;
+    protected float mDelta;
 
     @Override
     public void setOnRefreshListener(OnRefreshListener listener) {
@@ -37,8 +38,23 @@ public abstract class AbsRefresher implements IRefresher {
     }
 
     @Override
-    public View getView() {
+    public final View getView() {
         return mView;
+    }
+
+    @Override
+    public void onDown() {
+
+    }
+
+    @Override
+    public void onMove(float delta) {
+        this.mDelta = delta;
+    }
+
+    @Override
+    public float getDelta() {
+        return mDelta;
     }
 
     public boolean isRefreshing() {

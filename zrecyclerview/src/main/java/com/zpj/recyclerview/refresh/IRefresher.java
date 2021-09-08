@@ -31,12 +31,16 @@ public interface IRefresher {
 
     View getView();
 
+    void onDown();
+
     /**
      * 根据拉动的距离处理刷新状态
      *
      * @param delta 向下拉动的高度
      */
     void onMove(float delta);
+
+    float getDelta();
 
     /**
      * 手指释放时的状态处理

@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import com.zpj.recycler.demo.mutildata.MyDragAndSwipeMultiData;
 import com.zpj.recycler.demo.mutildata.StringSingleTypeMultiData;
+import com.zpj.recyclerview.refresh.BounceRefresher;
 import com.zpj.recyclerview.refresh.IRefresher;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecyclerViewWrapper;
@@ -58,18 +59,19 @@ public class DragActivity extends AppCompatActivity {
 //                        }, 500);
 //                    }
 //                })
-                .onRefresh(new SwipeDecorationRefresher(), new IRefresher.OnRefreshListener() {
-                    @Override
-                    public void onRefresh(IRefresher refresh) {
-                        Toast.makeText(DragActivity.this, "refresh", Toast.LENGTH_SHORT).show();
-                        recyclerView.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                recyclerView.getAdapter().notifyDataSetChanged();
-                            }
-                        }, 2000);
-                    }
-                })
+                .onRefresh(new BounceRefresher())
+//                .onRefresh(new SwipeDecorationRefresher(), new IRefresher.OnRefreshListener() {
+//                    @Override
+//                    public void onRefresh(IRefresher refresh) {
+//                        Toast.makeText(DragActivity.this, "refresh", Toast.LENGTH_SHORT).show();
+//                        recyclerView.postDelayed(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                recyclerView.getAdapter().notifyDataSetChanged();
+//                            }
+//                        }, 2000);
+//                    }
+//                })
                 .setHeaderView(LayoutInflater.from(this).inflate(R.layout.item_header, null, false))
                 .setFooterViewBinder(new SimpleFooterViewHolder(R.layout.layout_loading_footer, R.layout.layout_error_footer) {
 

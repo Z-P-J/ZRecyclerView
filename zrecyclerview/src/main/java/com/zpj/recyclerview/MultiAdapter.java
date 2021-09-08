@@ -209,19 +209,6 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         return TYPE_CHILD;
     }
 
-//    public int onGetChildLayoutId(int viewType) {
-//        for (MultiData<?> data : list) {
-//            if (data.hasViewType(viewType)) {
-//                return data.getLayoutId(viewType);
-//            }
-////            int id = data.getLayoutId(viewType);
-////            if (id > 0) {
-////                return id;
-////            }
-//        }
-//        return 0;
-//    }
-
     public View onCreateView(Context context, ViewGroup container, int viewType) {
         for (MultiData<?> data : list) {
             if (data.hasViewType(viewType)) {
@@ -263,12 +250,6 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
                 } else {
                     notifyItemRangeInserted(num + positionStart, count);
                 }
-
-//                if (positionStart + count <= data.getCount()) {
-//                    notifyItemRangeInserted(num + positionStart, count);
-//                } else {
-//                    notifyItemRangeInserted(num + positionStart, count);
-//                }
             }
             num  += multiData.getCount();
         }

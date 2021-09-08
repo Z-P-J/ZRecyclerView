@@ -86,6 +86,11 @@ public class SimpleRefreshHeaderView extends LinearLayout implements IRefresher 
     }
 
     @Override
+    public float getDelta() {
+        return 0;
+    }
+
+    @Override
     public boolean onRelease() {
         boolean isOnRefresh = false;
 
@@ -212,5 +217,10 @@ public class SimpleRefreshHeaderView extends LinearLayout implements IRefresher 
     @Override
     public View getView() {
         return this;
+    }
+
+    @Override
+    public void onDown() {
+
     }
 }

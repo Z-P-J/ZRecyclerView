@@ -33,6 +33,7 @@ public class SwipeDecorationRefresher extends DecorationRefresher {
     private final float mProgressRadius;
     private final float mMaxOffset;
     private final float mRefreshOffset;
+    private float mOffset;
 
     private final ValueAnimator mProgressAnimator;
     private ValueAnimator mOffsetAnimator;
@@ -84,7 +85,7 @@ public class SwipeDecorationRefresher extends DecorationRefresher {
     @Override
     public void onDrawOver(@NonNull Canvas c, @NonNull RecyclerView parent, @NonNull RecyclerView.State state, float delta) {
         float cx = parent.getWidth() / 2f;
-        float cy = -2 * mBackgroundRadius + delta;
+        float cy = -2 * mBackgroundRadius + mOffset;
         mShadowPaint.setColor(Color.WHITE);
         mShadowPaint.setStyle(Paint.Style.FILL);
         c.drawCircle(cx, cy, mBackgroundRadius, mShadowPaint);
@@ -100,15 +101,29 @@ public class SwipeDecorationRefresher extends DecorationRefresher {
     }
 
     @Override
-    public void onMove(float delta) {
+    public void onDown() {
         if (mProgressAnimator.isRunning()) {
             mProgressAnimator.cancel();
+        }
+        if (mOffsetAnimator != null && mOffsetAnimator.isRunning()) {
+            mOffsetAnimator.cancel();
+        }
+    }
+
+    @Override
+    public void onMove(float delta) {
+        super.onMove(delta);
+        if (mProgressAnimator.isRunning()) {
+            mProgressAnimator.cancel();
+        }
+        if (mOffsetAnimator != null && mOffsetAnimator.isRunning()) {
+            mOffsetAnimator.cancel();
         }
         if (delta < 0) {
             return;
         }
-        mDelta = Math.min(mMaxOffset, delta / 2);
-        float percent = Math.min(1f, mDelta / mMaxOffset);
+        mOffset = Math.min(mMaxOffset, delta / 2);
+        float percent = Math.min(1f, mOffset / mMaxOffset);
         mProgress = (1 - percent) * mMaxProgress + (2 * percent - 1) * mMinProgress;
         float angle = CIRCULAR / mMaxProgress * mProgress;
         mStartAngle = -angle - 180 * (1 - percent);
@@ -117,17 +132,18 @@ public class SwipeDecorationRefresher extends DecorationRefresher {
 
     @Override
     public boolean onRelease() {
-        if (mDelta > mRefreshOffset) {
+        if (mOffset > mRefreshOffset) {
             if (mOffsetAnimator != null) {
                 mOffsetAnimator.cancel();
             }
-            mOffsetAnimator = ValueAnimator.ofFloat(mDelta, mRefreshOffset);
+            mOffsetAnimator = ValueAnimator.ofFloat(mOffset, mRefreshOffset);
             mOffsetAnimator.setDuration(200);
             final float deltaProgress = mProgress - mMinProgress;
             mOffsetAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
-                    mDelta = (float) animation.getAnimatedValue();
+                    mOffset = (float) animation.getAnimatedValue();
+                    mDelta = mOffset * 2;
                     float percent = animation.getAnimatedFraction();
                     mProgress = mMinProgress - deltaProgress * (1 - percent);
                     invalidate();
@@ -152,13 +168,14 @@ public class SwipeDecorationRefresher extends DecorationRefresher {
         if (mOffsetAnimator != null) {
             mOffsetAnimator.cancel();
         }
-        mOffsetAnimator = ValueAnimator.ofFloat(mDelta, 0);
-        Log.d("stopRefresh", "mDelta=" + mDelta + " mRefreshOffset=" + mRefreshOffset + " value=" + (500 * mDelta / mRefreshOffset));
-        mOffsetAnimator.setDuration((int) (500 * mDelta / mRefreshOffset));
+        mOffsetAnimator = ValueAnimator.ofFloat(mOffset, 0);
+        Log.d("stopRefresh", "mOffset=" + mOffset + " mRefreshOffset=" + mRefreshOffset + " value=" + (500 * mOffset / mRefreshOffset));
+        mOffsetAnimator.setDuration((int) (500 * mOffset / mRefreshOffset));
         mOffsetAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-                mDelta = (float) animation.getAnimatedValue();
+                mOffset = (float) animation.getAnimatedValue();
+                mDelta = mOffset * 2;
                 invalidate();
             }
         });
@@ -166,6 +183,7 @@ public class SwipeDecorationRefresher extends DecorationRefresher {
             @Override
             public void onAnimationEnd(Animator animation) {
                 mProgressAnimator.cancel();
+                setState(STATE_NORMAL);
             }
         });
         mOffsetAnimator.start();

@@ -10,7 +10,6 @@ import android.widget.Space;
 
 public abstract class DecorationRefresher extends AbsRefresher {
 
-    protected float mDelta;
     protected RecyclerView mRecyclerView;
 
     public final void bindRecyclerView(RecyclerView recyclerView) {
@@ -35,7 +34,7 @@ public abstract class DecorationRefresher extends AbsRefresher {
 
     @Override
     public void onMove(float delta) {
-        this.mDelta = delta;
+        super.onMove(delta);
         invalidate();
     }
 

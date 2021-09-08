@@ -11,54 +11,27 @@ import android.widget.FrameLayout;
 
 import com.zpj.recyclerview.R;
 
-public class SimpleRefresher implements IRefresher {
+public class SimpleRefresher extends AbsRefresher {
 
-    private int mState = STATE_NORMAL;
-    private OnRefreshListener mListener;
-    private FrameLayout container;
     private View view;
     private int mHeight;
 
     @Override
-    public void setOnRefreshListener(OnRefreshListener listener) {
-        this.mListener = listener;
-    }
-
-    @Override
-    public void setState(int state) {
-        this.mState = state;
-        if (mState == STATE_REFRESHING) {
-            if (mListener != null) {
-                mListener.onRefresh(this);
-            }
-        }
-    }
-
-    @Override
-    public int getState() {
-        return mState;
-    }
-
-    @Override
-    public View onCreateView(Context context, ViewGroup parent) {
-        mHeight = (int) (56 * context.getResources().getDisplayMetrics().density);
-        view = LayoutInflater.from(context).inflate(R.layout.easy_base_footer, null);
-        container = new FrameLayout(context);
-        container.addView(view, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0));
-        container.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        return container;
-    }
-
-    @Override
-    public View getView() {
-        return container;
-    }
-
-    @Override
     public void onMove(float delta) {
+        super.onMove(delta);
         ViewGroup.LayoutParams params = view.getLayoutParams();
         params.height = (int) (delta / 2);
         view.setLayoutParams(params);
+    }
+
+    @Override
+    public View onCreateRefreshView(Context context, ViewGroup parent) {
+        mHeight = (int) (56 * context.getResources().getDisplayMetrics().density);
+        view = LayoutInflater.from(context).inflate(R.layout.easy_base_footer, null);
+        FrameLayout container = new FrameLayout(context);
+        container.addView(view, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0));
+        container.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        return container;
     }
 
     @Override
