@@ -7,7 +7,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.zpj.recycler.demo.R;
-import com.zpj.recyclerview.EasyRecyclerView;
+import com.zpj.recyclerview.EasyRecycler;
 import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.IEasy;
 
@@ -15,7 +15,7 @@ import java.util.List;
 
 public class RecyclerViewHeaderMultiData extends BaseHeaderMultiData<Integer> {
 
-    private EasyRecyclerView<Integer> recyclerView;
+    private EasyRecycler<Integer> recyclerView;
 
     public RecyclerViewHeaderMultiData(String title) {
         super(title);
@@ -68,7 +68,7 @@ public class RecyclerViewHeaderMultiData extends BaseHeaderMultiData<Integer> {
             RecyclerView view = holder.getView(R.id.recycler_view);
             view.setHasFixedSize(true);
             view.setNestedScrollingEnabled(false);
-            recyclerView = new EasyRecyclerView<>(view);
+            recyclerView = new EasyRecycler<>(view);
             recyclerView.setData(list)
                     .setItemRes(R.layout.item_text_grid)
                     .setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.HORIZONTAL, false))

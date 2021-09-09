@@ -5,15 +5,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.zpj.recycler.demo.mutildata.MyDragAndSwipeMultiData;
 import com.zpj.recycler.demo.mutildata.StringSingleTypeMultiData;
 import com.zpj.recyclerview.refresh.BounceRefresher;
-import com.zpj.recyclerview.refresh.IRefresher;
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.MultiRecyclerViewWrapper;
-import com.zpj.recyclerview.refresh.SwipeDecorationRefresher;
+import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.footer.SimpleFooterViewHolder;
 
 import java.util.ArrayList;
@@ -45,7 +42,7 @@ public class DragActivity extends AppCompatActivity {
         });
 
         final RecyclerView recyclerView = findViewById(R.id.recycler_view);
-        MultiRecyclerViewWrapper.with(recyclerView)
+        MultiRecycler.with(recyclerView)
                 .setMultiData(list)
 //                .onRefresh(new BounceViewHolder(), new IRefresh.OnRefreshListener() {
 //                    @Override

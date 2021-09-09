@@ -1,9 +1,9 @@
 package com.zpj.recyclerview;
 
 import android.annotation.SuppressLint;
-import android.graphics.Canvas;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -25,7 +25,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewWrapper> {
+public class MultiRecycler extends EasyStateConfig<MultiRecycler> {
 
     protected final RecyclerView recyclerView;
 
@@ -47,73 +47,73 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
 //    protected View footerView;
     protected IFooterViewHolder footerViewBinder;
 
-    public static MultiRecyclerViewWrapper with(@NonNull RecyclerView recyclerView) {
-        return new MultiRecyclerViewWrapper(recyclerView);
+    public static MultiRecycler with(@NonNull RecyclerView recyclerView) {
+        return new MultiRecycler(recyclerView);
     }
 
 
-    private MultiRecyclerViewWrapper(@NonNull RecyclerView recyclerView) {
+    private MultiRecycler(@NonNull RecyclerView recyclerView) {
         this.recyclerView = recyclerView;
     }
 
-    public MultiRecyclerViewWrapper setHeaderView(View headerView) {
+    public MultiRecycler setHeaderView(View headerView) {
         this.headerView = headerView;
         return this;
     }
 
-    public MultiRecyclerViewWrapper setMultiData(Collection<MultiData<?>> list) {
+    public MultiRecycler setMultiData(Collection<MultiData<?>> list) {
         this.mMultiDataList.clear();
         this.mMultiDataList.addAll(list);
         return this;
     }
 
-    public MultiRecyclerViewWrapper setMultiData(int index, MultiData<?> data) {
+    public MultiRecycler setMultiData(int index, MultiData<?> data) {
         this.mMultiDataList.set(index, data);
         return this;
     }
 
-    public MultiRecyclerViewWrapper setMultiData(MultiData<?> ... arr) {
+    public MultiRecycler setMultiData(MultiData<?> ... arr) {
         this.mMultiDataList.clear();
         this.mMultiDataList.addAll(Arrays.asList(arr));
         return this;
     }
 
-    public MultiRecyclerViewWrapper addMultiData(MultiData<?> ... arr) {
+    public MultiRecycler addMultiData(MultiData<?> ... arr) {
         this.mMultiDataList.addAll(Arrays.asList(arr));
         return this;
     }
 
-    public MultiRecyclerViewWrapper addMultiData(int index, MultiData<?> ... arr) {
+    public MultiRecycler addMultiData(int index, MultiData<?> ... arr) {
         this.mMultiDataList.addAll(index, Arrays.asList(arr));
         return this;
     }
 
-    public MultiRecyclerViewWrapper addMultiData(MultiData<?> data) {
+    public MultiRecycler addMultiData(MultiData<?> data) {
         this.mMultiDataList.add(data);
         return this;
     }
 
-    public MultiRecyclerViewWrapper addMultiData(int index, MultiData<?> data) {
+    public MultiRecycler addMultiData(int index, MultiData<?> data) {
         this.mMultiDataList.add(index, data);
         return this;
     }
 
-    public MultiRecyclerViewWrapper removeMultiData(MultiData<?> data) {
+    public MultiRecycler removeMultiData(MultiData<?> data) {
         this.mMultiDataList.remove(data);
         return this;
     }
 
-    public MultiRecyclerViewWrapper removeMultiData(int index) {
+    public MultiRecycler removeMultiData(int index) {
         this.mMultiDataList.remove(index);
         return this;
     }
 
-    public MultiRecyclerViewWrapper removeAllMultiData(Collection<MultiData<?>> list) {
+    public MultiRecycler removeAllMultiData(Collection<MultiData<?>> list) {
         this.mMultiDataList.removeAll(list);
         return this;
     }
 
-    public MultiRecyclerViewWrapper removeAllMultiData(MultiData<?> ... arr) {
+    public MultiRecycler removeAllMultiData(MultiData<?> ... arr) {
         this.mMultiDataList.removeAll(Arrays.asList(arr));
         return this;
     }
@@ -123,7 +123,7 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
     }
 
     @SuppressLint("ResourceType")
-    public MultiRecyclerViewWrapper setHeaderView(@LayoutRes int layoutRes, IEasy.OnBindHeaderListener l) {
+    public MultiRecycler setHeaderView(@LayoutRes int layoutRes, IEasy.OnBindHeaderListener l) {
         if (layoutRes > 0 && l != null) {
             this.headerView = LayoutInflater.from(recyclerView.getContext()).inflate(layoutRes, null, false);
             onBindHeaderListener = l;
@@ -142,12 +142,12 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
 //        return this;
 //    }
 
-    public MultiRecyclerViewWrapper setFooterViewBinder(IFooterViewHolder footerViewBinder) {
+    public MultiRecycler setFooterViewBinder(IFooterViewHolder footerViewBinder) {
         this.footerViewBinder = footerViewBinder;
         return this;
     }
 
-    public MultiRecyclerViewWrapper setFooterView(final View footerView) {
+    public MultiRecycler setFooterView(final View footerView) {
 //        this.footerView = headerView;
         this.footerViewBinder = new AbsFooterViewHolder() {
             @Override
@@ -158,7 +158,7 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
         return this;
     }
 
-    public MultiRecyclerViewWrapper setFooterView(@LayoutRes final int layoutRes, final IEasy.OnBindFooterListener listener) {
+    public MultiRecycler setFooterView(@LayoutRes final int layoutRes, final IEasy.OnBindFooterListener listener) {
 //        this.footerView = LayoutInflater.from(recyclerView.getContext()).inflate(layoutRes, null, false);
 //        onBindFooterListener = listener;
         this.footerViewBinder = new AbsFooterViewHolder() {
@@ -178,17 +178,17 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
         return this;
     }
 
-    public MultiRecyclerViewWrapper addItemDecoration(RecyclerView.ItemDecoration decor) {
+    public MultiRecycler addItemDecoration(RecyclerView.ItemDecoration decor) {
         this.recyclerView.addItemDecoration(decor);
         return this;
     }
 
-    public MultiRecyclerViewWrapper addItemDecoration(RecyclerView.ItemDecoration decor, int index) {
+    public MultiRecycler addItemDecoration(RecyclerView.ItemDecoration decor, int index) {
         this.recyclerView.addItemDecoration(decor, index);
         return this;
     }
 
-    public MultiRecyclerViewWrapper setAdapterInjector(IEasy.AdapterInjector adapterInjector) {
+    public MultiRecycler setAdapterInjector(IEasy.AdapterInjector adapterInjector) {
         this.adapterInjector = adapterInjector;
         if (easyAdapter != null) {
             easyAdapter.setAdapterInjector(adapterInjector);
@@ -196,13 +196,13 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
         return this;
     }
 
-    public MultiRecyclerViewWrapper onRefresh(IRefresher.OnRefreshListener listener) {
+    public MultiRecycler onRefresh(IRefresher.OnRefreshListener listener) {
         mRefresh = new SimpleRefresher();
         mRefresh.setOnRefreshListener(listener);
         return this;
     }
 
-    public MultiRecyclerViewWrapper onRefresh(IRefresher refresh) {
+    public MultiRecycler onRefresh(IRefresher refresh) {
         mRefresh = refresh;
         if (refresh instanceof DecorationRefresher) {
             ((DecorationRefresher) refresh).bindRecyclerView(recyclerView);
@@ -210,7 +210,7 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
         return this;
     }
 
-    public MultiRecyclerViewWrapper onRefresh(IRefresher refresh, IRefresher.OnRefreshListener listener) {
+    public MultiRecycler onRefresh(IRefresher refresh, IRefresher.OnRefreshListener listener) {
         onRefresh(refresh);
         if (refresh != null) {
             refresh.setOnRefreshListener(listener);
@@ -218,7 +218,7 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
         return this;
     }
 
-    public MultiRecyclerViewWrapper build() {
+    public MultiRecycler build() {
         easyAdapter = new MultiAdapter(recyclerView.getContext(), mMultiDataList, this, mRefresh);
 
         int maxSpan = 1;
@@ -255,7 +255,57 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
                             }
                             count  += data.getCount();
                         }
+
+
+//                        int posFrom = easyAdapter.getRealPosition(viewHolder);
+//                        int posTo = easyAdapter.getRealPosition(viewHolder1);
+//
+//                        final int realFrom = posFrom;
+//                        final int realTo = posTo;
+//                        MultiData from = null;
+//                        MultiData to = null;
+//                        int count = 0;
+//                        for (MultiData<?> data : mMultiDataList) {
+//                            if (data instanceof IDragAndSwipe) {
+//
+//                                if (from == null && posFrom >= count && posFrom < count + data.getCount()) {
+//                                    posFrom -= count;
+//                                    from = data;
+//                                }
+//                                if (to == null && posTo >= count && posTo < count + data.getCount()) {
+//                                    posTo -= count;
+//                                    to = data;
+//                                }
+//                            }
+//                            if (from != null && to != null) {
+//                                break;
+//                            }
+//                            count  += data.getCount();
+//                        }
+//                        if (from != null && to != null) {
+//                            if (from == to) {
+//                                IDragAndSwipe dragAndSwipeMultiData = (IDragAndSwipe) from;
+//                                return dragAndSwipeMultiData.onMove(posFrom, posTo);
+//                            } else {
+//                                Object fromObj = from.getData().get(posFrom);
+//                                Object toObj = to.getData().get(posTo);
+//                                Log.d("MultiRecycler", "fromObj=" + fromObj + " toObj=" + toObj);
+//                                if (fromObj != null && toObj != null
+//                                        && fromObj.getClass().isAssignableFrom(toObj.getClass())
+//                                        && toObj.getClass().isAssignableFrom(fromObj.getClass())) {
+//                                    from.getData().set(posFrom, toObj);
+//                                    to.getData().set(posTo, fromObj);
+//                                    notifyItemMoved(realFrom, realTo);
+//                                }
+//                            }
+//                        }
                         return false;
+                    }
+
+                    @Override
+                    public void onSelectedChanged(@Nullable RecyclerView.ViewHolder viewHolder, int actionState) {
+                        super.onSelectedChanged(viewHolder, actionState);
+                        easyAdapter.mIsDraggingOrSwiping = actionState != ItemTouchHelper.ACTION_STATE_IDLE;
                     }
 
                     @Override
@@ -270,16 +320,6 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
                             }
                             count  += data.getCount();
                         }
-                    }
-
-                    @Override
-                    public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-                        super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-                    }
-
-                    @Override
-                    public void onChildDrawOver(@NonNull Canvas c, @NonNull RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-                        super.onChildDrawOver(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
                     }
 
                 });
@@ -418,6 +458,13 @@ public class MultiRecyclerViewWrapper extends EasyStateConfig<MultiRecyclerViewW
             return;
         }
         easyAdapter.notifyItemChanged(position, payload);
+    }
+
+    public void notifyItemMoved(int fromPosition, int toPosition) {
+        if (easyAdapter == null) {
+            return;
+        }
+        easyAdapter.notifyItemMoved(fromPosition, toPosition);
     }
 
     public void notifyVisibleItemChanged() {

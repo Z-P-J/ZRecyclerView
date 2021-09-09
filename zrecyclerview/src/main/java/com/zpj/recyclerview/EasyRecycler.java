@@ -22,7 +22,7 @@ import com.zpj.recyclerview.refresh.SimpleRefresher;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>>
+public class EasyRecycler<T> extends EasyStateConfig<EasyRecycler<T>>
         implements IEasy.OnLoadMoreListener {
 
     protected final RecyclerView recyclerView;
@@ -58,7 +58,7 @@ public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>>
     protected IEasy.OnItemClickListener<T> onItemClickListener;
     protected IEasy.OnItemLongClickListener<T> onItemLongClickListener;
 
-    public EasyRecyclerView(@NonNull RecyclerView recyclerView) {
+    public EasyRecycler(@NonNull RecyclerView recyclerView) {
         this.recyclerView = recyclerView;
     }
 
@@ -78,103 +78,103 @@ public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>>
 //        return viewHolder;
 //    }
 
-    public EasyRecyclerView<T> setItemAnimator(RecyclerView.ItemAnimator animator) {
+    public EasyRecycler<T> setItemAnimator(RecyclerView.ItemAnimator animator) {
         recyclerView.setItemAnimator(animator);
         return this;
     }
 
-    public EasyRecyclerView<T> setItemRes(int res) {
+    public EasyRecycler<T> setItemRes(int res) {
         this.itemRes = res;
         return this;
     }
 
-    public EasyRecyclerView<T> setData(List<T> list) {
+    public EasyRecycler<T> setData(List<T> list) {
         this.list = list;
         return this;
     }
 
-    public EasyRecyclerView<T> setLayoutManager(RecyclerView.LayoutManager layoutManager) {
+    public EasyRecycler<T> setLayoutManager(RecyclerView.LayoutManager layoutManager) {
         this.layoutManager = layoutManager;
         return this;
     }
 
-    public EasyRecyclerView<T> addItemDecoration(RecyclerView.ItemDecoration decor) {
+    public EasyRecycler<T> addItemDecoration(RecyclerView.ItemDecoration decor) {
         this.recyclerView.addItemDecoration(decor);
         return this;
     }
 
-    public EasyRecyclerView<T> addItemDecoration(RecyclerView.ItemDecoration decor, int index) {
+    public EasyRecycler<T> addItemDecoration(RecyclerView.ItemDecoration decor, int index) {
         this.recyclerView.addItemDecoration(decor, index);
         return this;
     }
 
-    public EasyRecyclerView<T> setItemViewCacheSize(int size) {
+    public EasyRecycler<T> setItemViewCacheSize(int size) {
         recyclerView.setItemViewCacheSize(size);
         return this;
     }
 
-    public EasyRecyclerView<T> setHasFixedSize(boolean hasFixedSize) {
+    public EasyRecycler<T> setHasFixedSize(boolean hasFixedSize) {
         recyclerView.setHasFixedSize(hasFixedSize);
         return this;
     }
 
-    public EasyRecyclerView<T> setLayoutFrozen(boolean layoutFrozen) {
+    public EasyRecycler<T> setLayoutFrozen(boolean layoutFrozen) {
         recyclerView.setLayoutFrozen(layoutFrozen);
         return this;
     }
 
-    public EasyRecyclerView<T> setOnFlingListener(RecyclerView.OnFlingListener listener) {
+    public EasyRecycler<T> setOnFlingListener(RecyclerView.OnFlingListener listener) {
         recyclerView.setOnFlingListener(listener);
         return this;
     }
 
-    public EasyRecyclerView<T> setRecyclerListener(RecyclerView.RecyclerListener listener) {
+    public EasyRecycler<T> setRecyclerListener(RecyclerView.RecyclerListener listener) {
         recyclerView.setRecyclerListener(listener);
         return this;
     }
 
-    public EasyRecyclerView<T> setScrollingTouchSlop(int slop) {
+    public EasyRecycler<T> setScrollingTouchSlop(int slop) {
         recyclerView.setScrollingTouchSlop(slop);
         return this;
     }
 
-    public EasyRecyclerView<T> setEdgeEffectFactory(RecyclerView.EdgeEffectFactory factory) {
+    public EasyRecycler<T> setEdgeEffectFactory(RecyclerView.EdgeEffectFactory factory) {
         recyclerView.setEdgeEffectFactory(factory);
         return this;
     }
 
-    public EasyRecyclerView<T> setRecycledViewPool(RecyclerView.RecycledViewPool pool) {
+    public EasyRecycler<T> setRecycledViewPool(RecyclerView.RecycledViewPool pool) {
         recyclerView.setRecycledViewPool(pool);
         return this;
     }
 
-    public EasyRecyclerView<T> setNestedScrollingEnabled(boolean enabled) {
+    public EasyRecycler<T> setNestedScrollingEnabled(boolean enabled) {
         recyclerView.setNestedScrollingEnabled(enabled);
         return this;
     }
 
-    public EasyRecyclerView<T> setPreserveFocusAfterLayout(boolean preserveFocusAfterLayout) {
+    public EasyRecycler<T> setPreserveFocusAfterLayout(boolean preserveFocusAfterLayout) {
         recyclerView.setPreserveFocusAfterLayout(preserveFocusAfterLayout);
         return this;
     }
 
-    public EasyRecyclerView<T> setViewCacheExtension(RecyclerView.ViewCacheExtension extension) {
+    public EasyRecycler<T> setViewCacheExtension(RecyclerView.ViewCacheExtension extension) {
         recyclerView.setViewCacheExtension(extension);
         return this;
     }
 
-    public EasyRecyclerView<T> setChildDrawingOrderCallback(RecyclerView.ChildDrawingOrderCallback callback) {
+    public EasyRecycler<T> setChildDrawingOrderCallback(RecyclerView.ChildDrawingOrderCallback callback) {
         recyclerView.setChildDrawingOrderCallback(callback);
         return this;
     }
 
-    public EasyRecyclerView<T> setHeaderView(View headerView) {
+    public EasyRecycler<T> setHeaderView(View headerView) {
         this.headerView = headerView;
         return this;
     }
 
     @SuppressLint("ResourceType")
-    public EasyRecyclerView<T> setHeaderView(@LayoutRes int layoutRes, IEasy.OnBindHeaderListener l) {
+    public EasyRecycler<T> setHeaderView(@LayoutRes int layoutRes, IEasy.OnBindHeaderListener l) {
         if (layoutRes > 0 && l != null) {
             this.headerView = LayoutInflater.from(recyclerView.getContext()).inflate(layoutRes, null, false);
             onBindHeaderListener = l;
@@ -182,12 +182,12 @@ public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>>
         return this;
     }
 
-    public EasyRecyclerView<T> setFooterViewBinder(IFooterViewHolder footerViewBinder) {
+    public EasyRecycler<T> setFooterViewBinder(IFooterViewHolder footerViewBinder) {
         this.footerViewBinder = footerViewBinder;
         return this;
     }
 
-    public EasyRecyclerView<T> setFooterView(final View footerView) {
+    public EasyRecycler<T> setFooterView(final View footerView) {
 //        this.footerView = headerView;
         this.footerViewBinder = new AbsFooterViewHolder() {
             @Override
@@ -198,7 +198,7 @@ public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>>
         return this;
     }
 
-    public EasyRecyclerView<T> setFooterView(@LayoutRes final int layoutRes, final IEasy.OnBindFooterListener listener) {
+    public EasyRecycler<T> setFooterView(@LayoutRes final int layoutRes, final IEasy.OnBindFooterListener listener) {
 //        this.footerView = LayoutInflater.from(recyclerView.getContext()).inflate(layoutRes, null, false);
 //        onBindFooterListener = listener;
         this.footerViewBinder = new AbsFooterViewHolder() {
@@ -217,28 +217,28 @@ public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>>
         return this;
     }
 
-    public EasyRecyclerView<T> onLoadMore(IEasy.OnLoadMoreListener onLoadMoreListener) {
+    public EasyRecycler<T> onLoadMore(IEasy.OnLoadMoreListener onLoadMoreListener) {
         this.onLoadMoreListener = onLoadMoreListener;
         this.enableLoadMore = true;
         return this;
     }
 
-    public EasyRecyclerView<T> onGetChildViewType(IEasy.OnGetChildViewTypeListener<T> listener) {
+    public EasyRecycler<T> onGetChildViewType(IEasy.OnGetChildViewTypeListener<T> listener) {
         this.onGetChildViewTypeListener = listener;
         return this;
     }
 
-    public EasyRecyclerView<T> onGetChildLayoutId(IEasy.OnGetChildLayoutIdListener listener) {
+    public EasyRecycler<T> onGetChildLayoutId(IEasy.OnGetChildLayoutIdListener listener) {
         this.onGetChildLayoutIdListener = listener;
         return this;
     }
 
-    public EasyRecyclerView<T> onBindViewHolder(IEasy.OnBindViewHolderListener<T> callback) {
+    public EasyRecycler<T> onBindViewHolder(IEasy.OnBindViewHolderListener<T> callback) {
         this.onBindViewHolderListener = callback;
         return this;
     }
 
-    public EasyRecyclerView<T> onCreateViewHolder(IEasy.OnCreateViewHolderListener<T> callback) {
+    public EasyRecycler<T> onCreateViewHolder(IEasy.OnCreateViewHolderListener<T> callback) {
         this.onCreateViewHolder = callback;
         return this;
     }
@@ -247,51 +247,51 @@ public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>>
         return onCreateViewHolder;
     }
 
-    public EasyRecyclerView<T> addOnScrollListener(final RecyclerView.OnScrollListener onScrollListener) {
+    public EasyRecycler<T> addOnScrollListener(final RecyclerView.OnScrollListener onScrollListener) {
         recyclerView.addOnScrollListener(onScrollListener);
         return this;
     }
 
-    public EasyRecyclerView<T> onViewClick(@IdRes int id, IEasy.OnClickListener<T> listener) {
+    public EasyRecycler<T> onViewClick(@IdRes int id, IEasy.OnClickListener<T> listener) {
         onClickListeners.put(id, listener);
         return this;
     }
 
-    public EasyRecyclerView<T> onViewClick(IEasy.OnClickListener<T> listener, int... ids) {
+    public EasyRecycler<T> onViewClick(IEasy.OnClickListener<T> listener, int... ids) {
         for (int id : ids) {
             onClickListeners.put(id, listener);
         }
         return this;
     }
 
-    public EasyRecyclerView<T> onViewLongClick(@IdRes int id, IEasy.OnLongClickListener<T> listener) {
+    public EasyRecycler<T> onViewLongClick(@IdRes int id, IEasy.OnLongClickListener<T> listener) {
         onLongClickListeners.put(id, listener);
         return this;
     }
 
-    public EasyRecyclerView<T> onViewLongClick(IEasy.OnLongClickListener<T> listener, int... ids) {
+    public EasyRecycler<T> onViewLongClick(IEasy.OnLongClickListener<T> listener, int... ids) {
         for (int id : ids) {
             onLongClickListeners.put(id, listener);
         }
         return this;
     }
 
-    public EasyRecyclerView<T> onItemClick(IEasy.OnItemClickListener<T> listener) {
+    public EasyRecycler<T> onItemClick(IEasy.OnItemClickListener<T> listener) {
         this.onItemClickListener = listener;
         return this;
     }
 
-    public EasyRecyclerView<T> onItemLongClick(IEasy.OnItemLongClickListener<T> listener) {
+    public EasyRecycler<T> onItemLongClick(IEasy.OnItemLongClickListener<T> listener) {
         this.onItemLongClickListener = listener;
         return this;
     }
 
-    public EasyRecyclerView<T> setLoadMoreEnabled(boolean enabled) {
+    public EasyRecycler<T> setLoadMoreEnabled(boolean enabled) {
         this.enableLoadMore = enabled;
         return this;
     }
 
-    public EasyRecyclerView<T> setAdapterInjector(IEasy.AdapterInjector adapterInjector) {
+    public EasyRecycler<T> setAdapterInjector(IEasy.AdapterInjector adapterInjector) {
         this.adapterInjector = adapterInjector;
         if (easyAdapter != null) {
             easyAdapter.setAdapterInjector(adapterInjector);
@@ -299,13 +299,13 @@ public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>>
         return this;
     }
 
-    public EasyRecyclerView<T> onRefresh(IRefresher.OnRefreshListener listener) {
+    public EasyRecycler<T> onRefresh(IRefresher.OnRefreshListener listener) {
         mRefresh = new SimpleRefresher();
         mRefresh.setOnRefreshListener(listener);
         return this;
     }
 
-    public EasyRecyclerView<T> onRefresh(IRefresher refresh) {
+    public EasyRecycler<T> onRefresh(IRefresher refresh) {
         mRefresh = refresh;
         if (refresh instanceof DecorationRefresher) {
             ((DecorationRefresher) refresh).bindRecyclerView(recyclerView);
@@ -313,7 +313,7 @@ public class EasyRecyclerView<T> extends EasyStateConfig<EasyRecyclerView<T>>
         return this;
     }
 
-    public EasyRecyclerView<T> onRefresh(IRefresher refresh, IRefresher.OnRefreshListener listener) {
+    public EasyRecycler<T> onRefresh(IRefresher refresh, IRefresher.OnRefreshListener listener) {
         onRefresh(refresh);
         if (refresh != null) {
             refresh.setOnRefreshListener(listener);

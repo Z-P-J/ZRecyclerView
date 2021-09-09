@@ -13,7 +13,7 @@ import com.zpj.recycler.demo.mutildata.TestErrorStringMultiData;
 import com.zpj.recycler.demo.mutildata.StringSingleTypeMultiData;
 import com.zpj.recycler.demo.mutildata.StringSingleTypeMultiData2;
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.MultiRecyclerViewWrapper;
+import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.footer.SimpleFooterViewHolder;
 
 import java.util.ArrayList;
@@ -52,7 +52,7 @@ public class MultiDataActivity extends AppCompatActivity {
         list.add(new StringSingleTypeMultiData());
         list.add(new StringSingleTypeMultiData());
 
-        MultiRecyclerViewWrapper.with((RecyclerView) findViewById(R.id.recycler_view))
+        MultiRecycler.with((RecyclerView) findViewById(R.id.recycler_view))
                 .setMultiData(list)
                 .setHeaderView(LayoutInflater.from(this).inflate(R.layout.item_header, null, false))
                 .setFooterViewBinder(new SimpleFooterViewHolder(R.layout.layout_loading_footer, R.layout.layout_error_footer) {

@@ -8,7 +8,7 @@ import com.zpj.recycler.demo.mutildata.ExpandableLoadMoreMultiData;
 import com.zpj.recycler.demo.mutildata.ExpandableMultiData;
 import com.zpj.recycler.demo.mutildata.TestErrorStringMultiData;
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.MultiRecyclerViewWrapper;
+import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.StickyHeaderItemDecoration;
 
 import java.util.ArrayList;
@@ -50,7 +50,7 @@ public class ExpandableActivity extends AppCompatActivity {
         list.add(expandableLoadMoreMultiData);
 
 
-        MultiRecyclerViewWrapper.with((RecyclerView) findViewById(R.id.recycler_view))
+        MultiRecycler.with((RecyclerView) findViewById(R.id.recycler_view))
                 .setMultiData(list)
                 .addItemDecoration(new StickyHeaderItemDecoration())
                 .build();

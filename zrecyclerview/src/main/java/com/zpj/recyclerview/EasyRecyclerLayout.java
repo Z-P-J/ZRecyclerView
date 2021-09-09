@@ -48,7 +48,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
     private IEasy.OnCreateViewHolderListener<T> onCreateViewHolderListener;
     private IEasy.OnBindViewHolderListener<T> onBindViewHolderListener;
     private SwipeRefreshLayout.OnRefreshListener onRefreshListener;
-    private EasyRecyclerView<T> easyRecyclerView;
+    private EasyRecycler<T> easyRecycler;
     private EasyStateAdapter<T> adapter;
     private SwipeRefreshLayout refreshLayout;
 
@@ -101,8 +101,8 @@ public class EasyRecyclerLayout<T> extends FrameLayout
             }
         });
 
-        easyRecyclerView = new EasyRecyclerView<>(recyclerView);
-        easyRecyclerView.setItemRes(R.layout.easy_item_recycler_layout)
+        easyRecycler = new EasyRecycler<>(recyclerView);
+        easyRecycler.setItemRes(R.layout.easy_item_recycler_layout)
                 .onCreateViewHolder(this)
                 .onGetChildViewType(this)
                 .onBindViewHolder(this)
@@ -218,7 +218,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
                             checkBox.setChecked(true, true);
                         }
                     }
-//                            easyRecyclerView.notifyItemChanged(holder.getHolderPosition());
+//                            easyRecycler.notifyItemChanged(holder.getHolderPosition());
                     return true;
                 }
                 return false;
@@ -275,7 +275,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
     @Override
     public void onSelectChange(List<T> list, int position, boolean isChecked) {
         if (onSelectChangeListener != null) {
-            onSelectChangeListener.onSelectChange(easyRecyclerView.getData(), position, isChecked);
+            onSelectChangeListener.onSelectChange(easyRecycler.getData(), position, isChecked);
         }
     }
 
@@ -309,7 +309,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
 //    }
 
     public EasyRecyclerLayout<T> setAdapterInjector(IEasy.AdapterInjector adapterInjector) {
-        easyRecyclerView.setAdapterInjector(adapterInjector);
+        easyRecycler.setAdapterInjector(adapterInjector);
         return this;
     }
 
@@ -320,77 +320,77 @@ public class EasyRecyclerLayout<T> extends FrameLayout
     }
 
     public EasyRecyclerLayout<T> setData(List<T> list) {
-        easyRecyclerView.setData(list);
+        easyRecycler.setData(list);
         return this;
     }
 
     public EasyRecyclerLayout<T> addItemDecoration(RecyclerView.ItemDecoration decor) {
-        this.easyRecyclerView.addItemDecoration(decor);
+        this.easyRecycler.addItemDecoration(decor);
         return this;
     }
 
     public EasyRecyclerLayout<T> addItemDecoration(RecyclerView.ItemDecoration decor, int index) {
-        this.easyRecyclerView.addItemDecoration(decor, index);
+        this.easyRecycler.addItemDecoration(decor, index);
         return this;
     }
 
     public EasyRecyclerLayout<T> setItemAnimator(RecyclerView.ItemAnimator animator) {
-        easyRecyclerView.setItemAnimator(animator);
+        easyRecycler.setItemAnimator(animator);
         return this;
     }
 
     public EasyRecyclerLayout<T> setItemViewCacheSize(int size) {
-        easyRecyclerView.setItemViewCacheSize(size);
+        easyRecycler.setItemViewCacheSize(size);
         return this;
     }
 
     public EasyRecyclerLayout<T> setHasFixedSize(boolean hasFixedSize) {
-        easyRecyclerView.setHasFixedSize(hasFixedSize);
+        easyRecycler.setHasFixedSize(hasFixedSize);
         return this;
     }
 
     public EasyRecyclerLayout<T> setLayoutFrozen(boolean layoutFrozen) {
-        easyRecyclerView.setLayoutFrozen(layoutFrozen);
+        easyRecycler.setLayoutFrozen(layoutFrozen);
         return this;
     }
 
     public EasyRecyclerLayout<T> setOnFlingListener(RecyclerView.OnFlingListener listener) {
-        easyRecyclerView.setOnFlingListener(listener);
+        easyRecycler.setOnFlingListener(listener);
         return this;
     }
 
     public EasyRecyclerLayout<T> setRecyclerListener(RecyclerView.RecyclerListener listener) {
-        easyRecyclerView.setRecyclerListener(listener);
+        easyRecycler.setRecyclerListener(listener);
         return this;
     }
 
     public EasyRecyclerLayout<T> setScrollingTouchSlop(int slop) {
-        easyRecyclerView.setScrollingTouchSlop(slop);
+        easyRecycler.setScrollingTouchSlop(slop);
         return this;
     }
 
     public EasyRecyclerLayout<T> setEdgeEffectFactory(RecyclerView.EdgeEffectFactory factory) {
-        easyRecyclerView.setEdgeEffectFactory(factory);
+        easyRecycler.setEdgeEffectFactory(factory);
         return this;
     }
 
     public EasyRecyclerLayout<T> setRecycledViewPool(RecyclerView.RecycledViewPool pool) {
-        easyRecyclerView.setRecycledViewPool(pool);
+        easyRecycler.setRecycledViewPool(pool);
         return this;
     }
 
     public EasyRecyclerLayout<T> setPreserveFocusAfterLayout(boolean preserveFocusAfterLayout) {
-        easyRecyclerView.setPreserveFocusAfterLayout(preserveFocusAfterLayout);
+        easyRecycler.setPreserveFocusAfterLayout(preserveFocusAfterLayout);
         return this;
     }
 
     public EasyRecyclerLayout<T> setViewCacheExtension(RecyclerView.ViewCacheExtension extension) {
-        easyRecyclerView.setViewCacheExtension(extension);
+        easyRecycler.setViewCacheExtension(extension);
         return this;
     }
 
     public EasyRecyclerLayout<T> setChildDrawingOrderCallback(RecyclerView.ChildDrawingOrderCallback callback) {
-        easyRecyclerView.setChildDrawingOrderCallback(callback);
+        easyRecycler.setChildDrawingOrderCallback(callback);
         return this;
     }
 
@@ -418,7 +418,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
     }
 
     public EasyRecyclerLayout<T> addOnScrollListener(final RecyclerView.OnScrollListener onScrollListener) {
-        easyRecyclerView.addOnScrollListener(onScrollListener);
+        easyRecycler.addOnScrollListener(onScrollListener);
         return this;
     }
 
@@ -454,32 +454,32 @@ public class EasyRecyclerLayout<T> extends FrameLayout
     }
 
     public EasyRecyclerLayout<T> setLayoutManager(RecyclerView.LayoutManager layoutManager) {
-        easyRecyclerView.setLayoutManager(layoutManager);
+        easyRecycler.setLayoutManager(layoutManager);
         return this;
     }
 
     public EasyRecyclerLayout<T> setHeaderView(View headerView) {
-        easyRecyclerView.setHeaderView(headerView);
+        easyRecycler.setHeaderView(headerView);
         return this;
     }
 
     public EasyRecyclerLayout<T> setHeaderView(@LayoutRes int layoutRes, IEasy.OnBindHeaderListener callback) {
-        easyRecyclerView.setHeaderView(layoutRes, callback);
+        easyRecycler.setHeaderView(layoutRes, callback);
         return this;
     }
 
     public EasyRecyclerLayout<T> setFooterViewBinder(IFooterViewHolder footerViewBinder) {
-        easyRecyclerView.setFooterViewBinder(footerViewBinder);
+        easyRecycler.setFooterViewBinder(footerViewBinder);
         return this;
     }
 
     public EasyRecyclerLayout<T> setFooterView(final View footerView) {
-        easyRecyclerView.setFooterView(footerView);
+        easyRecycler.setFooterView(footerView);
         return this;
     }
 
     public EasyRecyclerLayout<T> setFooterView(@LayoutRes final int layoutRes, final IEasy.OnBindFooterListener listener) {
-        easyRecyclerView.setFooterView(layoutRes, listener);
+        easyRecycler.setFooterView(layoutRes, listener);
         return this;
     }
 
@@ -500,22 +500,22 @@ public class EasyRecyclerLayout<T> extends FrameLayout
     }
 
     public EasyRecyclerLayout<T> onViewClick(@IdRes int id, IEasy.OnClickListener<T> listener) {
-        easyRecyclerView.onViewClick(id, listener);
+        easyRecycler.onViewClick(id, listener);
         return this;
     }
 
     public EasyRecyclerLayout<T> onViewClick(IEasy.OnClickListener<T> listener, int...ids) {
-        easyRecyclerView.onViewClick(listener, ids);
+        easyRecycler.onViewClick(listener, ids);
         return this;
     }
 
     public EasyRecyclerLayout<T> onViewLongClick(@IdRes int id, IEasy.OnLongClickListener<T> listener) {
-        easyRecyclerView.onViewLongClick(id, listener);
+        easyRecycler.onViewLongClick(id, listener);
         return this;
     }
 
     public EasyRecyclerLayout<T> onViewLongClick(IEasy.OnLongClickListener<T> listener, int...ids) {
-        easyRecyclerView.onViewLongClick(listener, ids);
+        easyRecycler.onViewLongClick(listener, ids);
         return this;
     }
 
@@ -550,19 +550,19 @@ public class EasyRecyclerLayout<T> extends FrameLayout
     }
 
     public void build() {
-//        if (easyRecyclerView.getOnCreateViewHolder() == null) {
-//            easyRecyclerView.onCreateViewHolder(onCreateViewHolderListener);
+//        if (easyRecycler.getOnCreateViewHolder() == null) {
+//            easyRecycler.onCreateViewHolder(onCreateViewHolderListener);
 //        }
 
-        easyRecyclerView.setLoadMoreEnabled(onLoadMoreListener != null && enableLoadMore);
-        easyRecyclerView.build();
-        adapter = easyRecyclerView.getAdapter();
+        easyRecycler.setLoadMoreEnabled(onLoadMoreListener != null && enableLoadMore);
+        easyRecycler.build();
+        adapter = easyRecycler.getAdapter();
         if (enableLoadMore) {
             Log.d(TAG, "build-->showContent1");
             showContent();
             return;
         }
-        if (easyRecyclerView.getData().isEmpty()) {
+        if (easyRecycler.getData().isEmpty()) {
             Log.d(TAG, "build-->showLoading");
             showLoading();
         } else {
@@ -677,9 +677,9 @@ public class EasyRecyclerLayout<T> extends FrameLayout
             return;
         }
         refreshLayout.setEnabled(false);
-//        easyRecyclerView.getAdapter().setLoadMoreEnabled(false);
+//        easyRecycler.getAdapter().setLoadMoreEnabled(false);
         selectMode = true;
-//        easyRecyclerView.notifyDataSetChanged();
+//        easyRecycler.notifyDataSetChanged();
         notifyVisibleItemChanged(PAYLOAD_CHECK_BOX);
         onSelectModeChange(selectMode);
     }
@@ -689,10 +689,10 @@ public class EasyRecyclerLayout<T> extends FrameLayout
             return;
         }
         refreshLayout.setEnabled(enableSwipeRefresh);
-//        easyRecyclerView.getAdapter().setLoadMoreEnabled(true);
+//        easyRecycler.getAdapter().setLoadMoreEnabled(true);
         selectMode = false;
         selectedList.clear();
-//        easyRecyclerView.notifyDataSetChanged();
+//        easyRecycler.notifyDataSetChanged();
         notifyVisibleItemChanged(PAYLOAD_CHECK_BOX);
         onSelectModeChange(selectMode);
     }
@@ -705,7 +705,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
                 selectMode = true;
             }
         }
-        onSelectChange(easyRecyclerView.getData(), position, isChecked);
+        onSelectChange(easyRecycler.getData(), position, isChecked);
     }
 
     private boolean onSelected(int position) {
@@ -723,7 +723,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
         if (!selectedList.contains(position)) {
             selectedList.add(position);
             onSelectChange(position, true);
-            if (selectedList.size() == easyRecyclerView.getData().size()) {
+            if (selectedList.size() == easyRecycler.getData().size()) {
                 onSelectAll();
             }
             return true;
@@ -750,7 +750,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
         if (maxSelectCount == Integer.MAX_VALUE) {
             selectedList.clear();
         }
-        for (int i = 0; i < easyRecyclerView.getAdapter().getItemCount(); i++) {
+        for (int i = 0; i < easyRecycler.getAdapter().getItemCount(); i++) {
             if (selectedList.size() >= maxSelectCount) {
                 break;
             }
@@ -769,7 +769,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
             onSelectChange(i, false);
         }
         selectedList.clear();
-//        easyRecyclerView.notifyDataSetChanged();
+//        easyRecycler.notifyDataSetChanged();
         notifyVisibleItemChanged();
         onUnSelectAll();
     }
@@ -795,57 +795,57 @@ public class EasyRecyclerLayout<T> extends FrameLayout
     public List<T> getSelectedItem() {
         List<T> selectedItems = new ArrayList<>();
         for (Integer i : selectedList) {
-            if (i < easyRecyclerView.getData().size()) {
-                selectedItems.add(easyRecyclerView.getData().get(i));
+            if (i < easyRecycler.getData().size()) {
+                selectedItems.add(easyRecycler.getData().get(i));
             }
         }
         return selectedItems;
     }
 
     public void notifyDataSetChanged() {
-        if ((easyRecyclerView.getData() == null || easyRecyclerView.getData().isEmpty()) && !enableLoadMore) {
+        if ((easyRecycler.getData() == null || easyRecycler.getData().isEmpty()) && !enableLoadMore) {
             showEmpty();
         } else {
-            easyRecyclerView.notifyDataSetChanged();
+            easyRecycler.notifyDataSetChanged();
             showContent();
         }
         stopRefresh();
     }
 
     public void notifyVisibleItemChanged() {
-        easyRecyclerView.notifyVisibleItemChanged();
+        easyRecycler.notifyVisibleItemChanged();
     }
 
     public void notifyVisibleItemChanged(Object payload) {
-        easyRecyclerView.notifyVisibleItemChanged(payload);
+        easyRecycler.notifyVisibleItemChanged(payload);
     }
 
     public void notifyItemChanged(int position) {
-        easyRecyclerView.notifyItemChanged(position);
+        easyRecycler.notifyItemChanged(position);
     }
 
     public void notifyItemChanged(int position, Object payload) {
-        easyRecyclerView.notifyItemChanged(position, payload);
+        easyRecycler.notifyItemChanged(position, payload);
     }
 
     public void notifyItemRangeChanged(int start, int end) {
-        easyRecyclerView.notifyItemRangeChanged(start, end);
+        easyRecycler.notifyItemRangeChanged(start, end);
     }
 
     public void notifyItemRangeChanged(int start, int end, Object payload) {
-        easyRecyclerView.notifyItemRangeChanged(start, end, payload);
+        easyRecycler.notifyItemRangeChanged(start, end, payload);
     }
 
     public void notifyItemRemoved(int position) {
-        easyRecyclerView.getAdapter().notifyItemRemoved(position);
-        if (easyRecyclerView.getData().isEmpty()) {
+        easyRecycler.getAdapter().notifyItemRemoved(position);
+        if (easyRecycler.getData().isEmpty()) {
             showEmpty();
         }
     }
 
     public void notifyItemInserted(int position) {
-        easyRecyclerView.getAdapter().notifyItemInserted(position);
-        if (!easyRecyclerView.getData().isEmpty()) {
+        easyRecycler.getAdapter().notifyItemInserted(position);
+        if (!easyRecycler.getData().isEmpty()) {
             showContent();
         }
     }
@@ -875,27 +875,27 @@ public class EasyRecyclerLayout<T> extends FrameLayout
     }
 
     public void smoothScrollToPosition(int position) {
-        easyRecyclerView.smoothScrollToPosition(position);
+        easyRecycler.smoothScrollToPosition(position);
     }
 
     public List<T> getData() {
-        return easyRecyclerView.getData();
+        return easyRecycler.getData();
     }
 
-    public EasyRecyclerView<T> getEasyRecyclerView() {
-        return easyRecyclerView;
+    public EasyRecycler<T> getEasyRecycler() {
+        return easyRecycler;
     }
 
     public RecyclerView getRecyclerView() {
-        return easyRecyclerView.getRecyclerView();
+        return easyRecycler.getRecyclerView();
     }
 
     public EasyStateAdapter<T> getAdapter() {
-        return easyRecyclerView.getAdapter();
+        return easyRecycler.getAdapter();
     }
 
     public RecyclerView.LayoutManager getLayoutManager() {
-        return easyRecyclerView.getLayoutManager();
+        return easyRecycler.getLayoutManager();
     }
 
     public State getState() {

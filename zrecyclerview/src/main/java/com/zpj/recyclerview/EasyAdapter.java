@@ -1,5 +1,6 @@
 package com.zpj.recyclerview;
 
+import android.annotation.SuppressLint;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
@@ -51,6 +52,8 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     protected final SparseArray<IEasy.OnLongClickListener<T>> onLongClickListeners;
 
     protected IEasy.AdapterInjector adapterInjector;
+
+    protected boolean mIsDraggingOrSwiping = false;
 
     EasyAdapter(List<T> list, int itemRes,
                 IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener,
@@ -214,6 +217,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public void onAttachedToRecyclerView(@NonNull final RecyclerView recyclerView) {
         mRecyclerView = recyclerView;
@@ -226,8 +230,11 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
+                    if (mIsDraggingOrSwiping) {
+                        return false;
+                    }
+
                     int action = event.getAction();
-                    Log.d(TAG, "action=" + MotionEvent.actionToString(action));
                     if (MotionEvent.ACTION_DOWN == action) {
                         isMoveDown = false;
                         if (mRefreshHeader != null
@@ -264,7 +271,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
                             }
                             return false;
                         }
-                    } else if (MotionEvent.ACTION_UP == action) {
+                    } else if (MotionEvent.ACTION_UP == action || MotionEvent.ACTION_CANCEL == action) {
                         if (isMoveDown) {
                             isMoveDown = false;
                             downX = -1;
