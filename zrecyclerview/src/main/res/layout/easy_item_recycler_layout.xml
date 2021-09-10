@@ -27,11 +27,10 @@
         android:visibility="gone"
         >
 
-        <com.zpj.widget.checkbox.SmoothCheckBox
+        <com.zpj.widget.checkbox.ZCheckBox
             android:id="@+id/easy_recycler_layout_check_box"
-            app:color_checked="#4285f4"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
             android:layout_gravity="center"
             />
 

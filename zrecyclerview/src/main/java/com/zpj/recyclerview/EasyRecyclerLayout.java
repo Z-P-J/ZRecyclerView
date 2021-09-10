@@ -16,7 +16,7 @@ import android.widget.FrameLayout;
 
 import com.zpj.recyclerview.footer.IFooterViewHolder;
 import com.zpj.statemanager.State;
-import com.zpj.widget.checkbox.SmoothCheckBox;
+import com.zpj.widget.checkbox.ZCheckBox;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -159,7 +159,7 @@ public class EasyRecyclerLayout<T> extends FrameLayout
         View contentChild = container.getChildAt(0);
 
         final View checkBoxContainer = holder.getView(R.id.easy_recycler_layout_check_box_container);
-        final SmoothCheckBox checkBox = holder.getView(R.id.easy_recycler_layout_check_box);
+        final ZCheckBox checkBox = holder.getView(R.id.easy_recycler_layout_check_box);
 
         if (showCheckBox) {
             checkBoxContainer.setVisibility(enableSelection ? VISIBLE : GONE);
@@ -169,8 +169,6 @@ public class EasyRecyclerLayout<T> extends FrameLayout
 
         if (checkBoxContainer.getVisibility() == VISIBLE) {
             checkBox.setChecked(selectedList.contains(position), false);
-//        checkBox.setChecked(isSelected(list.get(position), position), false);
-//            checkBox.setClickable(false);
             checkBox.setOnCheckedChangeListener(null);
             checkBox.setOnClickListener(new OnClickListener() {
                 @Override

@@ -62,22 +62,6 @@ public class EasyRecycler<T> extends EasyStateConfig<EasyRecycler<T>>
         this.recyclerView = recyclerView;
     }
 
-//    @Override
-//    public IViewHolder getViewHolder(State state) {
-//        IViewHolder viewHolder = super.getViewHolder(state);
-//        if (viewHolder instanceof BaseViewHolder) {
-//            ((BaseViewHolder) viewHolder).setOnRetry(new Runnable() {
-//                @Override
-//                public void run() {
-//                    if (onLoadRetryListener != null) {
-//                        onLoadRetryListener.onLoadRetry();
-//                    }
-//                }
-//            });
-//        }
-//        return viewHolder;
-//    }
-
     public EasyRecycler<T> setItemAnimator(RecyclerView.ItemAnimator animator) {
         recyclerView.setItemAnimator(animator);
         return this;

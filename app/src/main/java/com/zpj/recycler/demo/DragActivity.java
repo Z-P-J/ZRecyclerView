@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.zpj.recycler.demo.mutildata.MyDragAndSwipeMultiData;
 import com.zpj.recycler.demo.mutildata.StringSingleTypeMultiData;
@@ -12,6 +13,8 @@ import com.zpj.recyclerview.refresh.BounceRefresher;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.footer.SimpleFooterViewHolder;
+import com.zpj.recyclerview.refresh.IRefresher;
+import com.zpj.recyclerview.refresh.SimpleRefresher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +59,19 @@ public class DragActivity extends AppCompatActivity {
 //                        }, 500);
 //                    }
 //                })
-                .onRefresh(new BounceRefresher())
+//                .onRefresh(new BounceRefresher())
+                .onRefresh(new SimpleRefresher(), new IRefresher.OnRefreshListener() {
+                    @Override
+                    public void onRefresh(final IRefresher refresh) {
+                        Toast.makeText(DragActivity.this, "refresh", Toast.LENGTH_SHORT).show();
+                        recyclerView.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                refresh.stopRefresh();
+                            }
+                        }, 2000);
+                    }
+                })
 //                .onRefresh(new SwipeDecorationRefresher(), new IRefresher.OnRefreshListener() {
 //                    @Override
 //                    public void onRefresh(IRefresher refresh) {
