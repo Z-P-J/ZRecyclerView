@@ -158,46 +158,28 @@ public class EasyRecyclerLayout<T> extends FrameLayout
         FrameLayout container = holder.getView(R.id.easy_container);
         View contentChild = container.getChildAt(0);
 
-        final View checkBoxContainer = holder.getView(R.id.easy_recycler_layout_check_box_container);
+//        final View checkBoxContainer = holder.getView(R.id.easy_recycler_layout_check_box_container);
         final ZCheckBox checkBox = holder.getView(R.id.easy_recycler_layout_check_box);
 
         if (showCheckBox) {
-            checkBoxContainer.setVisibility(enableSelection ? VISIBLE : GONE);
+            checkBox.setVisibility(enableSelection ? VISIBLE : GONE);
         } else {
-            checkBoxContainer.setVisibility(selectMode ? VISIBLE : GONE);
+            checkBox.setVisibility(selectMode ? VISIBLE : GONE);
         }
 
-        if (checkBoxContainer.getVisibility() == VISIBLE) {
-            checkBox.setChecked(selectedList.contains(position), false);
-            checkBox.setOnCheckedChangeListener(null);
-            checkBox.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    checkBoxContainer.performClick();
-                }
-            });
-            checkBoxContainer.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (checkBox.isChecked()) {
-                        if (unSelect(holder.getRealPosition())) {
-                            checkBox.setChecked(false, true);
-                        }
-                    } else {
-                        if (onSelected(holder.getRealPosition())) {
-                            checkBox.setChecked(true, true);
-                        }
-                    }
-                }
-            });
-        } else {
-            checkBoxContainer.setOnClickListener(null);
-        }
+        checkBox.setChecked(selectedList.contains(position), false);
+        checkBox.setOnCheckedChangeListener(null);
+        checkBox.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                holder.performClick();
+            }
+        });
 
         contentChild.setPadding(
                 contentChild.getPaddingStart(),
                 contentChild.getPaddingTop(),
-                checkBoxContainer.getVisibility() == VISIBLE ? 0 : contentChild.getPaddingStart(),
+                checkBox.getVisibility() == VISIBLE ? 0 : contentChild.getPaddingStart(),
                 contentChild.getPaddingBottom()
         );
 

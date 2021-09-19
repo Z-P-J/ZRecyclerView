@@ -13,10 +13,10 @@
 
  #### Latest Version：[![](https://jitpack.io/v/Z-P-J/ZRecyclerView.svg)](https://jitpack.io/#Z-P-J/ZRecyclerView)
  ```text
- implementation 'com.github.Z-P-J:ZRecyclerView:1.0.0'
+ implementation 'com.github.Z-P-J:ZRecyclerView:1.0.1'
  ```
 
-## 2. EasyRecyclerView的使用（无侵入式）
+## 2. EasyRecycler的使用（无侵入式）
 
 step 1:
 
@@ -31,8 +31,8 @@ step 1:
 step 2:
 ```java
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
-        EasyRecyclerView<Integer> easyRecyclerView = new EasyRecyclerView<>(recyclerView);
-        easyRecyclerView.setData(list) // 设置数据
+        EasyRecycler<Integer> easyRecycler = new EasyRecycler<>(recyclerView);
+        easyRecycler.setData(list) // 设置数据
                 .setItemRes(R.layout.layout_text) // 设置item
                 .onBindViewHolder(new IEasy.OnBindViewHolderListener<Integer>() { // 绑定viewholder
                     @Override
@@ -53,11 +53,11 @@ step 2:
                     }
                 })
                 .build();
-        easyRecyclerView.showContent(); // 显示内容
-        easyRecyclerView.showLoading(); // 显示加载中
-        easyRecyclerView.showEmpty(); // 显示数据为空
-        easyRecyclerView.showError(); // 显示加载出错
-        easyRecyclerView.showNoNetwork(); // 显示无网络
+        easyRecycler.showContent(); // 显示内容
+        easyRecycler.showLoading(); // 显示加载中
+        easyRecycler.showEmpty(); // 显示数据为空
+        easyRecycler.showError(); // 显示加载出错
+        easyRecycler.showNoNetwork(); // 显示无网络
 ```
 
 ## 3. EasyRecyclerLayout的使用（封装了SwipeRefreshLayout，侵入式）
@@ -153,7 +153,7 @@ step 2:
 
 #### 4.1 什么是MultiData?
 
-为了使复杂布局的实现更简单，我自创了一种MultiData的方式来实现复杂布局，支持多种实体类，结合MultiRecyclerViewWrapper来方便我们使用。
+为了使复杂布局的实现更简单，我自创了一种MultiData的方式来实现复杂布局，支持多种实体类，结合MultiRecycler来方便我们使用。
 MultiData你可以理解为比RecyclerView.Adapter更小的RecyclerView.Adapter，在MultiData中可以实现RecyclerView.Adapter的逻辑，比如onBindViewHolder、getViewType、getCount、notifyDataSetChange等
 
 #### 4.1 创建MultiRecyclerViewWrapper对象
