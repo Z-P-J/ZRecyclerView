@@ -9,9 +9,9 @@ import android.widget.TextView;
 import com.zpj.recycler.demo.mutildata.IntMultiData;
 import com.zpj.recycler.demo.mutildata.RecyclerViewHeaderMultiData;
 import com.zpj.recycler.demo.mutildata.StringMultiData;
-import com.zpj.recycler.demo.mutildata.TestErrorStringMultiData;
 import com.zpj.recycler.demo.mutildata.StringSingleTypeMultiData;
 import com.zpj.recycler.demo.mutildata.StringSingleTypeMultiData2;
+import com.zpj.recycler.demo.mutildata.TestErrorStringMultiData;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.footer.SimpleFooterViewHolder;
@@ -53,7 +53,7 @@ public class MultiDataActivity extends AppCompatActivity {
         list.add(new StringSingleTypeMultiData());
 
         MultiRecycler.with((RecyclerView) findViewById(R.id.recycler_view))
-                .setMultiData(list)
+                .setData(list)
                 .setHeaderView(LayoutInflater.from(this).inflate(R.layout.item_header, null, false))
                 .setFooterViewBinder(new SimpleFooterViewHolder(R.layout.layout_loading_footer, R.layout.layout_error_footer) {
 

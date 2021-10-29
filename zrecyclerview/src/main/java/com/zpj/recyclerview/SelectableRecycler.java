@@ -1,7 +1,6 @@
 package com.zpj.recyclerview;
 
 import android.support.annotation.NonNull;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -9,15 +8,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
-import com.zpj.recyclerview.refresh.SwipeDecorationRefresher;
+import com.zpj.recyclerview.refresh.IRefresher;
 import com.zpj.widget.checkbox.ZCheckBox;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SelectableRecycler<T> extends EasyRecycler<T>
-        implements IEasy.OnLoadMoreListener,
-        IEasy.OnLoadRetryListener,
+public class SelectableRecycler<T> extends BaseRecycler<T, SelectableRecycler<T>>
+        implements IEasy.OnLoadRetryListener,
         IEasy.OnItemClickListener<T>,
         IEasy.OnItemLongClickListener<T>,
         IEasy.OnGetChildViewTypeListener<T>,
@@ -34,14 +32,12 @@ public class SelectableRecycler<T> extends EasyRecycler<T>
 
     private IEasy.OnItemClickListener<T> onItemClickListener;
     private IEasy.OnItemLongClickListener<T> onItemLongClickListener;
-    private IEasy.OnLoadMoreListener onLoadMoreListener;
     private IEasy.OnLoadRetryListener onLoadRetryListener;
     private IEasy.OnSelectChangeListener<T> onSelectChangeListener;
     private IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener;
     private IEasy.OnGetChildLayoutIdListener onGetChildLayoutIdListener;
     private IEasy.OnCreateViewHolderListener<T> onCreateViewHolderListener;
     private IEasy.OnBindViewHolderListener<T> onBindViewHolderListener;
-    private SwipeRefreshLayout.OnRefreshListener onRefreshListener;
 
     private int maxSelectCount = Integer.MAX_VALUE;
 
@@ -64,8 +60,15 @@ public class SelectableRecycler<T> extends EasyRecycler<T>
         super.onBindViewHolder(this);
         super.onItemLongClick(this);
         super.onItemClick(this);
-        super.onLoadMore(this);
         super.setOnLoadRetryListener(this);
+    }
+
+    public static <T> SelectableRecycler<T> with(@NonNull RecyclerView recyclerView) {
+        return new SelectableRecycler<>(recyclerView);
+    }
+
+    public static <T> SelectableRecycler<T> with(@NonNull RecyclerView recyclerView, @NonNull List<T> dataSet) {
+        return new SelectableRecycler<>(recyclerView, dataSet);
     }
 
     @Override
@@ -175,17 +178,6 @@ public class SelectableRecycler<T> extends EasyRecycler<T>
     }
 
     @Override
-    public boolean onLoadMore(EasyAdapter.Enabled enabled, int currentPage) {
-//        if (isSelectMode()) {
-//            return false;
-//        }
-        if (onLoadMoreListener != null) {
-            return onLoadMoreListener.onLoadMore(enabled, currentPage);
-        }
-        return false;
-    }
-
-    @Override
     public boolean onLongClick(EasyViewHolder holder, View view, T data) {
         if (onItemLongClickListener != null) {
             return onItemLongClickListener.onLongClick(holder, view, data);
@@ -257,13 +249,6 @@ public class SelectableRecycler<T> extends EasyRecycler<T>
         return this;
     }
 
-    @Override
-    public SelectableRecycler<T> onLoadMore(IEasy.OnLoadMoreListener onLoadMoreListener) {
-        this.onLoadMoreListener = onLoadMoreListener;
-        enableLoadMore = true;
-        return this;
-    }
-
     public SelectableRecycler<T> setOnLoadRetryListener(IEasy.OnLoadRetryListener listener) {
         this.onLoadRetryListener = listener;
         return this;
@@ -311,14 +296,13 @@ public class SelectableRecycler<T> extends EasyRecycler<T>
     }
 
     @Override
-    public void build() {
-        setLoadMoreEnabled(onLoadMoreListener != null && enableLoadMore);
+    public SelectableRecycler<T> build() {
         super.build();
 
         if (enableLoadMore) {
             Log.d(TAG, "build-->showContent1");
             showContent();
-            return;
+            return this;
         }
         if (getDataSet().isEmpty()) {
             Log.d(TAG, "build-->showLoading");
@@ -327,6 +311,7 @@ public class SelectableRecycler<T> extends EasyRecycler<T>
             Log.d(TAG, "build-->showContent2");
             showContent();
         }
+        return this;
     }
 
 
@@ -494,38 +479,12 @@ public class SelectableRecycler<T> extends EasyRecycler<T>
         return selectMode;
     }
 
-    public boolean isRefreshing() {
-        if (mRefresh == null) {
-            return false;
-        }
-        return mRefresh.isRefreshing();
-    }
-
-    public void setRefreshing(boolean refreshing) {
-        // TODO
-//        refreshLayout.setRefreshing(refreshing);
-    }
-
-    public void startRefresh() {
-        // TODO
-//        if (!refreshLayout.isRefreshing()) {
-//            refreshLayout.setRefreshing(true);
-//        }
-    }
-
-    public void stopRefresh() {
-        // TODO
-//        if (refreshLayout.isRefreshing()) {
-//            refreshLayout.setRefreshing(false);
-//        }
-    }
-
     @Override
     public void onLoadRetry() {
         if (onLoadRetryListener != null) {
             onLoadRetryListener.onLoadRetry();
-        } else if (onRefreshListener != null) {
-            onRefreshListener.onRefresh();
+        } else if (mRefresher != null) {
+            mRefresher.setState(IRefresher.STATE_REFRESHING);
         }
     }
 }

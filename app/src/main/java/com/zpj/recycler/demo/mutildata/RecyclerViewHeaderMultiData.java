@@ -68,9 +68,8 @@ public class RecyclerViewHeaderMultiData extends BaseHeaderMultiData<Integer> {
             RecyclerView view = holder.getView(R.id.recycler_view);
             view.setHasFixedSize(true);
             view.setNestedScrollingEnabled(false);
-            recyclerView = new EasyRecycler<>(view);
-            recyclerView.setData(list)
-                    .setItemRes(R.layout.item_text_grid)
+            recyclerView = EasyRecycler.with(view, list);
+            recyclerView.setItemRes(R.layout.item_text_grid)
                     .setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.HORIZONTAL, false))
                     .onBindViewHolder(new IEasy.OnBindViewHolderListener<Integer>() {
                         @Override

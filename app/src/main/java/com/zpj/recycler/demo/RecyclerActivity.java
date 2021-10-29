@@ -27,7 +27,19 @@ public class RecyclerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_recycler);
 
         mRecycler = new SelectableRecycler<>((RecyclerView) findViewById(R.id.recycler_view));
-        mRecycler.setOnSelectChangeListener(new IEasy.OnSelectChangeListener<Integer>() {
+        mRecycler.setEnableSelection(true)
+                .setMaxSelectCount(3)
+//                .setEnableLoadMore(true)
+                .setEnableLoadMore(true)
+                .setItemRes(R.layout.layout_text)
+                .onRefresh(new IRefresher.OnRefreshListener() {
+                    @Override
+                    public void onRefresh(IRefresher refresher) {
+                        mRecycler.clearDataSet();
+                        mRecycler.notifyDataSetChanged();
+                    }
+                })
+                .setOnSelectChangeListener(new IEasy.OnSelectChangeListener<Integer>() {
                     @Override
                     public void onSelectModeChange(boolean selectMode) {
 
@@ -57,18 +69,6 @@ public class RecyclerActivity extends AppCompatActivity {
 //                    public boolean isSelected(Integer item, int position) {
 //                        return false;
 //                    }
-                })
-                .setEnableSelection(true)
-                .setMaxSelectCount(3)
-//                .setEnableLoadMore(true)
-                .setEnableLoadMore(true)
-                .setItemRes(R.layout.layout_text)
-                .onRefresh(new IRefresher.OnRefreshListener() {
-                    @Override
-                    public void onRefresh(IRefresher refresher) {
-                        mRecycler.clearDataSet();
-                        mRecycler.notifyDataSetChanged();
-                    }
                 })
 
 //                .setFooterViewBinder(new SimpleFooterViewHolder(R.layout.layout_loading_footer, R.layout.layout_text))
