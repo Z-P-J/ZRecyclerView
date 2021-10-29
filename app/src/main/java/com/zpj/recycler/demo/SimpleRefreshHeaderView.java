@@ -118,6 +118,11 @@ public class SimpleRefreshHeaderView extends LinearLayout implements IRefresher 
     }
 
     @Override
+    public boolean isRefreshing() {
+        return mState == STATE_REFRESHING;
+    }
+
+    @Override
     public void setOnRefreshListener(OnRefreshListener listener) {
         this.mListener = listener;
     }

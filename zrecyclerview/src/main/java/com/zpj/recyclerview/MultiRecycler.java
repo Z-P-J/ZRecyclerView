@@ -563,6 +563,10 @@ public class MultiRecycler extends EasyStateConfig<MultiRecycler> {
         return easyAdapter;
     }
 
+    public IFooterViewHolder getFooterViewHolder() {
+        return easyAdapter.getFooterViewHolder();
+    }
+
     public RecyclerView getRecyclerView() {
         return recyclerView;
     }

@@ -227,10 +227,6 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
      */
 
     private void showNoNetworkFooter(String msg) {
-//        String errorMsg = "网络不可用！";
-//        if (!TextUtils.isEmpty(msg)) {
-//            errorMsg += ("\n错误信息：" + msg);
-//        }
         showFooterMsg(msg);
         if (mIsLoading) {
             currentPage--;
@@ -244,7 +240,6 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
             return;
         }
         changeState(STATE_NO_NETWORK);
-//        stateLayout.showNoNetworkView();
     }
 
     public void showNoNetworkView(int msgId) {
@@ -253,7 +248,6 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
             return;
         }
         changeState(STATE_NO_NETWORK);
-//        stateLayout.showNoNetworkView(msgId);
     }
 
     public void showNoNetworkView(String msg) {
@@ -262,7 +256,6 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
             return;
         }
         changeState(STATE_NO_NETWORK);
-//        stateLayout.showNoNetworkView(msg);
     }
 
     public void showNoNetworkView(int msgId, int imgId) {
@@ -271,7 +264,6 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
             return;
         }
         changeState(STATE_NO_NETWORK);
-//        stateLayout.showNoNetworkView(msgId, imgId);
     }
 
 
@@ -280,6 +272,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
      */
     public final void showContent() {
         if (state == STATE_CONTENT) {
+            notifyDataSetChanged();
             return;
         }
         state = STATE_CONTENT;
@@ -294,7 +287,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     private void changeState(State state) {
         this.state = state;
         setLoadMoreEnabled(false);
-        list.clear();
+//        list.clear();
         notifyDataSetChanged();
     }
 

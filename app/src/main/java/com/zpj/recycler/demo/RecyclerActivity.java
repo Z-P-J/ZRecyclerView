@@ -2,57 +2,32 @@ package com.zpj.recycler.demo;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.zpj.recyclerview.EasyAdapter;
-import com.zpj.recyclerview.EasyRecyclerLayout;
 import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.IEasy;
+import com.zpj.recyclerview.SelectableRecycler;
 import com.zpj.recyclerview.footer.SimpleFooterViewHolder;
+import com.zpj.recyclerview.refresh.IRefresher;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class RecyclerActivity extends AppCompatActivity {
 
-    private final List<Integer> list = new ArrayList<>();
-
-    private EasyRecyclerLayout<Integer> recyclerLayout;
+    private SelectableRecycler<Integer> mRecycler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recycler);
 
-        recyclerLayout = findViewById(R.id.recycler_layout);
-        recyclerLayout.setData(list)
-                .setItemRes(R.layout.layout_text)
-//                .onCreateViewHolder(new IEasy.OnCreateViewHolderListener<Integer>() {
-//                    @Override
-//                    public View onCreateViewHolder(ViewGroup parent, int layoutRes, int viewType) {
-//                        Log.d("onCreateViewHolder", "onCreateViewHolder");
-//                        return LayoutInflater.from(parent.getContext())
-//                                .inflate(R.layout.layout_text, parent, false);
-//                    }
-//                })
-                .setEnableSelection(true)
-                .setMaxSelectCount(3)
-                .setEnableSwipeRefresh(true)
-//                .setEnableLoadMore(true)
-                .setEnableLoadMore(true)
-//                .setLayoutManager(new GridLayoutManager(this, 3))
-                .setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                    @Override
-                    public void onRefresh() {
-                        list.clear();
-                        recyclerLayout.notifyDataSetChanged();
-                    }
-                })
-                .setOnSelectChangeListener(new IEasy.OnSelectChangeListener<Integer>() {
+        mRecycler = new SelectableRecycler<>((RecyclerView) findViewById(R.id.recycler_view));
+        mRecycler.setOnSelectChangeListener(new IEasy.OnSelectChangeListener<Integer>() {
                     @Override
                     public void onSelectModeChange(boolean selectMode) {
 
@@ -83,6 +58,19 @@ public class RecyclerActivity extends AppCompatActivity {
 //                        return false;
 //                    }
                 })
+                .setEnableSelection(true)
+                .setMaxSelectCount(3)
+//                .setEnableLoadMore(true)
+                .setEnableLoadMore(true)
+                .setItemRes(R.layout.layout_text)
+                .onRefresh(new IRefresher.OnRefreshListener() {
+                    @Override
+                    public void onRefresh(IRefresher refresher) {
+                        mRecycler.clearDataSet();
+                        mRecycler.notifyDataSetChanged();
+                    }
+                })
+
 //                .setFooterViewBinder(new SimpleFooterViewHolder(R.layout.layout_loading_footer, R.layout.layout_text))
                 .setFooterViewBinder(new SimpleFooterViewHolder(R.layout.layout_loading_footer, R.layout.layout_error_footer) {
 
@@ -107,11 +95,11 @@ public class RecyclerActivity extends AppCompatActivity {
                 .onLoadMore(new IEasy.OnLoadMoreListener() {
                     @Override
                     public boolean onLoadMore(final EasyAdapter.Enabled enabled, final int currentPage) {
-                        if (list.size() >= 40) {
-                            recyclerLayout.postDelayed(new Runnable() {
+                        if (mRecycler.getCount() >= 40) {
+                            mRecycler.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    recyclerLayout.showErrorView("hhhhhhhhhh");
+                                    mRecycler.showErrorView("hhhhhhhhhh");
 //                                    recyclerLayout.showNoNetworkView("dfghj");
 //                                    recyclerLayout.showError();
                                 }
@@ -120,13 +108,13 @@ public class RecyclerActivity extends AppCompatActivity {
 //                            return false;
                         }
                         // 模拟数据加载
-                        recyclerLayout.postDelayed(new Runnable() {
+                        mRecycler.postDelayed(new Runnable() {
                             @Override
                             public void run() {
                                 for (int i = currentPage * 20; i < (currentPage + 1) * 20; i++) {
-                                    list.add(i);
+                                    mRecycler.addData(i);
                                 }
-                                recyclerLayout.notifyDataSetChanged();
+                                mRecycler.notifyDataSetChanged();
                             }
                         }, 1000);
                         return true;
@@ -149,8 +137,8 @@ public class RecyclerActivity extends AppCompatActivity {
                 .onItemLongClick(new IEasy.OnItemLongClickListener<Integer>() {
                     @Override
                     public boolean onLongClick(EasyViewHolder holder, View view, Integer data) {
-                        recyclerLayout.addSelectedPosition(holder.getRealPosition());
-                        recyclerLayout.enterSelectMode();
+                        mRecycler.addSelectedPosition(holder.getRealPosition());
+                        mRecycler.enterSelectMode();
                         return true;
                     }
                 })
@@ -162,8 +150,8 @@ public class RecyclerActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (recyclerLayout.isSelectMode()) {
-            recyclerLayout.exitSelectMode();
+        if (mRecycler.isSelectMode()) {
+            mRecycler.exitSelectMode();
         } else {
             super.onBackPressed();
         }

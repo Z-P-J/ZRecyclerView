@@ -168,8 +168,30 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         });
 
 
+        holder.setOnViewClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                IEasy.OnClickListener<T> listener = onClickListeners.get(View.NO_ID);
+                if (listener != null) {
+                    listener.onClick(holder, v, (T) holder.getTag());
+                }
+            }
+        });
+        holder.setOnViewLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                IEasy.OnLongClickListener<T> listener = onLongClickListeners.get(View.NO_ID);
+                if (listener != null) {
+                    return listener.onLongClick(holder, v, (T) holder.getTag());
+                }
+                return false;
+            }
+        });
         for (int i = 0; i < onClickListeners.size(); i++) {
             int key = onClickListeners.keyAt(i);
+            if (key == View.NO_ID) {
+                continue;
+            }
             View view = holder.getView(key);
             if (view != null) {
                 final IEasy.OnClickListener<T> listener = onClickListeners.get(key);

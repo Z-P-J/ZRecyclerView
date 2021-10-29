@@ -57,6 +57,7 @@ public abstract class AbsRefresher implements IRefresher {
         return mDelta;
     }
 
+    @Override
     public boolean isRefreshing() {
         return mState == STATE_REFRESHING;
     }

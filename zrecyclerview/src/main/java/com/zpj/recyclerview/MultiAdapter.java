@@ -52,11 +52,13 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
 
     @Override
     public int getItemCount() {
+        Log.d(TAG, "getItemCount state=" + state);
         if (state != State.STATE_CONTENT) {
             return 1;
         }
         int count = 0;
         for (MultiData<?> data : list) {
+            Log.d(TAG, "getItemCount data,count=" + data.getCount());
             count += data.getCount();
             if (data.hasMore()) {
                 break;
@@ -71,6 +73,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         if (footerViewHolder != null) {
             count++;
         }
+        Log.d(TAG, "getItemCount count=" + count);
         return count;
     }
 
@@ -165,6 +168,9 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
             if (footerViewHolder != null) {
                 footerViewHolder.onShowHasNoMore();
             }
+        }
+        if (mOnLoadMoreListener != null) {
+            mOnLoadMoreListener.onLoadMore(mEnabled, currentPage);
         }
     }
 

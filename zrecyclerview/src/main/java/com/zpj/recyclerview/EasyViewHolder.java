@@ -138,6 +138,46 @@ public final class EasyViewHolder extends RecyclerView.ViewHolder
         }
     }
 
+    private View.OnClickListener onViewClickListener;
+
+    void setOnViewClickListener(View.OnClickListener listener) {
+        this.onViewClickListener = listener;
+    }
+
+    private View.OnLongClickListener onViewLongClickListener;
+
+    void setOnViewLongClickListener(View.OnLongClickListener listener) {
+        this.onViewLongClickListener = listener;
+    }
+
+    public void addOnClickListener(@IdRes int id) {
+        View view = getView(id);
+        if (view != null) {
+            view.setOnClickListener(onViewClickListener);
+        }
+    }
+
+    public void addOnLongClickListener(@IdRes int id) {
+        View view = getView(id);
+        if (view != null) {
+            view.setOnLongClickListener(onViewLongClickListener);
+        }
+    }
+
+    public void removeOnClickListener(@IdRes int id) {
+        View view = getView(id);
+        if (view != null) {
+            view.setOnClickListener(null);
+        }
+    }
+
+    public void removeOnLongClickListener(@IdRes int id) {
+        View view = getView(id);
+        if (view != null) {
+            view.setOnLongClickListener(null);
+        }
+    }
+
     public void setOnLongClickListener(@IdRes int id, View.OnLongClickListener listener) {
         View view = getView(id);
         if (view != null) {
@@ -245,6 +285,28 @@ public final class EasyViewHolder extends RecyclerView.ViewHolder
         View view = getView(id);
         if (view != null) {
             view.setLayoutParams(params);
+        }
+    }
+
+    public void setPadding(int left, int top, int right, int bottom) {
+        this.itemView.setPadding(left, top, right, bottom);
+    }
+
+    public void setPaddingRelative(int left, int top, int right, int bottom) {
+        this.itemView.setPaddingRelative(left, top, right, bottom);
+    }
+
+    public void setPadding(int id, int left, int top, int right, int bottom) {
+        View view = getView(id);
+        if (view != null) {
+            view.setPadding(left, top, right, bottom);
+        }
+    }
+
+    public void setPaddingRelative(int id, int left, int top, int right, int bottom) {
+        View view = getView(id);
+        if (view != null) {
+            view.setPaddingRelative(left, top, right, bottom);
         }
     }
 

@@ -49,8 +49,10 @@ public interface IRefresher {
 
     void stopRefresh();
 
+    boolean isRefreshing();
+
     interface OnRefreshListener {
-        void onRefresh(IRefresher refresh);
+        void onRefresh(IRefresher refresher);
     }
 
 

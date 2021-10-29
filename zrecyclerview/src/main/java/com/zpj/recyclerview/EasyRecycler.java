@@ -7,8 +7,10 @@ import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -18,8 +20,14 @@ import com.zpj.recyclerview.footer.IFooterViewHolder;
 import com.zpj.recyclerview.refresh.DecorationRefresher;
 import com.zpj.recyclerview.refresh.IRefresher;
 import com.zpj.recyclerview.refresh.SimpleRefresher;
+import com.zpj.recyclerview.refresh.SwipeDecorationRefresher;
+import com.zpj.statemanager.State;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class EasyRecycler<T> extends EasyStateConfig<EasyRecycler<T>>
@@ -35,7 +43,7 @@ public class EasyRecycler<T> extends EasyStateConfig<EasyRecycler<T>>
 
     protected IEasy.AdapterInjector adapterInjector;
 
-    protected List<T> list;
+    protected final List<T> mDataSet;
 
     protected int itemRes = -1;
 
@@ -59,7 +67,12 @@ public class EasyRecycler<T> extends EasyStateConfig<EasyRecycler<T>>
     protected IEasy.OnItemLongClickListener<T> onItemLongClickListener;
 
     public EasyRecycler(@NonNull RecyclerView recyclerView) {
+        this(recyclerView, new ArrayList<T>(0));
+    }
+
+    public EasyRecycler(@NonNull RecyclerView recyclerView, @NonNull List<T> dataSet) {
         this.recyclerView = recyclerView;
+        this.mDataSet = dataSet;
     }
 
     public EasyRecycler<T> setItemAnimator(RecyclerView.ItemAnimator animator) {
@@ -72,10 +85,53 @@ public class EasyRecycler<T> extends EasyStateConfig<EasyRecycler<T>>
         return this;
     }
 
-    public EasyRecycler<T> setData(List<T> list) {
-        this.list = list;
+    public EasyRecycler<T> setData(Collection<T> list) {
+        this.mDataSet.clear();
+        this.mDataSet.addAll(list);
         return this;
     }
+
+    public EasyRecycler<T> setData(T...dataSet) {
+        return setData(Arrays.asList(dataSet));
+    }
+
+    public EasyRecycler<T> addData(Collection<T> list) {
+        this.mDataSet.addAll(list);
+        return this;
+    }
+
+    public EasyRecycler<T> addData(T...dataSet) {
+        return addData(Arrays.asList(dataSet));
+    }
+
+    public EasyRecycler<T> addData(int index, Collection<T> list) {
+        this.mDataSet.addAll(index, list);
+        return this;
+    }
+
+    public EasyRecycler<T> addData(int index, T...dataSet) {
+        return addData(index, Arrays.asList(dataSet));
+    }
+
+    public EasyRecycler<T> setData(int index, T data) {
+        if (index >= 0 && index < this.mDataSet.size()) {
+            this.mDataSet.set(index, data);
+        }
+        return this;
+    }
+
+    public EasyRecycler<T> addData(int index, T data) {
+        if (index >= 0 && index < this.mDataSet.size()) {
+            this.mDataSet.add(index, data);
+        }
+        return this;
+    }
+
+    public EasyRecycler<T> addData(T data) {
+        this.mDataSet.add(data);
+        return this;
+    }
+
 
     public EasyRecycler<T> setLayoutManager(RecyclerView.LayoutManager layoutManager) {
         this.layoutManager = layoutManager;
@@ -236,6 +292,11 @@ public class EasyRecycler<T> extends EasyStateConfig<EasyRecycler<T>>
         return this;
     }
 
+    public EasyRecycler<T> onViewClick(IEasy.OnClickListener<T> listener) {
+        onClickListeners.put(View.NO_ID, listener);
+        return this;
+    }
+
     public EasyRecycler<T> onViewClick(@IdRes int id, IEasy.OnClickListener<T> listener) {
         onClickListeners.put(id, listener);
         return this;
@@ -284,9 +345,7 @@ public class EasyRecycler<T> extends EasyStateConfig<EasyRecycler<T>>
     }
 
     public EasyRecycler<T> onRefresh(IRefresher.OnRefreshListener listener) {
-        mRefresh = new SimpleRefresher();
-        mRefresh.setOnRefreshListener(listener);
-        return this;
+        return onRefresh(new SwipeDecorationRefresher(), listener);
     }
 
     public EasyRecycler<T> onRefresh(IRefresher refresh) {
@@ -306,15 +365,12 @@ public class EasyRecycler<T> extends EasyStateConfig<EasyRecycler<T>>
     }
 
     public void build() {
-        if (list == null) {
-            list = new ArrayList<>(0);
-        }
         if (layoutManager == null) {
             layoutManager = new LinearLayoutManager(recyclerView.getContext());
         }
 
         easyAdapter = new EasyStateAdapter<>(
-                recyclerView.getContext(), list,
+                recyclerView.getContext(), mDataSet,
                 itemRes, onGetChildViewTypeListener,
                 onGetChildLayoutIdListener, onCreateViewHolder,
                 onBindViewHolderListener, onItemClickListener,
@@ -490,7 +546,7 @@ public class EasyRecycler<T> extends EasyStateConfig<EasyRecycler<T>>
 
         if (last > first) {
             int count = last - first;
-            if (last + 1 <= getData().size()) {
+            if (last + 1 <= getDataSet().size()) {
                 count += 1;
             }
             if (payload == null) {
@@ -549,8 +605,32 @@ public class EasyRecycler<T> extends EasyStateConfig<EasyRecycler<T>>
         easyAdapter.notifyItemRemoved(position);
     }
 
+    public void scrollToPosition(int position) {
+        recyclerView.scrollToPosition(position);
+    }
+
+    public void scrollToFirstPosition() {
+        scrollToPosition(0);
+    }
+
+    public void scrollToLastPosition() {
+        scrollToPosition(getCount() - 1);
+    }
+
     public void smoothScrollToPosition(int position) {
         recyclerView.smoothScrollToPosition(position);
+    }
+
+    public void smoothScrollToFirstPosition() {
+        smoothScrollToPosition(0);
+    }
+
+    public void smoothScrollToLastPosition() {
+        smoothScrollToPosition(getCount() - 1);
+    }
+
+    public void scrollBy(int x, int y) {
+        recyclerView.scrollBy(x, y);
     }
 
     public EasyStateAdapter<T> getAdapter() {
@@ -569,8 +649,76 @@ public class EasyRecycler<T> extends EasyStateConfig<EasyRecycler<T>>
         recyclerView.post(runnable);
     }
 
-    public List<T> getData() {
-        return list;
+    public void postDelayed(Runnable runnable, long delayMillis) {
+        recyclerView.postDelayed(runnable, delayMillis);
+    }
+
+    public List<T> getDataSet() {
+        return this.mDataSet;
+    }
+
+    public void removeData(T data) {
+        this.mDataSet.remove(data);
+    }
+
+    public void removeData(T...dataSet) {
+        this.mDataSet.removeAll(Arrays.asList(dataSet));
+    }
+
+    public void removeData(Collection<T> dataSet) {
+        this.mDataSet.removeAll(dataSet);
+    }
+
+    public void removeData(int index) {
+        this.mDataSet.remove(index);
+    }
+
+    public void removeData(int fromIndex, int toIndex) {
+        this.mDataSet.subList(fromIndex, toIndex).clear();
+    }
+
+    public int getCount() {
+        return this.mDataSet.size();
+    }
+
+    public List<T> subDataList(int fromIndex, int toIndex) {
+        return this.mDataSet.subList(fromIndex, toIndex);
+    }
+
+    public void clearDataSet() {
+        this.mDataSet.clear();
+    }
+
+    public boolean containsData(T data) {
+        return this.mDataSet.contains(data);
+    }
+
+    public T getData(int index) {
+        return this.mDataSet.get(index);
+    }
+
+    public T getFirstData() {
+        return getData(0);
+    }
+
+    public T getLastData() {
+        return getData(getCount() - 1);
+    }
+
+    public boolean isEmpty() {
+        return this.mDataSet.isEmpty();
+    }
+
+    public State getState() {
+        return getAdapter().getState();
+    }
+
+    public void setVisibility(int visibility) {
+        recyclerView.setVisibility(visibility);
+    }
+
+    public void sortDataSet(Comparator<? super T> comparator) {
+        Collections.sort(this.mDataSet, comparator);
     }
 
     @Override
