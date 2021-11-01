@@ -1,4 +1,4 @@
-package com.zpj.recyclerview;
+package com.zpj.recyclerview.decoration;
 
 import android.graphics.Canvas;
 import android.graphics.Rect;
@@ -10,6 +10,11 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.zpj.recyclerview.EasyViewHolder;
+import com.zpj.recyclerview.HeaderMultiData;
+import com.zpj.recyclerview.MultiAdapter;
+import com.zpj.recyclerview.MultiData;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,10 +54,10 @@ public class StickyHeaderItemDecoration extends RecyclerView.ItemDecoration {
         if (!isStickHeader(currItemPosition)) {
             return;
         }
-        if (groupAdapter.mRefreshHeader != null) {
+        if (groupAdapter.getRefresher() != null) {
             currItemPosition--;
         }
-        if (groupAdapter.headerView != null) {
+        if (groupAdapter.getHeaderView() != null) {
             currItemPosition--;
         }
         if (currItemPosition == RecyclerView.NO_POSITION) {
@@ -68,9 +73,9 @@ public class StickyHeaderItemDecoration extends RecyclerView.ItemDecoration {
 
         int nextGroupPosition = currGroupPosition;
 
-        int size = groupAdapter.list.size();
+        int size = groupAdapter.getData().size();
         for (int i = 0; i < size; i++) {
-            MultiData<?> data = groupAdapter.list.get(i);
+            MultiData<?> data = groupAdapter.getData().get(i);
             if (data.hasMore()) {
                 break;
             }
@@ -140,8 +145,7 @@ public class StickyHeaderItemDecoration extends RecyclerView.ItemDecoration {
         if (currStickyView == null || (int) currStickyView.getTag() != currGroupPosition) {
             int viewType = currentMultiData.getHeaderViewType();
             if (viewHolder == null || (viewHolder.getViewType() != viewType)) {
-                viewHolder = new EasyViewHolder(currentMultiData.onCreateView(parent.getContext(), parent, viewType));
-                viewHolder.setViewType(viewType);
+                viewHolder = new EasyViewHolder(currentMultiData.onCreateView(parent.getContext(), parent, viewType), viewType);
             }
             View itemView = viewHolder.getItemView();
 

@@ -37,6 +37,11 @@ public final class EasyViewHolder extends RecyclerView.ViewHolder
         this.itemView = view;
     }
 
+    public EasyViewHolder(@NonNull View view, int viewType) {
+        this(view);
+        this.viewType = viewType;
+    }
+
     public boolean post(Runnable runnable) {
         return this.itemView.post(runnable);
     }

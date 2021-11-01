@@ -3,10 +3,12 @@ package com.zpj.recyclerview;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import com.zpj.recyclerview.refresh.IRefresher;
 import com.zpj.widget.checkbox.ZCheckBox;
@@ -95,29 +97,43 @@ public class SelectableRecycler<T> extends BaseRecycler<T, SelectableRecycler<T>
 
     @Override
     public View onCreateViewHolder(ViewGroup parent, int layoutRes, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.easy_item_recycler_layout, parent, false);
-        FrameLayout container = view.findViewById(R.id.easy_container);
-
         int res = onGetChildLayoutId(viewType);
+
+        LinearLayout container = new LinearLayout(parent.getContext());
 
         View content;
         if (onCreateViewHolderListener != null) {
-            content = onCreateViewHolderListener.onCreateViewHolder((ViewGroup) view, res, viewType);
+            content = onCreateViewHolderListener.onCreateViewHolder(parent, res, viewType);
         } else {
-            content = LayoutInflater.from(parent.getContext()).inflate(res, null, false);
+            content = LayoutInflater.from(parent.getContext()).inflate(res, parent, false);
         }
+        container.setBackground(content.getBackground());
+        content.setBackground(null);
 
-        container.addView(content);
-        return view;
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.weight = 1f;
+        params.gravity = Gravity.CENTER;
+        container.addView(content, params);
+
+        ZCheckBox checkBox = new ZCheckBox(parent.getContext());
+        int dp48 = (int) (parent.getContext().getResources().getDisplayMetrics().density * 48);
+        int dp16 = dp48 / 3;
+        checkBox.setPadding(dp16, dp16, dp16, dp16);
+        checkBox.setVisibility(View.GONE);
+
+        LinearLayout.LayoutParams checkBoxParams = new LinearLayout.LayoutParams(dp48, dp48);
+        checkBoxParams.gravity = Gravity.CENTER;
+        container.addView(checkBox, checkBoxParams);
+
+        return container;
     }
 
     @Override
     public void onBindViewHolder(final EasyViewHolder holder, List<T> list, int position, List<Object> payloads) {
-        FrameLayout container = holder.getView(R.id.easy_container);
+        LinearLayout container = (LinearLayout) holder.getItemView();
         View contentChild = container.getChildAt(0);
 
-//        final View checkBoxContainer = holder.getView(R.id.easy_recycler_layout_check_box_container);
-        final ZCheckBox checkBox = holder.getView(R.id.easy_recycler_layout_check_box);
+        final ZCheckBox checkBox = (ZCheckBox) container.getChildAt(1);
 
         if (showCheckBox) {
             checkBox.setVisibility(enableSelection ? View.VISIBLE : View.GONE);

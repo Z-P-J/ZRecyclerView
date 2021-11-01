@@ -85,7 +85,7 @@ public abstract class StateMultiData<T> extends MultiData<T> {
     }
 
     @Override
-     protected View onCreateView(Context context, ViewGroup container, int viewType) {
+    public View onCreateView(Context context, ViewGroup container, int viewType) {
         if (viewType == STATE_EMPTY.hashCode() || viewType == STATE_LOADING.hashCode()
                 || viewType == STATE_ERROR.hashCode() || viewType == STATE_LOGIN.hashCode()
                 || viewType == STATE_NO_NETWORK.hashCode()) {
@@ -175,10 +175,6 @@ public abstract class StateMultiData<T> extends MultiData<T> {
     protected void onLogin() {
 
     }
-
-
-
-
 
 
 }

@@ -9,7 +9,7 @@ import com.zpj.recycler.demo.mutildata.ExpandableMultiData;
 import com.zpj.recycler.demo.mutildata.TestErrorStringMultiData;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
-import com.zpj.recyclerview.StickyHeaderItemDecoration;
+import com.zpj.recyclerview.decoration.StickyHeaderItemDecoration;
 
 import java.util.ArrayList;
 import java.util.List;

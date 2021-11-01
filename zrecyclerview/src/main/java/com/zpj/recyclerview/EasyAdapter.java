@@ -533,6 +533,9 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     private boolean mShowNoMoreEnabled;
     private boolean mIsLoadFailed;
 
+    public IRefresher getRefresher() {
+        return mRefreshHeader;
+    }
 
     public boolean getLoadMoreEnabled() {
         return mEnabled.getLoadMoreEnabled() && getItemCount() >= 0;
@@ -918,6 +921,5 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             });
         }
     }
-
 
 }

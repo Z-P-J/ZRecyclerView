@@ -131,7 +131,7 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
         onBindViewHolder(holder, mData, getRealPosition(position), payloads);
     }
 
-    protected View onCreateView(Context context, ViewGroup container, int viewType) {
+    public View onCreateView(Context context, ViewGroup container, int viewType) {
         return LayoutInflater.from(context).inflate(getLayoutId(viewType), container, false);
     }
 
