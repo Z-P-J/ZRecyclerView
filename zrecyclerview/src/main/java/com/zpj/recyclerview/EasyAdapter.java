@@ -243,70 +243,88 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     @Override
     public void onAttachedToRecyclerView(@NonNull final RecyclerView recyclerView) {
         mRecyclerView = recyclerView;
-        if (mRefreshHeader != null) {
-            recyclerView.setOnTouchListener(new View.OnTouchListener() {
-                private float downX = -1;
-                private float downY = -1;
-                private float offset = 0;
-                private boolean isMoveDown;
+//        recyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+//            @Override
+//            public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
+//                return false;
+//            }
+//
+//            @Override
+//            public void onTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
+//
+//            }
+//
+//            @Override
+//            public void onRequestDisallowInterceptTouchEvent(boolean b) {
+//
+//            }
+//        });
+        recyclerView.setOnTouchListener(new View.OnTouchListener() {
+            private float downX = -1;
+            private float downY = -1;
+            private float offset = 0;
+            private boolean isMoveDown;
 
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    if (mIsDraggingOrSwiping) {
-                        return false;
-                    }
-
-                    int action = event.getAction();
-                    if (MotionEvent.ACTION_DOWN == action) {
-                        isMoveDown = false;
-                        if (mRefreshHeader != null
-                                && mRefreshHeader.getView() != null
-                                && mRefreshHeader.getView().getParent() != null
-                                && mRefreshHeader.getState() == IRefresher.STATE_NORMAL) {
-                            downX = event.getRawX();
-                            downY = event.getRawY();
-                            offset = mRefreshHeader.getDelta();
-                        }
-                        return false;
-                    } else if (MotionEvent.ACTION_MOVE == action) {
-                        if (isMoveDown) {
-                            float deltaY = event.getRawY() - downY + offset;
-                            mRefreshHeader.onMove(deltaY);
-                            event.setAction(MotionEvent.ACTION_DOWN);
-                            return false;
-                        } else if (mRefreshHeader != null
-                                && mRefreshHeader.getView() != null
-                                && mRefreshHeader.getView().getParent() != null
-                                && mRefreshHeader.getState() == IRefresher.STATE_NORMAL) {
-                            if (downY < 0) {
-                                downY = event.getRawY();
-                                offset = mRefreshHeader.getDelta();
-                                mRefreshHeader.onDown();
-                                event.setAction(MotionEvent.ACTION_DOWN);
-                            } else {
-                                float deltaY = event.getRawY() - downY + offset;
-                                if (deltaY > 0) {
-                                    isMoveDown = true;
-                                    mRefreshHeader.onMove(deltaY);
-                                    event.setAction(MotionEvent.ACTION_DOWN);
-                                }
-                            }
-                            return false;
-                        }
-                    } else if (MotionEvent.ACTION_UP == action || MotionEvent.ACTION_CANCEL == action) {
-                        if (isMoveDown) {
-                            isMoveDown = false;
-                            downX = -1;
-                            downY = -1;
-                            offset = 0;
-                            mRefreshHeader.onRelease();
-                            return false;
-                        }
-                    }
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (recyclerView.getLayoutManager() instanceof IMultiLayoutManager) {
+                    ((IMultiLayoutManager) recyclerView.getLayoutManager()).onTouch(event);
+                }
+                if (mRefreshHeader == null) {
                     return false;
                 }
-            });
-        }
+                if (mIsDraggingOrSwiping) {
+                    return false;
+                }
+
+                int action = event.getAction();
+                if (MotionEvent.ACTION_DOWN == action) {
+                    isMoveDown = false;
+                    if (mRefreshHeader.getView() != null
+                            && mRefreshHeader.getView().getParent() != null
+                            && mRefreshHeader.getState() == IRefresher.STATE_NORMAL) {
+                        downX = event.getRawX();
+                        downY = event.getRawY();
+                        offset = mRefreshHeader.getDelta();
+                    }
+                    return false;
+                } else if (MotionEvent.ACTION_MOVE == action) {
+                    if (isMoveDown) {
+                        float deltaY = event.getRawY() - downY + offset;
+                        mRefreshHeader.onMove(deltaY);
+                        event.setAction(MotionEvent.ACTION_DOWN);
+                        return false;
+                    } else if (mRefreshHeader.getView() != null
+                            && mRefreshHeader.getView().getParent() != null
+                            && mRefreshHeader.getState() == IRefresher.STATE_NORMAL) {
+                        if (downY < 0) {
+                            downY = event.getRawY();
+                            offset = mRefreshHeader.getDelta();
+                            mRefreshHeader.onDown();
+                            event.setAction(MotionEvent.ACTION_DOWN);
+                        } else {
+                            float deltaY = event.getRawY() - downY + offset;
+                            if (deltaY > 0) {
+                                isMoveDown = true;
+                                mRefreshHeader.onMove(deltaY);
+                                event.setAction(MotionEvent.ACTION_DOWN);
+                            }
+                        }
+                        return false;
+                    }
+                } else if (MotionEvent.ACTION_UP == action || MotionEvent.ACTION_CANCEL == action) {
+                    if (isMoveDown) {
+                        isMoveDown = false;
+                        downX = -1;
+                        downY = -1;
+                        offset = 0;
+                        mRefreshHeader.onRelease();
+                        return false;
+                    }
+                }
+                return false;
+            }
+        });
         super.onAttachedToRecyclerView(recyclerView);
         recyclerView.addOnScrollListener(mOnScrollListener);
         RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
