@@ -4,27 +4,33 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.zpj.recycler.demo.manager.MultiLayoutParams;
+import com.zpj.recyclerview.MultiData;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class HorizontalLayouter extends AbsLayouter {
 
     @Override
-    public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
-        if (getLayoutManager() == null) {
+    public void onLayoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, RecyclerView.State state) {
+        if (getLayoutManager() == null || multiData.getCount() == 0) {
+            mChildCount = 0;
             return;
         }
 
         int totalSpace = getLayoutManager().getWidth() - getLayoutManager().getPaddingRight();
-        int currentPosition = 0;
+        int currentPosition = mPositionOffset;
 
         int left = 0;
         int top = getTop();
         int right = 0;
         int bottom = 0;
 
-        while (totalSpace > 0 && currentPosition < 5) {
+        while (totalSpace > 0 && currentPosition < multiData.getCount() + mPositionOffset) {
             View view = recycler.getViewForPosition(currentPosition);
+            MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
+            params.setMultiData(multiData);
             getLayoutManager().addView(view);
             getLayoutManager().measureChild(view, 0, 0);
             int measureWidth = getLayoutManager().getDecoratedMeasuredWidth(view);
@@ -39,6 +45,8 @@ public class HorizontalLayouter extends AbsLayouter {
             getLayoutManager().layoutDecorated(view, left, top, right, bottom);
             left = right;
         }
+
+        mChildCount = currentPosition - mPositionOffset + 1;
 
     }
 
@@ -74,6 +82,16 @@ public class HorizontalLayouter extends AbsLayouter {
             view.offsetTopAndBottom(-dy);
         }
         return dy;
+    }
+
+    @Override
+    public int fillVertical(int dy, RecyclerView.Recycler recycler) {
+        return 0;
+    }
+
+    @Override
+    public int fillHorizontal(int dx, RecyclerView.Recycler recycler) {
+        return 0;
     }
 
 }

@@ -1,8 +1,11 @@
 package com.zpj.recycler.demo.manager;
 
+import android.content.Intent;
 import android.view.View;
 import android.widget.Toast;
 
+import com.zpj.recycler.demo.LayoutManagerActivity;
+import com.zpj.recycler.demo.MultiDataActivity;
 import com.zpj.recycler.demo.R;
 import com.zpj.recycler.demo.layouter.Layouter;
 import com.zpj.recyclerview.EasyViewHolder;
@@ -44,12 +47,15 @@ public class LayouterMultiData extends SingleTypeMultiData<Integer> {
     }
 
     @Override
-    public void onBindViewHolder(EasyViewHolder holder, List<Integer> list, final int position, List<Object> payloads) {
-        holder.setText(R.id.tv_text, "StringData position=" + position);
+    public void onBindViewHolder(final EasyViewHolder holder, List<Integer> list, final int position, List<Object> payloads) {
+        holder.setText(R.id.tv_text, "第" + list.get(position) + "个");
+        final int data = list.get(position);
         holder.setOnItemClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(v.getContext(), "StringData position=" + position, Toast.LENGTH_SHORT).show();
+                holder.getContext().startActivity(new Intent(holder.getContext(), MultiDataActivity.class));
+//                        startActivity(new Intent(MainActivity.this, StateActivity3.class));
+                Toast.makeText(holder.getContext(), "第" + data + "个", Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -139,7 +139,9 @@ public class MultiRecycler extends BaseRecycler<MultiData<?>, MultiRecycler> {
                 mItemTouchHelper.attachToRecyclerView(recyclerView);
             }
         }
-        layoutManager = new GridLayoutManager(recyclerView.getContext(), maxSpan);
+        if (layoutManager == null) {
+            layoutManager = new GridLayoutManager(recyclerView.getContext(), maxSpan);
+        }
         easyAdapter.setAdapterInjector(adapterInjector);
         if (headerView != null) {
             easyAdapter.setHeaderView(headerView);

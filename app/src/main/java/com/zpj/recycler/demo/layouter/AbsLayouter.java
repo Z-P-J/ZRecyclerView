@@ -10,6 +10,36 @@ public abstract class AbsLayouter implements Layouter {
     private int mRight;
     private int mBottom;
 
+    protected int mChildCount;
+
+    protected int mPositionOffset;
+    protected int mChildOffset;
+
+    @Override
+    public int getChildCount() {
+        return mChildCount;
+    }
+
+    @Override
+    public void setPositionOffset(int offset) {
+        this.mPositionOffset = offset;
+    }
+
+    @Override
+    public int getPositionOffset() {
+        return mPositionOffset;
+    }
+
+    @Override
+    public void setChildOffset(int offset) {
+        this.mChildOffset = offset;
+    }
+
+    @Override
+    public int getChildOffset() {
+        return this.mChildOffset;
+    }
+
     @Override
     public void setLayoutManager(RecyclerView.LayoutManager manager) {
         this.mManager = manager;
