@@ -33,14 +33,16 @@ public class LayoutManagerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_recycler);
 
         List<Integer> list = new ArrayList<>();
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 57; i++) {
             list.add(i);
         }
 
         List<MultiData<?>> multiDataList = new ArrayList<>();
+        multiDataList.add(new LayouterMultiData(list, new VerticalLayouter()));
+        multiDataList.add(new LayouterMultiData(list, new GridLayouter(2)));
         multiDataList.add(new LayouterMultiData(list, new HorizontalLayouter()));
         multiDataList.add(new LayouterMultiData(list, new VerticalLayouter()));
-        multiDataList.add(new LayouterMultiData(list, new GridLayouter()));
+        multiDataList.add(new LayouterMultiData(list, new GridLayouter(3)));
 
         mRecycler = new MultiRecycler((RecyclerView) findViewById(R.id.recycler_view), multiDataList);
         mRecycler.setLayoutManager(new MultiLayoutManager(multiDataList))

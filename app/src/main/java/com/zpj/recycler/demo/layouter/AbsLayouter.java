@@ -1,14 +1,16 @@
 package com.zpj.recycler.demo.layouter;
 
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 
 public abstract class AbsLayouter implements Layouter {
 
     private RecyclerView.LayoutManager mManager;
-    private int mLeft;
-    private int mTop;
-    private int mRight;
-    private int mBottom;
+    protected int mLeft;
+    protected int mTop;
+    protected int mRight;
+    protected int mBottom;
 
     protected int mChildCount;
 
@@ -89,6 +91,25 @@ public abstract class AbsLayouter implements Layouter {
     @Override
     public int getBottom() {
         return mBottom;
+    }
+
+    @Override
+    public void offsetLeftAndRight(int offset) {
+        this.mLeft += offset;
+        this.mRight += offset;
+    }
+
+    @Override
+    public void offsetTopAndBottom(int offset) {
+        this.mTop += offset;
+        this.mBottom += offset;
+    }
+
+    @Override
+    public void layoutDecorated(@NonNull View child, int left, int top, int right, int bottom) {
+        if (mManager != null) {
+            mManager.layoutDecorated(child, left, top, right, bottom);
+        }
     }
 
     @Override

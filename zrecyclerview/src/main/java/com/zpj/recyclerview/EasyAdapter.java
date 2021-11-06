@@ -243,22 +243,26 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     @Override
     public void onAttachedToRecyclerView(@NonNull final RecyclerView recyclerView) {
         mRecyclerView = recyclerView;
-//        recyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
-//            @Override
-//            public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
-//                return false;
-//            }
-//
-//            @Override
-//            public void onTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
-//
-//            }
-//
-//            @Override
-//            public void onRequestDisallowInterceptTouchEvent(boolean b) {
-//
-//            }
-//        });
+        recyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+            @Override
+            public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
+                Log.d(TAG, "onInterceptTouchEvent action=" + MotionEvent.actionToString(motionEvent.getAction()));
+                if (recyclerView.getLayoutManager() instanceof IMultiLayoutManager) {
+                    ((IMultiLayoutManager) recyclerView.getLayoutManager()).onTouch(motionEvent);
+                }
+                return false;
+            }
+
+            @Override
+            public void onTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
+                Log.d(TAG, "onTouchEvent action=" + MotionEvent.actionToString(motionEvent.getAction()));
+            }
+
+            @Override
+            public void onRequestDisallowInterceptTouchEvent(boolean b) {
+
+            }
+        });
         recyclerView.setOnTouchListener(new View.OnTouchListener() {
             private float downX = -1;
             private float downY = -1;
@@ -267,9 +271,9 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                if (recyclerView.getLayoutManager() instanceof IMultiLayoutManager) {
-                    ((IMultiLayoutManager) recyclerView.getLayoutManager()).onTouch(event);
-                }
+//                if (recyclerView.getLayoutManager() instanceof IMultiLayoutManager) {
+//                    ((IMultiLayoutManager) recyclerView.getLayoutManager()).onTouch(event);
+//                }
                 if (mRefreshHeader == null) {
                     return false;
                 }
