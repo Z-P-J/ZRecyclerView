@@ -1,4 +1,4 @@
-package com.zpj.recycler.demo.manager;
+package com.zpj.recyclerview.manager;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;

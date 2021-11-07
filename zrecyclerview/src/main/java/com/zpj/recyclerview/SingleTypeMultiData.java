@@ -1,5 +1,6 @@
 package com.zpj.recyclerview;
 
+import com.zpj.recyclerview.layouter.Layouter;
 import com.zpj.statemanager.State;
 
 import java.util.List;
@@ -14,6 +15,14 @@ public abstract class SingleTypeMultiData<T> extends StateMultiData<T> {
 
     public SingleTypeMultiData(List<T> list) {
         super(list);
+    }
+
+    public SingleTypeMultiData(Layouter layouter) {
+        super(layouter);
+    }
+
+    public SingleTypeMultiData(List<T> list, Layouter layouter) {
+        super(list, layouter);
     }
 
     @Override

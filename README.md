@@ -187,3 +187,54 @@ public boolean loadData() {
 }
 ~~~
 #### 4.3 todo完善文档
+
+
+
+
+## 4. Layouter的使用（TODO完善文档，可参考[LayoutManagerActivity](https://github.com/Z-P-J/ZRecyclerView/blob/master/app/src/main/java/com/zpj/recycler/demo/LayoutManagerActivity.java)）
+
+#### 4.1 什么是Layouter?
+
+为了只通过一个RecyclerView实现以前需要嵌套RecyclerView才能实现的复杂布局，新增了自定义的MultiLayoutManager和Layouter，其中Layouter代理MultiLayoutManager的布局、填充的子view的功能，需结合MultiRecycler和MultiData使用。
+
+~~~java
+// Layouter例子
+public class LayoutManagerActivity extends AppCompatActivity {
+
+    private MultiRecycler mRecycler;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_recycler);
+
+        List<Integer> list = new ArrayList<>();
+        for (int i = 0; i < 57; i++) {
+            list.add(i);
+        }
+
+        List<MultiData<?>> multiDataList = new ArrayList<>();
+        multiDataList.add(new LayouterMultiData(list, new HorizontalLayouter()) {
+            @Override
+            public int getLayoutId() {
+                return R.layout.item_text_grid;
+            }
+        });
+        multiDataList.add(new LayouterMultiData(list, new VerticalLayouter()));
+        multiDataList.add(new LayouterMultiData(list, new GridLayouter(2)));
+        multiDataList.add(new LayouterMultiData(list, new HorizontalLayouter()) {
+            @Override
+            public int getLayoutId() {
+                return R.layout.item_text_grid;
+            }
+        });
+        multiDataList.add(new LayouterMultiData(list, new VerticalLayouter()));
+        multiDataList.add(new LayouterMultiData(list, new GridLayouter(3)));
+
+        RecyclerView recyclerView = findViewById(R.id.recycler_view);
+        mRecycler = new MultiRecycler(recyclerView, multiDataList);
+        mRecycler.setLayoutManager(new MultiLayoutManager()).build();
+    }
+
+}
+~~~

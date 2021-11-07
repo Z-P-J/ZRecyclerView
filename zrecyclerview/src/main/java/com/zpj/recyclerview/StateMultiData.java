@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.zpj.recyclerview.layouter.Layouter;
 import com.zpj.statemanager.BaseViewHolder;
 import com.zpj.statemanager.IViewHolder;
 import com.zpj.statemanager.State;
@@ -27,6 +28,14 @@ public abstract class StateMultiData<T> extends MultiData<T> {
 
     public StateMultiData(List<T> list) {
         super(list);
+    }
+
+    public StateMultiData(Layouter layouter) {
+        super(layouter);
+    }
+
+    public StateMultiData(List<T> list, Layouter layouter) {
+        super(list, layouter);
     }
 
     public State getState() {

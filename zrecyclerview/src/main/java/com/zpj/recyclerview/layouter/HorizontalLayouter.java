@@ -1,15 +1,11 @@
-package com.zpj.recycler.demo.layouter;
+package com.zpj.recyclerview.layouter;
 
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 
-import com.zpj.recycler.demo.manager.MultiLayoutParams;
 import com.zpj.recyclerview.MultiData;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.zpj.recyclerview.manager.MultiLayoutParams;
 
 public class HorizontalLayouter extends AbsLayouter {
 
@@ -24,49 +20,11 @@ public class HorizontalLayouter extends AbsLayouter {
         this.mFirstOffset = firstOffset;
     }
 
-    public int onLayoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, RecyclerView.State state) {
-        if (getLayoutManager() == null || multiData.getCount() == 0 || mTop > getLayoutManager().getHeight()) {
-            mChildCount = 0;
-            mBottom = mTop;
-            return mChildCount;
-        }
-
-        int totalSpace = getLayoutManager().getWidth() - getLayoutManager().getPaddingRight();
-        int currentPosition = mPositionOffset;
-
-        int left = 0;
-        int top = getTop();
-        int right = 0;
-        int bottom = getTop();
-
-        while (totalSpace > 0 && currentPosition < multiData.getCount() + mPositionOffset) {
-            View view = recycler.getViewForPosition(currentPosition);
-            MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
-            params.setMultiData(multiData);
-            getLayoutManager().addView(view);
-            getLayoutManager().measureChild(view, 0, 0);
-            int measureWidth = getLayoutManager().getDecoratedMeasuredWidth(view);
-            currentPosition++;
-            totalSpace -= measureWidth;
-
-            right = left + measureWidth;
-            bottom = top + getLayoutManager().getDecoratedMeasuredHeight(view);
-
-            getLayoutManager().layoutDecorated(view, left, top, right, bottom);
-            left = right;
-        }
-
-        mBottom = Math.max(bottom, mTop);
-
-        mChildCount = currentPosition - mPositionOffset + 1;
-        return mChildCount;
-    }
-
     @Override
-    public int onLayoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition, int availableSpace) {
+    public void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition) {
         if (getLayoutManager() == null || multiData.getCount() == 0 || mTop > getLayoutManager().getHeight()) {
             mBottom = mTop;
-            return 0;
+            return;
         }
 
         if (mFirstPosition < 0) {
@@ -80,7 +38,7 @@ public class HorizontalLayouter extends AbsLayouter {
         int right = 0;
         int bottom = mTop;
 
-        availableSpace = getLayoutManager().getWidth() - getLayoutManager().getPaddingRight() - left;
+        int availableSpace = getLayoutManager().getWidth() - getLayoutManager().getPaddingRight() - left;
 
         while (availableSpace > 0 && currentPosition < multiData.getCount() + mPositionOffset) {
             View view = recycler.getViewForPosition(currentPosition++);
@@ -101,7 +59,7 @@ public class HorizontalLayouter extends AbsLayouter {
 
         mBottom = Math.max(bottom, mTop);
 
-        return 0;
+        return;
     }
 
     @Override

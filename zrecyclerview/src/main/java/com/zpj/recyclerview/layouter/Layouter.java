@@ -1,4 +1,4 @@
-package com.zpj.recycler.demo.layouter;
+package com.zpj.recyclerview.layouter;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
@@ -57,7 +57,7 @@ public interface Layouter {
 
     void layoutDecorated(@NonNull View child, int left, int top, int right, int bottom);
 
-    int onLayoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition, int availableSpace);
+    void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition);
 
     boolean canScrollHorizontally();
 

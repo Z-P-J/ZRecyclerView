@@ -1,4 +1,4 @@
-package com.zpj.recycler.demo.layouter;
+package com.zpj.recyclerview.layouter;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;

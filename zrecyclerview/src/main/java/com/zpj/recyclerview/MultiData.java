@@ -9,6 +9,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.zpj.recyclerview.layouter.Layouter;
+import com.zpj.recyclerview.layouter.VerticalLayouter;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +25,8 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
 
     private int mTempCount = 0;
 
+    private Layouter mLayouter;
+
     public MultiData() {
         mData = new ArrayList<>();
     }
@@ -30,6 +35,31 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
         this();
         this.mData.addAll(mData);
         hasMore = false;
+    }
+
+    public MultiData(Layouter layouter) {
+        mData = new ArrayList<>();
+        this.mLayouter = layouter;
+    }
+
+    public MultiData(List<T> mData, Layouter layouter) {
+        this(layouter);
+        this.mData.addAll(mData);
+        hasMore = false;
+    }
+
+    public Layouter getLayouter() {
+        if (mLayouter == null) {
+            mLayouter = createLayouter();
+            if (mLayouter == null) {
+                throw new RuntimeException("You must create a nonnull layouter for this multidata!");
+            }
+        }
+        return mLayouter;
+    }
+
+    protected Layouter createLayouter() {
+        return new VerticalLayouter();
     }
 
     public void setAdapter(MultiAdapter mAdapter) {

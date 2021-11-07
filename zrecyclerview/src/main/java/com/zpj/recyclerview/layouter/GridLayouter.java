@@ -1,11 +1,11 @@
-package com.zpj.recycler.demo.layouter;
+package com.zpj.recyclerview.layouter;
 
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 
-import com.zpj.recycler.demo.manager.MultiLayoutParams;
 import com.zpj.recyclerview.MultiData;
+import com.zpj.recyclerview.manager.MultiLayoutParams;
 
 public class GridLayouter extends AbsLayouter {
 
@@ -17,61 +17,11 @@ public class GridLayouter extends AbsLayouter {
         this.mSpanCount = mSpanCount;
     }
 
-    public int onLayoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, RecyclerView.State state) {
-        if (getLayoutManager() == null || multiData.getCount() == 0 || mTop > getLayoutManager().getHeight()) {
-            mChildCount = 0;
-            mBottom = mTop;
-            return mChildCount;
-        }
-
-        int totalSpace = getLayoutManager().getHeight() - getTop();
-        int currentPosition = mPositionOffset;
-
-        int left = 0;
-        int top = getTop();
-        int right = 0;
-        int bottom = getTop();
-
-        int childWidth = (getLayoutManager().getWidth() - getLayoutManager().getPaddingLeft() - getLayoutManager().getPaddingRight()) / mSpanCount;
-        int childHeight = 0;
-        while (totalSpace > 0 && currentPosition < multiData.getCount() + mPositionOffset) {
-
-            int posInLine = (currentPosition - mPositionOffset) % mSpanCount;
-            left = posInLine * childWidth;
-            right = left + childWidth;
-
-            View view = recycler.getViewForPosition(currentPosition++);
-            MultiLayoutParams params1 = (MultiLayoutParams) view.getLayoutParams();
-            params1.setMultiData(multiData);
-            getLayoutManager().addView(view);
-            getLayoutManager().measureChild(view, childWidth, 0);
-
-            if (childHeight <= 0) {
-                childHeight = getLayoutManager().getDecoratedMeasuredHeight(view);
-            }
-            bottom = top + childHeight;
-
-            Log.d(TAG, "Grid onFillVertical2 currentPosition=" + currentPosition + " left=" + left + " right=" + right + " top=" + top + " bottom=" + bottom + " posInLine=" + posInLine);
-            layoutDecorated(view, left, top, right, bottom);
-
-            if (posInLine == mSpanCount - 1 || currentPosition == multiData.getCount() + mPositionOffset) {
-                top = bottom;
-                totalSpace -= childHeight;
-                childHeight = 0;
-            }
-        }
-
-        mBottom = Math.max(bottom, mTop);
-
-        mChildCount = currentPosition - mPositionOffset + 1;
-        return mChildCount;
-    }
-
     @Override
-    public int onLayoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition, int availableSpace) {
+    public void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition) {
         if (getLayoutManager() == null || multiData.getCount() == 0 || mTop > getLayoutManager().getHeight()) {
             mBottom = mTop;
-            return 0;
+            return;
         }
 
         int left = 0;
@@ -88,8 +38,8 @@ public class GridLayouter extends AbsLayouter {
             right = left + childWidth;
 
             View view = recycler.getViewForPosition(currentPosition++);
-            MultiLayoutParams params1 = (MultiLayoutParams) view.getLayoutParams();
-            params1.setMultiData(multiData);
+            MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
+            params.setMultiData(multiData);
             getLayoutManager().addView(view);
             getLayoutManager().measureChild(view, childWidth, 0);
 
@@ -109,7 +59,7 @@ public class GridLayouter extends AbsLayouter {
 
         mBottom = Math.max(bottom, mTop);
 
-        return 0;
+        return;
     }
 
     @Override

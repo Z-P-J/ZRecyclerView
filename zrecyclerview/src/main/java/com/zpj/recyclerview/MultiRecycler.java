@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 
 import com.zpj.recyclerview.footer.DefaultFooterViewHolder;
+import com.zpj.recyclerview.manager.MultiLayoutManager;
 
 import java.util.List;
 
@@ -139,7 +140,9 @@ public class MultiRecycler extends BaseRecycler<MultiData<?>, MultiRecycler> {
                 mItemTouchHelper.attachToRecyclerView(recyclerView);
             }
         }
-        if (layoutManager == null) {
+        if (layoutManager instanceof MultiLayoutManager) {
+            ((MultiLayoutManager) layoutManager).attachRecycler(recyclerView, mDataSet);
+        } else {
             layoutManager = new GridLayoutManager(recyclerView.getContext(), maxSpan);
         }
         easyAdapter.setAdapterInjector(adapterInjector);
