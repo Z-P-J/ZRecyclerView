@@ -57,7 +57,7 @@ public interface Layouter {
 
     void layoutDecorated(@NonNull View child, int left, int top, int right, int bottom);
 
-    int onLayoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, RecyclerView.State state);
+    int onLayoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition, int availableSpace);
 
     boolean canScrollHorizontally();
 
@@ -70,5 +70,7 @@ public interface Layouter {
     int fillVertical(View anchorView, int dy, RecyclerView.Recycler recycler, State state);
 
     int fillHorizontal(View anchorView, int dx, RecyclerView.Recycler recycler, State state);
+
+    void saveState(int firstPosition, int firstOffset);
 
 }

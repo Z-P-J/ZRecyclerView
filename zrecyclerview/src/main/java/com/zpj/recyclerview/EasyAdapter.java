@@ -248,6 +248,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
                 Log.d(TAG, "onInterceptTouchEvent action=" + MotionEvent.actionToString(motionEvent.getAction()));
                 if (recyclerView.getLayoutManager() instanceof IMultiLayoutManager) {
+                    recyclerView.setOverScrollMode(View.OVER_SCROLL_NEVER);
                     ((IMultiLayoutManager) recyclerView.getLayoutManager()).onTouch(motionEvent);
                 }
                 return false;

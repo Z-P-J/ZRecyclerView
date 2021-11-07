@@ -10,7 +10,6 @@ public class VerticalLayouter extends AbsLayouter {
 
     private static final String TAG = "VerticalLayouter";
 
-    @Override
     public int onLayoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, RecyclerView.State state) {
         if (getLayoutManager() == null || multiData.getCount() == 0 || mTop > getLayoutManager().getHeight()) {
             mChildCount = 0;
@@ -47,6 +46,41 @@ public class VerticalLayouter extends AbsLayouter {
         mBottom = Math.max(bottom, mTop);
         mChildCount = currentPosition - mPositionOffset + 1;
         return mChildCount;
+    }
+
+    @Override
+    public int onLayoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition, int availableSpace) {
+        if (getLayoutManager() == null || multiData.getCount() == 0 || mTop > getLayoutManager().getHeight()) {
+            mBottom = mTop;
+            return 0;
+        }
+
+        int childWidth = getLayoutManager().getWidth() - getLayoutManager().getPaddingLeft() - getLayoutManager().getPaddingRight();
+
+        int left = 0;
+        int top = mTop;
+        int right = 0;
+        int bottom = mTop;
+
+        while (bottom <= getLayoutManager().getHeight() && currentPosition < multiData.getCount() + mPositionOffset) {
+            View view = recycler.getViewForPosition(currentPosition);
+            MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
+            params.setMultiData(multiData);
+            getLayoutManager().addView(view);
+            getLayoutManager().measureChild(view, 0, 0);
+            int measuredHeight = getLayoutManager().getDecoratedMeasuredHeight(view);
+            currentPosition++;
+            availableSpace -= measuredHeight;
+
+            right = left + childWidth;
+            bottom = top + measuredHeight;
+
+            getLayoutManager().layoutDecorated(view, left, top, right, bottom);
+            top = bottom;
+        }
+        mBottom = Math.max(bottom, mTop);
+
+        return 0;
     }
 
     @Override
@@ -163,7 +197,7 @@ public class VerticalLayouter extends AbsLayouter {
             top = bottom;
         }
         mBottom = bottom;
-        return Math.min(dy, dy - availableSpace);
+        return Math.min(dy, dy - availableSpace + (anchorTop - getLayoutManager().getHeight()));
     }
 
     @Override

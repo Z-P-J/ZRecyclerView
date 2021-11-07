@@ -19,7 +19,22 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements IM
 
     private static final String TAG = "MultiLayoutManager";
 
+    private static final int DIRECTION_NONE = 0;
+    private static final int DIRECTION_HORIZONTAL = 1;
+    private static final int DIRECTION_VERTICAL = 2;
+
     private final List<MultiData<?>> multiDataList;
+
+    private int mScrollDirection = DIRECTION_NONE;
+
+    private float mDownX = -1;
+    private float mDownY = -1;
+
+    private int mTopMultiDataIndex;
+    private int mTopPosition;
+    private int mTopOffset;
+    private int mTopPositionOffset;
+    private int mTopChildOffset;
 
     public MultiLayoutManager(List<MultiData<?>> multiDataList) {
         this.multiDataList = multiDataList;
@@ -47,7 +62,34 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements IM
 
     @Override
     public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+        Log.d(TAG, "scrollHorizontallyBy mTopMultiDataIndex=" + mTopMultiDataIndex
+                + " mTopPosition=" + mTopPosition + " mTopOffset=" + mTopOffset + " isPreLayout=" + state.isPreLayout());
+
+        if (getChildCount() == 0 && state.isPreLayout()) {
+            return;
+        }
+
         detachAndScrapAttachedViews(recycler);
+
+        int positionOffset = mTopPositionOffset;
+        Layouter last = null;
+
+        for (int i = mTopMultiDataIndex; i < multiDataList.size(); i++) {
+            MultiData<?> multiData = multiDataList.get(i);
+            Layouter layouter = ((LayouterMultiData) multiData).getLayouter();
+            layouter.setPositionOffset(positionOffset);
+            layouter.setLayoutManager(this);
+            if (last != null) {
+                layouter.setTop(last.getBottom());
+                layouter.onLayoutChildren(multiData, recycler, positionOffset, 0);
+            } else {
+                layouter.setTop(mTopOffset);
+                layouter.onLayoutChildren(multiData, recycler, mTopPosition, 0);
+            }
+            last = layouter;
+            positionOffset += multiData.getCount();
+        }
+
 
 //        int positionOffset = 0;
 //        int childOffset = 0;
@@ -59,7 +101,11 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements IM
 //                layouter.setChildOffset(childOffset);
 //                layouter.setLayoutManager(this);
 //                if (last != null) {
+//                    Log.d(TAG, "onLayoutChildren bottom=" + last.getBottom());
 //                    layouter.setTop(last.getBottom());
+//                } else {
+//                    Log.d(TAG, "onLayoutChildren bottom=00");
+//                    layouter.setTop(0);
 //                }
 //                layouter.setPositionOffset(positionOffset);
 //                int count = layouter.onLayoutChildren(multiData, recycler, state);
@@ -68,78 +114,167 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements IM
 //                childOffset += count;
 //            }
 //        }
-
-
-        int positionOffset = 0;
-        int childOffset = 0;
-        Layouter last = null;
-        for (MultiData<?> multiData : multiDataList) {
-            if (multiData instanceof LayouterMultiData) {
-                Layouter layouter = ((LayouterMultiData) multiData).getLayouter();
-                layouter.setPositionOffset(positionOffset);
-                layouter.setChildOffset(childOffset);
-                layouter.setLayoutManager(this);
-                if (last != null) {
-                    Log.d(TAG, "onLayoutChildren bottom=" + last.getBottom());
-                    layouter.setTop(last.getBottom());
-                } else {
-                    Log.d(TAG, "onLayoutChildren bottom=00");
-                    layouter.setTop(0);
-                }
-                layouter.setPositionOffset(positionOffset);
-                int count = layouter.onLayoutChildren(multiData, recycler, state);
-                last = layouter;
-                positionOffset += multiData.getCount();
-                childOffset += count;
-            }
-        }
-
-        for (int i = 0; i < getChildCount(); i++) {
-            View view = getChildAt(i);
-            if (view == null) {
-                continue;
-            }
-            if (getDecoratedBottom(view) < 0 || getDecoratedTop(view) > getHeight() ) {
-                Log.d(TAG, "onLayoutChildren position=" + getPosition(view));
-                recycleViews.add(view);
-            }
-        }
-        for (View view : recycleViews) {
-            detachAndScrapView(view, recycler);
-        }
-        recycleViews.clear();
+//
+//        for (int i = 0; i < getChildCount(); i++) {
+//            View view = getChildAt(i);
+//            if (view == null) {
+//                continue;
+//            }
+//            if (getDecoratedBottom(view) < 0 || getDecoratedTop(view) > getHeight()) {
+//                Log.d(TAG, "onLayoutChildren position=" + getPosition(view));
+//                recycleViews.add(view);
+//            }
+//        }
+//
+//        recycleViews(recycler);
 
     }
 
     @Override
     public boolean canScrollHorizontally() {
-        return scrollDirection == DIRECTION_HORIZONTAL;
+        return mScrollDirection == DIRECTION_HORIZONTAL;
     }
 
     @Override
     public int scrollHorizontallyBy(int dx, RecyclerView.Recycler recycler, RecyclerView.State state) {
-        if (getChildCount() == 0) {
+        int consumed = 0;
+        View firstChild = getChildAt(0);
+        View lastChild = getChildAt(getChildCount() - 1);
+        if (firstChild == null || lastChild == null) {
             return 0;
         }
-        for (int i = 0; i < getChildCount(); i++) {
-            View view = getChildAt(i);
-            if (view == null) {
-                continue;
-            }
-            MultiData<?> data = ((MultiLayoutParams) view.getLayoutParams()).getMultiData();
-            if (data instanceof LayouterMultiData) {
-                Layouter layouter = ((LayouterMultiData) data).getLayouter();
+        Layouter.State s = new Layouter.State();
+
+        Log.d(TAG, "scrollHorizontallyBy dx=" + dx);
+        MultiData<?> tempMultiData = null;
+        MultiData<?> scrollMultiData = null;
+        int[] location = new int[2];
+        int index = 0;
+        if (dx > 0) {
+            // 从右往左滑动
+            for (int i = getChildCount() - 1; i >= 0; i--) {
+                View view = getChildAt(i);
+                if (view == null) {
+                    continue;
+                }
+                MultiData<?> multiData = ((MultiLayoutParams) view.getLayoutParams()).getMultiData();
+                if (multiData == tempMultiData) {
+                    continue;
+                }
+                tempMultiData = multiData;
+                Layouter layouter = ((LayouterMultiData) multiData).getLayouter();
                 if (layouter.canScrollHorizontally()) {
-                    view.offsetLeftAndRight(-dx);
+
+                    view.getLocationInWindow(location);
+                    if (mDownY < location[1] - getTopDecorationHeight(view)
+                            || mDownY > location[1] - getTopDecorationHeight(view) + getDecoratedMeasuredHeight(view)) {
+                        continue;
+                    }
+
+                    scrollMultiData = multiData;
+                    index = i;
+
+                    s.setMultiData(multiData);
+                    view.setTag(i);
+                    consumed += layouter.fillHorizontal(view, dx, recycler, s);
+                    break;
+                }
+            }
+        } else {
+            // 从左往右滑动
+            for (int i = 0; i < getChildCount(); i++) {
+                View view = getChildAt(i);
+                if (view == null) {
+                    continue;
+                }
+                MultiData<?> multiData = ((MultiLayoutParams) view.getLayoutParams()).getMultiData();
+                if (multiData == tempMultiData) {
+                    continue;
+                }
+                tempMultiData = multiData;
+                Layouter layouter = ((LayouterMultiData) multiData).getLayouter();
+                if (layouter.canScrollHorizontally()) {
+
+                    view.getLocationInWindow(location);
+                    if (mDownY < location[1] - getTopDecorationHeight(view)
+                            || mDownY > location[1] - getTopDecorationHeight(view) + getDecoratedMeasuredHeight(view)) {
+                        continue;
+                    }
+
+                    scrollMultiData = multiData;
+                    index = i;
+                    view.setTag(i);
+
+                    s.setMultiData(multiData);
+                    consumed -= layouter.fillHorizontal(view, dx, recycler, s);
+                    break;
                 }
             }
         }
-        return dx;
+
+        if (scrollMultiData == null) {
+            return 0;
+        }
+
+        Layouter layouter = ((LayouterMultiData) scrollMultiData).getLayouter();
+//        layouter.offsetLeftAndRight(-consumed);
+        if (dx > 0) {
+            // 从右往左滑动
+            for (int i = getChildCount() - 1; i >= 0; i--) {
+                View view = getChildAt(i);
+                if (view == null) {
+                    continue;
+                }
+                MultiData<?> multiData = ((MultiLayoutParams) view.getLayoutParams()).getMultiData();
+                if (multiData != scrollMultiData) {
+                    continue;
+                }
+
+                if (view.getRight() - consumed + getRightDecorationWidth(view) < 0
+                        || view.getLeft() - consumed - getLeftDecorationWidth(view) > getWidth()) {
+                    recycleViews.add(view);
+                } else {
+                    view.offsetLeftAndRight(-consumed);
+                    index = i;
+                }
+            }
+        } else {
+            // 从左往右滑动
+            for (int i = index; i < getChildCount(); i++) {
+                View view = getChildAt(i);
+                if (view == null) {
+                    continue;
+                }
+                MultiData<?> multiData = ((MultiLayoutParams) view.getLayoutParams()).getMultiData();
+                if (multiData != scrollMultiData) {
+                    break;
+                }
+
+                if (view.getRight() - consumed + getRightDecorationWidth(view) < 0
+                        || view.getLeft() - consumed - getLeftDecorationWidth(view) > getWidth()) {
+                    recycleViews.add(view);
+                } else {
+                    view.offsetLeftAndRight(-consumed);
+                }
+            }
+        }
+
+        recycleViews(recycler);
+
+
+        View child = getChildAt(index);
+        if (child != null) {
+            int firstPosition = getPosition(child);
+            int firstOffset = getDecoratedLeft(child);
+            layouter.saveState(firstPosition, firstOffset);
+        }
+
+        return consumed;
     }
 
     @Override
     public boolean canScrollVertically() {
-        return scrollDirection == DIRECTION_VERTICAL;
+        return mScrollDirection == DIRECTION_VERTICAL;
     }
 
     private final List<View> recycleViews = new ArrayList<>();
@@ -215,66 +350,68 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements IM
                 } else {
                     view.offsetTopAndBottom(-consumed);
                 }
-//                if (getDecoratedBottom(view) < 0 || getDecoratedTop(view) > getHeight() ) {
-//                    recycleViews.add(view);
-//                }
-//                if (consumed == 0) {
-//                    if (getDecoratedBottom(view) < 0 || getDecoratedTop(view) > getHeight() ) {
-//                        recycleViews.add(view);
-//                    }
-//                } else if (consumed > 0) {
-//                    // 从下往上滑动
-//                    if (getDecoratedTop(view) > getHeight()) {
-//                        recycleViews.add(view);
-//                    }
-//                } else {
-//                    // 从上往下滑动
-//                    if (getDecoratedBottom(view) < 0) {
-//                        recycleViews.add(view);
-//                    }
-//                }
             }
         }
-        for (View view : recycleViews) {
-            detachAndScrapView(view, recycler);
-        }
-        recycleViews.clear();
+        recycleViews(recycler);
         Log.d(TAG, "scrollVerticallyBy getChildCount=" + getChildCount());
         return consumed;
     }
 
-    private float downX = -1;
-    private float downY = -1;
-    private int scrollDirection = DIRECTION_NONE; // > 0 h;  < 0, v
 
-    private static final int DIRECTION_NONE = 0;
-    private static final int DIRECTION_HORIZONTAL = 1;
-    private static final int DIRECTION_VERTICAL = 2;
 
     @Override
     public void onTouch(MotionEvent event) {
         int action = event.getAction();
 //        Log.d(TAG, "onTouch action=" + MotionEvent.actionToString(action));
         if (MotionEvent.ACTION_DOWN == action) {
-            scrollDirection = DIRECTION_NONE;
-            downX = event.getRawX();
-            downY = event.getRawY();
+            mScrollDirection = DIRECTION_NONE;
+            mDownX = event.getRawX();
+            mDownY = event.getRawY();
         } else if (MotionEvent.ACTION_MOVE == action) {
-            if (scrollDirection == 0) {
-                float deltaX = event.getRawX() - downX;
-                float deltaY = event.getRawY() - downY;
+            if (mScrollDirection == 0) {
+                float deltaX = event.getRawX() - mDownX;
+                float deltaY = event.getRawY() - mDownY;
                 float radio = Math.abs(deltaX / deltaY);
                 if (radio == 1f) {
                     return;
                 }
                 if (radio > 1f) {
-                    scrollDirection = DIRECTION_HORIZONTAL;
+                    mScrollDirection = DIRECTION_HORIZONTAL;
                 } else {
-                    scrollDirection = DIRECTION_VERTICAL;
+                    mScrollDirection = DIRECTION_VERTICAL;
                 }
             }
-        } else if (MotionEvent.ACTION_UP == action || MotionEvent.ACTION_CANCEL == action) {
-
         }
     }
+
+    private void recycleViews(RecyclerView.Recycler recycler) {
+        for (View view : recycleViews) {
+            detachAndScrapView(view, recycler);
+        }
+        recycleViews.clear();
+
+        saveState();
+    }
+
+    private void saveState() {
+        View firstView = getChildAt(0);
+        if (firstView == null) {
+            mTopPositionOffset = 0;
+            mTopChildOffset = 0;
+            mTopMultiDataIndex = 0;
+            mTopPosition = 0;
+            mTopOffset = 0;
+        } else {
+            MultiData<?> data = ((MultiLayoutParams) firstView.getLayoutParams()).getMultiData();
+            Layouter layouter = ((LayouterMultiData) data).getLayouter();
+            mTopPositionOffset = layouter.getPositionOffset();
+            mTopChildOffset = layouter.getChildOffset();
+            mTopMultiDataIndex = multiDataList.indexOf(data);
+            mTopPosition = getPosition(firstView);
+            mTopOffset = getDecoratedTop(firstView);
+        }
+    }
+
+
+
 }

@@ -38,9 +38,20 @@ public class LayoutManagerActivity extends AppCompatActivity {
         }
 
         List<MultiData<?>> multiDataList = new ArrayList<>();
+        multiDataList.add(new LayouterMultiData(list, new HorizontalLayouter()) {
+            @Override
+            public int getLayoutId() {
+                return R.layout.item_text_grid;
+            }
+        });
         multiDataList.add(new LayouterMultiData(list, new VerticalLayouter()));
         multiDataList.add(new LayouterMultiData(list, new GridLayouter(2)));
-        multiDataList.add(new LayouterMultiData(list, new HorizontalLayouter()));
+        multiDataList.add(new LayouterMultiData(list, new HorizontalLayouter()) {
+            @Override
+            public int getLayoutId() {
+                return R.layout.item_text_grid;
+            }
+        });
         multiDataList.add(new LayouterMultiData(list, new VerticalLayouter()));
         multiDataList.add(new LayouterMultiData(list, new GridLayouter(3)));
 

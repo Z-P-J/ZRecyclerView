@@ -131,4 +131,9 @@ public abstract class AbsLayouter implements Layouter {
     public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state) {
         return 0;
     }
+
+    @Override
+    public void saveState(int firstPosition, int firstOffset) {
+
+    }
 }
