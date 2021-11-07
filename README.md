@@ -191,9 +191,9 @@ public boolean loadData() {
 
 
 
-## 4. Layouter的使用（TODO完善文档，可参考[LayoutManagerActivity](https://github.com/Z-P-J/ZRecyclerView/blob/master/app/src/main/java/com/zpj/recycler/demo/LayoutManagerActivity.java)）
+## 5. Layouter的使用（TODO完善文档，可参考[LayoutManagerActivity](https://github.com/Z-P-J/ZRecyclerView/blob/master/app/src/main/java/com/zpj/recycler/demo/LayoutManagerActivity.java)）
 
-#### 4.1 什么是Layouter?
+#### 5.1 什么是Layouter?
 
 为了只通过一个RecyclerView实现以前需要嵌套RecyclerView才能实现的复杂布局，新增了自定义的MultiLayoutManager和Layouter，其中Layouter代理MultiLayoutManager的布局、填充的子view的功能，需结合MultiRecycler和MultiData使用。
 

@@ -58,8 +58,6 @@ public class HorizontalLayouter extends AbsLayouter {
         }
 
         mBottom = Math.max(bottom, mTop);
-
-        return;
     }
 
     @Override
@@ -68,32 +66,8 @@ public class HorizontalLayouter extends AbsLayouter {
     }
 
     @Override
-    public int scrollHorizontallyBy(int dx, RecyclerView.Recycler recycler, RecyclerView.State state) {
-        for (int i = 0; i < 5; i++) {
-            View view = getLayoutManager().getChildAt(i);
-            if (view == null) {
-                continue;
-            }
-            view.offsetLeftAndRight(-dx);
-        }
-        return dx;
-    }
-
-    @Override
     public boolean canScrollVertically() {
         return true;
-    }
-
-    @Override
-    public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state) {
-        for (int i = 0; i < 5; i++) {
-            View view = getLayoutManager().getChildAt(i);
-            if (view == null) {
-                continue;
-            }
-            view.offsetTopAndBottom(-dy);
-        }
-        return dy;
     }
 
     @Override
@@ -129,8 +103,7 @@ public class HorizontalLayouter extends AbsLayouter {
                     mFirstPosition = mPositionOffset;
                 }
                 Log.d(TAG, "fillVertical222 mFirstPosition=" + mFirstPosition + " mFirstOffset=" + mFirstOffset);
-                int consumed = onFillVertical(recycler, state, mFirstPosition, dy, getBottom());
-                return consumed;
+                return onFillVertical(recycler, state, mFirstPosition, dy, getBottom());
             } else {
                 // 如果占用两行则需要以下代码
                 int anchorTop = getLayoutManager().getDecoratedTop(anchorView);

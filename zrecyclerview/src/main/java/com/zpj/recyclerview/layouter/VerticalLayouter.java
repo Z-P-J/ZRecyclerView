@@ -39,25 +39,16 @@ public class VerticalLayouter extends AbsLayouter {
             top = bottom;
         }
         mBottom = Math.max(bottom, mTop);
+    }
 
-        return;
+    @Override
+    public boolean canScrollHorizontally() {
+        return false;
     }
 
     @Override
     public boolean canScrollVertically() {
         return true;
-    }
-
-    @Override
-    public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state) {
-        for (int i = 5; i < 10; i++) {
-            View view = getLayoutManager().getChildAt(i);
-            if (view == null) {
-                continue;
-            }
-            view.offsetTopAndBottom(-dy);
-        }
-        return dy;
     }
 
     @Override
@@ -83,10 +74,9 @@ public class VerticalLayouter extends AbsLayouter {
         } else {
             // 从上往下滑动
             if (anchorView == null) {
-                int consumed = onFillVertical(recycler, state,
+                return onFillVertical(recycler, state,
                         mPositionOffset + state.getMultiData().getCount() - 1,
                         dy, getBottom());
-                return consumed;
             } else {
                 int anchorTop = getLayoutManager().getDecoratedTop(anchorView);
                 if (anchorTop < 0) {
@@ -97,8 +87,7 @@ public class VerticalLayouter extends AbsLayouter {
                         if (anchorPosition == mPositionOffset) {
                             return -anchorTop;
                         }
-                        int consumed = onFillVertical(recycler, state, anchorPosition - 1, dy, anchorTop);
-                        return consumed;
+                        return onFillVertical(recycler, state, anchorPosition - 1, dy, anchorTop);
                     }
                 }
             }

@@ -11,6 +11,7 @@ import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.SingleTypeMultiData;
+import com.zpj.recyclerview.layouter.FlowLayouter;
 import com.zpj.recyclerview.layouter.GridLayouter;
 import com.zpj.recyclerview.layouter.HorizontalLayouter;
 import com.zpj.recyclerview.layouter.Layouter;
@@ -18,9 +19,15 @@ import com.zpj.recyclerview.layouter.VerticalLayouter;
 import com.zpj.recyclerview.manager.MultiLayoutManager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class LayoutManagerActivity extends AppCompatActivity {
+
+    private final Integer[] flowArray = {
+            1000000000, 10, 1000000, 1000, 10000, 1, 10, 10000000, 100, 1000000000, 100
+    };
 
     private MultiRecycler mRecycler;
 
@@ -34,7 +41,31 @@ public class LayoutManagerActivity extends AppCompatActivity {
             list.add(i);
         }
 
+        List<Integer> flowList = new ArrayList<>();
+
+        for (int i = 0; i < 100; i++) {
+            flowList.addAll(Arrays.asList(flowArray));
+        }
+
         List<MultiData<?>> multiDataList = new ArrayList<>();
+        multiDataList.add(new LayouterMultiData(flowList, new FlowLayouter()) {
+            @Override
+            public int getLayoutId() {
+                return R.layout.item_flow;
+            }
+
+            @Override
+            public void onBindViewHolder(final EasyViewHolder holder, List<Integer> list, int position, List<Object> payloads) {
+                holder.setText(R.id.tv_text, "第" + list.get(position) + "个");
+                final int data = list.get(position);
+                holder.setOnItemClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Toast.makeText(holder.getContext(), "" + data, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
         multiDataList.add(new LayouterMultiData(list, new HorizontalLayouter()) {
             @Override
             public int getLayoutId() {

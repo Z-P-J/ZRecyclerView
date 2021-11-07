@@ -61,11 +61,11 @@ public interface Layouter {
 
     boolean canScrollHorizontally();
 
-    int scrollHorizontallyBy(int dx, RecyclerView.Recycler recycler, RecyclerView.State state);
+//    int scrollHorizontallyBy(int dx, RecyclerView.Recycler recycler, RecyclerView.State state);
 
     boolean canScrollVertically();
 
-    int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state);
+//    int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state);
 
     int fillVertical(View anchorView, int dy, RecyclerView.Recycler recycler, State state);
 

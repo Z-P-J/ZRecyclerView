@@ -113,26 +113,6 @@ public abstract class AbsLayouter implements Layouter {
     }
 
     @Override
-    public boolean canScrollHorizontally() {
-        return false;
-    }
-
-    @Override
-    public int scrollHorizontallyBy(int dx, RecyclerView.Recycler recycler, RecyclerView.State state) {
-        return 0;
-    }
-
-    @Override
-    public boolean canScrollVertically() {
-        return false;
-    }
-
-    @Override
-    public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state) {
-        return 0;
-    }
-
-    @Override
     public void saveState(int firstPosition, int firstOffset) {
 
     }

@@ -58,25 +58,16 @@ public class GridLayouter extends AbsLayouter {
         }
 
         mBottom = Math.max(bottom, mTop);
+    }
 
-        return;
+    @Override
+    public boolean canScrollHorizontally() {
+        return false;
     }
 
     @Override
     public boolean canScrollVertically() {
         return true;
-    }
-
-    @Override
-    public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state) {
-//        for (int i = 10; i < 16; i++) {
-//            View view = getLayoutManager().getChildAt(i);
-//            if (view == null) {
-//                continue;
-//            }
-//            view.offsetTopAndBottom(-dy);
-//        }
-        return 0;
     }
 
     @Override
