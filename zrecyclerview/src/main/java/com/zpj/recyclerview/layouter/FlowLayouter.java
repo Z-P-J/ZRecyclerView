@@ -188,36 +188,11 @@ public class FlowLayouter extends AbsLayouter {
 
         initStates(multiData, recycler);
 
-//        while (availableSpace > 0 && currentPosition < state.getMultiData().getCount() + mPositionOffset) {
-//            View view = recycler.getViewForPosition(currentPosition++);
-//            MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
-//            params.setMultiData(state.getMultiData());
-//            getLayoutManager().addView(view);
-//            getLayoutManager().measureChild(view, 0, 0);
-//            int measuredWidth = getLayoutManager().getDecoratedMeasuredWidth(view);
-//            int measuredHeight = getLayoutManager().getDecoratedMeasuredHeight(view);
-//
-//            right = left + measuredWidth;
-//            if (right > getLayoutManager().getWidth()) {
-//                left = 0;
-//                right = measuredWidth;
-//                top = bottom;
-//            }
-//            if (left == 0) {
-//                availableSpace -= measuredHeight;
-//            }
-//            bottom = top + measuredHeight;
-//
-//            layoutDecorated(view, left, top, right, bottom);
-//            left = right;
-//        }
-//        mBottom = Math.max(bottom, mTop);
-//        return Math.min(dy, dy - availableSpace + (anchorTop - getLayoutManager().getHeight()));
+        int key = currentPosition - mPositionOffset;
+        ItemState itemState = states.get(key);
+        int row = itemState.row;
+        while (itemState != null && availableSpace > 0 && currentPosition < multiData.getCount() + mPositionOffset) {
 
-        int row = -1;
-        while (availableSpace > 0 && currentPosition < multiData.getCount() + mPositionOffset) {
-            int key = currentPosition - mPositionOffset;
-            ItemState itemState = states.get(key);
             if (row < 0) {
                 row = itemState.row;
             }
@@ -234,11 +209,15 @@ public class FlowLayouter extends AbsLayouter {
             if (row != itemState.row) {
                 row = itemState.row;
                 top = bottom;
-                availableSpace -= itemState.height;
             }
             bottom = top + itemState.height;
 
             layoutDecorated(view, left, top, right, bottom);
+
+            itemState = states.get(currentPosition - mPositionOffset);
+            if (itemState == null || itemState.row != row) {
+                availableSpace -= (bottom - top);
+            }
 
         }
         mBottom = Math.max(bottom, mTop);

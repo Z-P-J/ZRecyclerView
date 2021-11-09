@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Toast;
 
+import com.zpj.recycler.demo.mutildata.BaseHeaderMultiData;
 import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
@@ -17,6 +18,7 @@ import com.zpj.recyclerview.layouter.HorizontalLayouter;
 import com.zpj.recyclerview.layouter.Layouter;
 import com.zpj.recyclerview.layouter.VerticalLayouter;
 import com.zpj.recyclerview.manager.MultiLayoutManager;
+import com.zpj.recyclerview.refresh.IRefresher;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,6 +50,7 @@ public class LayoutManagerActivity extends AppCompatActivity {
         }
 
         List<MultiData<?>> multiDataList = new ArrayList<>();
+        multiDataList.add(new TestErrorStringMultiData(new VerticalLayouter()));
         multiDataList.add(new LayouterMultiData(flowList, new FlowLayouter()) {
             @Override
             public int getLayoutId() {
@@ -66,6 +69,7 @@ public class LayoutManagerActivity extends AppCompatActivity {
                 });
             }
         });
+        multiDataList.add(new TestErrorStringMultiData(new GridLayouter(2)));
         multiDataList.add(new LayouterMultiData(list, new HorizontalLayouter()) {
             @Override
             public int getLayoutId() {
@@ -85,7 +89,30 @@ public class LayoutManagerActivity extends AppCompatActivity {
 
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
         mRecycler = new MultiRecycler(recyclerView, multiDataList);
-        mRecycler.setLayoutManager(new MultiLayoutManager()).build();
+        mRecycler.setLayoutManager(new MultiLayoutManager())
+                .onRefresh(new IRefresher.OnRefreshListener() {
+                    @Override
+                    public void onRefresh(IRefresher refresher) {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    Thread.sleep(1000);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(LayoutManagerActivity.this, "刷新成功！", Toast.LENGTH_SHORT).show();
+                                        mRecycler.notifyDataSetChanged();
+                                    }
+                                });
+                            }
+                        }).start();
+                    }
+                })
+                .build();
     }
 
     public static class LayouterMultiData extends SingleTypeMultiData<Integer> {
@@ -123,6 +150,46 @@ public class LayoutManagerActivity extends AppCompatActivity {
                     holder.getContext().startActivity(new Intent(holder.getContext(), MultiDataActivity.class));
 //                        startActivity(new Intent(MainActivity.this, StateActivity3.class));
                     Toast.makeText(holder.getContext(), "第" + data + "个", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+    }
+
+    public static class TestErrorStringMultiData extends LayouterMultiData {
+
+        public TestErrorStringMultiData(Layouter layouter) {
+            super(layouter);
+            hasMore = false;
+            showError();
+        }
+
+        @Override
+        public boolean loadData() {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(10000);
+                        for (int i = 0; i < 16; i++) {
+                            mData.add(i);
+                        }
+                        showContent();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+            return false;
+        }
+
+        @Override
+        public void onBindViewHolder(final EasyViewHolder holder, List<Integer> list, final int position, List<Object> payloads) {
+            holder.setText(R.id.tv_text, "StringData position=" + position);
+            holder.setOnItemClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(v.getContext(), "StringData position=" + position, Toast.LENGTH_SHORT).show();
                 }
             });
         }

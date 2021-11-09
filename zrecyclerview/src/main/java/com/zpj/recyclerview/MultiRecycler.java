@@ -141,7 +141,7 @@ public class MultiRecycler extends BaseRecycler<MultiData<?>, MultiRecycler> {
             }
         }
         if (layoutManager instanceof MultiLayoutManager) {
-            ((MultiLayoutManager) layoutManager).attachRecycler(recyclerView, mDataSet);
+            ((MultiLayoutManager) layoutManager).attachRecycler(this);
         } else {
             layoutManager = new GridLayoutManager(recyclerView.getContext(), maxSpan);
         }

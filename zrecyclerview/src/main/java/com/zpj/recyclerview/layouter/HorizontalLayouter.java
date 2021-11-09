@@ -11,12 +11,12 @@ public class HorizontalLayouter extends AbsLayouter {
 
     private static final String TAG = "HorizontalLayouter";
 
-    private int mFirstPosition = -1;
+    private int mFirstPosition = 0;
     private int mFirstOffset;
 
     @Override
     public void saveState(int firstPosition, int firstOffset) {
-        this.mFirstPosition = firstPosition;
+        this.mFirstPosition = Math.max(0, firstPosition - mPositionOffset);
         this.mFirstOffset = firstOffset;
     }
 
@@ -27,11 +27,7 @@ public class HorizontalLayouter extends AbsLayouter {
             return;
         }
 
-        if (mFirstPosition < 0) {
-            mFirstPosition = mPositionOffset;
-        }
-
-        currentPosition = mFirstPosition;
+        currentPosition = mFirstPosition + mPositionOffset;
 
         int left = Math.min(0, mFirstOffset);
         int top = mTop;
@@ -75,11 +71,7 @@ public class HorizontalLayouter extends AbsLayouter {
         if (dy > 0) {
             // 从下往上滑动
             if (anchorView == null) {
-                if (mFirstPosition < 0) {
-                    mFirstPosition = mPositionOffset;
-                }
-                Log.d(TAG, "fillVertical mFirstPosition=" + mFirstPosition + " mFirstOffset=" + mFirstOffset);
-                return onFillVertical2(recycler, state, mFirstPosition, dy, getTop());
+                return onFillVertical2(recycler, state, mFirstPosition + mPositionOffset, dy, getTop());
             } else {
                 // 如果占用两行则需要以下代码
                 int anchorBottom = getLayoutManager().getDecoratedTop(anchorView);
@@ -99,11 +91,7 @@ public class HorizontalLayouter extends AbsLayouter {
         } else {
             // 从上往下滑动
             if (anchorView == null) {
-                if (mFirstPosition < 0) {
-                    mFirstPosition = mPositionOffset;
-                }
-                Log.d(TAG, "fillVertical222 mFirstPosition=" + mFirstPosition + " mFirstOffset=" + mFirstOffset);
-                return onFillVertical(recycler, state, mFirstPosition, dy, getBottom());
+                return onFillVertical(recycler, state, mFirstPosition + mPositionOffset, dy, getBottom());
             } else {
                 // 如果占用两行则需要以下代码
                 int anchorTop = getLayoutManager().getDecoratedTop(anchorView);

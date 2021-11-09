@@ -157,6 +157,16 @@ public class BaseRecycler<T, R extends BaseRecycler<T, R>> extends EasyStateConf
         return self();
     }
 
+    public R addOnItemTouchListener(RecyclerView.OnItemTouchListener listener) {
+        this.recyclerView.addOnItemTouchListener(listener);
+        return self();
+    }
+
+    public R addOnChildAttachStateChangeListener(RecyclerView.OnChildAttachStateChangeListener listener) {
+        this.recyclerView.addOnChildAttachStateChangeListener(listener);
+        return self();
+    }
+
     public R setItemViewCacheSize(int size) {
         recyclerView.setItemViewCacheSize(size);
         return self();
@@ -740,6 +750,10 @@ public class BaseRecycler<T, R extends BaseRecycler<T, R>> extends EasyStateConf
             return false;
         }
         return mRefresher.isRefreshing();
+    }
+
+    public IRefresher getRefresher() {
+        return mRefresher;
     }
 
     public void setRefreshing(boolean refreshing) {

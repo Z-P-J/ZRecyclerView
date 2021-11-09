@@ -266,7 +266,7 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
         mAdapter.post(new Runnable() {
             @Override
             public void run() {
-                if (mAdapter.footerViewHolder != null) {
+                if (mAdapter.footerViewHolder != null && mAdapter.footerViewHolder.getView() != null) {
                     mAdapter.footerViewHolder.getView().performClick();
                 }
             }
