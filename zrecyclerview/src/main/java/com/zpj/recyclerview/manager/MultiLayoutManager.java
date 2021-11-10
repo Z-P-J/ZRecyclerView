@@ -144,22 +144,6 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
 
         saveState();
 
-//        for (int i = mTopMultiDataIndex; i < multiDataList.size(); i++) {
-//            MultiData<?> multiData = multiDataList.get(i);
-//            Layouter layouter = multiData.getLayouter();
-//            layouter.setPositionOffset(positionOffset);
-//            layouter.setLayoutManager(this);
-//            if (last != null) {
-//                layouter.setTop(last.getBottom());
-//                layouter.layoutChildren(multiData, recycler, positionOffset);
-//            } else {
-//                layouter.setTop(mTopOffset);
-//                layouter.layoutChildren(multiData, recycler, mTopPosition);
-//            }
-//            last = layouter;
-//            positionOffset += multiData.getCount();
-//        }
-
     }
 
     @Override
@@ -179,7 +163,6 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
         if (firstChild == null || lastChild == null) {
             return 0;
         }
-        Layouter.State s = new Layouter.State();
 
         Log.d(TAG, "scrollHorizontallyBy dx=" + dx);
         MultiData<?> tempMultiData = null;
@@ -210,9 +193,8 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
                     scrollMultiData = multiData;
                     index = i;
 
-                    s.setMultiData(multiData);
                     view.setTag(i);
-                    consumed += layouter.fillHorizontal(view, dx, recycler, s);
+                    consumed += layouter.fillHorizontal(view, dx, recycler, multiData);
                     break;
                 }
             }
@@ -240,9 +222,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
                     scrollMultiData = multiData;
                     index = i;
                     view.setTag(i);
-
-                    s.setMultiData(multiData);
-                    consumed -= layouter.fillHorizontal(view, dx, recycler, s);
+                    consumed -= layouter.fillHorizontal(view, dx, recycler, multiData);
                     break;
                 }
             }
@@ -301,7 +281,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
         View child = getChildAt(index);
         if (child != null) {
             int firstPosition = getPosition(child);
-            int firstOffset = getDecoratedLeft(child);
+            int firstOffset = layouter.getDecoratedLeft(child);
             layouter.saveState(firstPosition, firstOffset);
         }
 
@@ -323,16 +303,11 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
 
         int consumed = 0;
 
-        Layouter.State s = new Layouter.State();
         Log.d(TAG, "scrollVerticalBy dy=" + dy);
 
         if (dy < 0) {
             // 从上往下滑动
             int i = 0;
-//            View firstChild = getChildAt(i);
-//            if (firstChild == null) {
-//                return 0;
-//            }
             MultiData<?> multiData;
             View view;
             do {
@@ -344,17 +319,15 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
                 i++;
             } while (multiData == null);
             Layouter layouter = multiData.getLayouter();
-            s.setMultiData(multiData);
             Log.d(TAG, "scrollVerticallyBy firstChildPosition=" + getPosition(view));
-            consumed -= layouter.fillVertical(view, dy - consumed, recycler, s);
+            consumed -= layouter.fillVertical(view, dy - consumed, recycler, multiData);
             i = multiDataList.indexOf(multiData);
             while (consumed > dy && i > 0) {
                 int top = layouter.getTop();
                 multiData = multiDataList.get(--i);
                 layouter = multiData.getLayouter();
                 layouter.setBottom(top);
-                s.setMultiData(multiData);
-                consumed -= layouter.fillVertical(null, dy - consumed, recycler, s);
+                consumed -= layouter.fillVertical(null, dy - consumed, recycler, multiData);
             }
         } else {
             // 从下往上滑动
@@ -370,15 +343,8 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
                 multiData = ((MultiLayoutParams) view.getLayoutParams()).getMultiData();
                 i--;
             } while (multiData == null);
-
-//            View lastChild = getChildAt(getChildCount() - 1);
-//            if (lastChild == null) {
-//                return 0;
-//            }
-//            MultiData<?> multiData = ((MultiLayoutParams) lastChild.getLayoutParams()).getMultiData();
             Layouter layouter = multiData.getLayouter();
-            s.setMultiData(multiData);
-            consumed += layouter.fillVertical(view, dy - consumed, recycler, s);
+            consumed += layouter.fillVertical(view, dy - consumed, recycler, multiData);
             i = multiDataList.indexOf(multiData);
             Log.d(TAG, "scrollVerticalBy consumedLast=" + consumed + " i=" + i + " lastPosition=" + getPosition(view));
             while (consumed < dy && i < multiDataList.size() - 1) {
@@ -387,8 +353,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
                 layouter = multiData.getLayouter();
                 Log.d(TAG, "scrollVerticalBy layouter=" + layouter);
                 layouter.setTop(bottom);
-                s.setMultiData(multiData);
-                consumed += layouter.fillVertical(null, dy - consumed, recycler, s);
+                consumed += layouter.fillVertical(null, dy - consumed, recycler, multiData);
             }
         }
 
@@ -407,18 +372,21 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
                     layouter.offsetTopAndBottom(-consumed);
                     last = data;
                 }
-                if (!layouter.canScrollVertically()) {
-                    continue;
+                if (layouter.canScrollVertically()) {
+                    if (layouter.getDecoratedBottom(view) - consumed < 0
+                            || layouter.getDecoratedTop(view) - consumed > getHeight()) {
+                        recycleViews.add(view);
+                    } else {
+                        view.offsetTopAndBottom(-consumed);
+                    }
                 }
             } else {
-                view.offsetTopAndBottom(-consumed);
-            }
-
-            if (view.getBottom() - consumed + getBottomDecorationHeight(view) < 0
-                    || view.getTop() - consumed - getTopDecorationHeight(view) > getHeight()) {
-                recycleViews.add(view);
-            } else {
-                view.offsetTopAndBottom(-consumed);
+                if (getDecoratedBottom(view) - consumed < 0
+                        || getDecoratedTop(view) - consumed > getHeight()) {
+                    recycleViews.add(view);
+                } else {
+                    view.offsetTopAndBottom(-consumed);
+                }
             }
         }
         recycleViews(recycler);
@@ -438,6 +406,11 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
         }
         recycleViews.clear();
 
+        List<RecyclerView.ViewHolder> scrapList = recycler.getScrapList();
+        for (int i = 0; i < scrapList.size(); i++) {
+            removeAndRecycleView(scrapList.get(i).itemView, recycler);
+        }
+
         saveState();
     }
 
@@ -455,9 +428,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
             Layouter layouter = data.getLayouter();
             mTopMultiDataIndex = multiDataList.indexOf(data);
             mTopPosition = getPosition(firstView) - layouter.getPositionOffset();
-            mTopOffset = getDecoratedTop(firstView);
-
-
+            mTopOffset = layouter.getDecoratedTop(firstView);
         }
     }
 

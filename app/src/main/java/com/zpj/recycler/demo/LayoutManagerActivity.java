@@ -51,7 +51,7 @@ public class LayoutManagerActivity extends AppCompatActivity {
 
         List<MultiData<?>> multiDataList = new ArrayList<>();
         multiDataList.add(new TestErrorStringMultiData(new VerticalLayouter()));
-        multiDataList.add(new LayouterMultiData(flowList, new FlowLayouter()) {
+        multiDataList.add(new LayouterMultiData(flowList, new FlowLayouter(20)) {
             @Override
             public int getLayoutId() {
                 return R.layout.item_flow;

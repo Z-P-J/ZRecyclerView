@@ -1,5 +1,6 @@
 package com.zpj.recyclerview.layouter;
 
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.SparseArray;
@@ -12,74 +13,14 @@ public class FlowLayouter extends AbsLayouter {
 
     private static final String TAG = "FlowLayouter";
 
-    @Override
-    public void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition) {
-        if (getLayoutManager() == null || multiData.getCount() == 0 || mTop > getLayoutManager().getHeight()) {
-            mBottom = mTop;
-            return;
-        }
+    private final SparseArray<ItemState> states = new SparseArray<>();
 
-        initStates(multiData, recycler);
+    private int mMaxRow;
 
-        onFillVertical2(recycler, multiData, currentPosition, getLayoutManager().getHeight() - mTop, mTop);
-
-    }
-
-    @Override
-    public boolean canScrollHorizontally() {
-        return false;
-    }
-
-    @Override
-    public boolean canScrollVertically() {
-        return true;
-    }
-
-    @Override
-    public int fillVertical(View anchorView, int dy, RecyclerView.Recycler recycler, State state) {
-        if (dy > 0) {
-            // 从下往上滑动
-            if (anchorView == null) {
-                return onFillVertical2(recycler, state.getMultiData(), mPositionOffset, dy, mTop);
-            } else {
-                int anchorBottom = getLayoutManager().getDecoratedBottom(anchorView);
-                if (anchorBottom > getLayoutManager().getHeight()) {
-                    if (anchorBottom - dy > getLayoutManager().getHeight()) {
-                        return dy;
-                    } else {
-                        int anchorPosition = getLayoutManager().getPosition(anchorView);
-                        if (anchorPosition == mPositionOffset + state.getMultiData().getCount() - 1) {
-                            return anchorBottom - getLayoutManager().getHeight();
-                        }
-                        return onFillVertical2(recycler, state.getMultiData(), anchorPosition + 1, dy, anchorBottom);
-                    }
-                }
-            }
-        } else {
-            // 从上往下滑动
-            if (anchorView == null) {
-                return onFillVertical(recycler, state,
-                        mPositionOffset + state.getMultiData().getCount() - 1,
-                        dy, getBottom());
-            } else {
-                int anchorTop = getLayoutManager().getDecoratedTop(anchorView);
-                if (anchorTop < 0) {
-                    if (anchorTop - dy < 0) {
-                        return -dy;
-                    } else {
-                        int anchorPosition = getLayoutManager().getPosition(anchorView);
-                        if (anchorPosition == mPositionOffset) {
-                            return -anchorTop;
-                        }
-                        return onFillVertical(recycler, state, anchorPosition - 1, dy, anchorTop);
-                    }
-                }
-            }
-        }
-        return 0;
-    }
-
-    SparseArray<ItemState> states = new SparseArray<>();
+    private int mSpaceLeft;
+    private int mSpaceTop;
+    private int mSpaceRight;
+    private int mSpaceBottom;
 
     private static class ItemState {
         int row;
@@ -100,12 +41,138 @@ public class FlowLayouter extends AbsLayouter {
         }
     }
 
+    public FlowLayouter() {
+        this(0);
+    }
+
+    public FlowLayouter(int space) {
+        this(space, space);
+    }
+
+    public FlowLayouter(int spaceHorizontal, int spaceVertical) {
+        this(spaceHorizontal, spaceVertical, spaceHorizontal, spaceVertical);
+    }
+
+    public FlowLayouter(int spaceLeft, int spaceTop, int spaceRight, int spaceBottom) {
+        this.mSpaceLeft = spaceLeft;
+        this.mSpaceTop = spaceTop;
+        this.mSpaceRight = spaceRight;
+        this.mSpaceBottom = spaceBottom;
+    }
+
+    public int getSpaceLeft() {
+        return mSpaceLeft;
+    }
+
+    public int getSpaceTop() {
+        return mSpaceTop;
+    }
+
+    public int getSpaceRight() {
+        return mSpaceRight;
+    }
+
+    public int getSpaceBottom() {
+        return mSpaceBottom;
+    }
+
+    @Override
+    public int getDecoratedLeft(@NonNull View child) {
+//        ItemState itemState = states.get(getPosition(child) - mPositionOffset);
+//        if (itemState.offsetX == mSpaceLeft + mSpaceRight) {
+//            return 0;
+//        }
+        return super.getDecoratedLeft(child) - mSpaceLeft;
+    }
+
+    @Override
+    public int getDecoratedTop(@NonNull View child) {
+//        ItemState itemState = states.get(getPosition(child) - mPositionOffset);
+//        if (itemState.row == 0) {
+//            return super.getDecoratedTop(child) - mSpaceTop - mSpaceBottom;
+//        }
+        return super.getDecoratedTop(child) - mSpaceTop;
+    }
+
+    @Override
+    public int getDecoratedRight(@NonNull View child) {
+//        ItemState itemState = states.get(getPosition(child) - mPositionOffset);
+//        if (itemState != null) {
+//            return itemState.offsetX + itemState.width + mSpaceRight;
+//        }
+        return super.getDecoratedRight(child) + mSpaceRight;
+    }
+
+    @Override
+    public int getDecoratedBottom(@NonNull View child) {
+//        ItemState itemState = states.get(getPosition(child) - mPositionOffset);
+//        if (itemState.row == 0) {
+//            super.getDecoratedTop(child) + mSpaceTop + mSpaceBottom;
+//        }
+        return super.getDecoratedBottom(child) + mSpaceBottom;
+    }
+
+    @Override
+    public boolean canScrollHorizontally() {
+        return false;
+    }
+
+    @Override
+    public boolean canScrollVertically() {
+        return true;
+    }
+
+    @Override
+    public int fillVertical(View anchorView, int dy, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+        if (dy > 0) {
+            // 从下往上滑动
+            if (anchorView == null) {
+                return onFillVertical2(recycler, multiData, mPositionOffset, dy, mTop);
+            } else {
+                int anchorBottom = getDecoratedBottom(anchorView);
+                if (anchorBottom > getLayoutManager().getHeight()) {
+                    Log.d(TAG, "anchorBottom=" + anchorBottom + " height=" + getLayoutManager().getHeight());
+                    if (anchorBottom - dy > getLayoutManager().getHeight()) {
+                        return dy;
+                    } else {
+                        int anchorPosition = getLayoutManager().getPosition(anchorView);
+                        if (anchorPosition == mPositionOffset + multiData.getCount() - 1) {
+                            return anchorBottom - getLayoutManager().getHeight();
+                        }
+                        return onFillVertical2(recycler, multiData, anchorPosition + 1, dy, anchorBottom);
+                    }
+                }
+            }
+        } else {
+            // 从上往下滑动
+            if (anchorView == null) {
+                return onFillVertical(recycler, multiData,
+                        mPositionOffset + multiData.getCount() - 1,
+                        dy, getBottom());
+            } else {
+                int anchorTop = getDecoratedTop(anchorView);
+                if (anchorTop < 0) {
+                    if (anchorTop - dy < 0) {
+                        return -dy;
+                    } else {
+                        int anchorPosition = getLayoutManager().getPosition(anchorView);
+                        if (anchorPosition == mPositionOffset) {
+                            return -anchorTop;
+                        }
+                        return onFillVertical(recycler, multiData, anchorPosition - 1, dy, anchorTop);
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+
     private void initStates(MultiData<?> multiData, RecyclerView.Recycler recycler) {
         if (states.size() == multiData.getCount()) {
             return;
         }
         int row = 0;
-        int offsetX = 0;
+        int offsetX = mSpaceLeft;
         int offsetY = 0;
         for (int i = 0; i < multiData.getCount(); i++) {
             View view = recycler.getViewForPosition(i + mPositionOffset);
@@ -113,8 +180,8 @@ public class FlowLayouter extends AbsLayouter {
             int childWidth = getLayoutManager().getDecoratedMeasuredWidth(view);
             int childHeight = getLayoutManager().getDecoratedMeasuredHeight(view);
 
-            if (offsetX + childWidth > getLayoutManager().getWidth()) {
-                offsetX = 0;
+            if (offsetX + childWidth + mSpaceRight > getLayoutManager().getWidth()) {
+                offsetX = mSpaceLeft;
                 offsetY += childHeight;
                 row++;
             }
@@ -129,8 +196,9 @@ public class FlowLayouter extends AbsLayouter {
             item.height = childHeight;
             item.offsetX = offsetX;
             item.offsetY = offsetY;
+            mMaxRow = Math.max(row, mMaxRow);
 
-            offsetX += childWidth;
+            offsetX += (childWidth + mSpaceLeft + mSpaceRight);
 
             recycler.recycleView(view);
 
@@ -138,15 +206,16 @@ public class FlowLayouter extends AbsLayouter {
         }
     }
 
-    private int onFillVertical(RecyclerView.Recycler recycler, State state, int currentPosition, int dy, int anchorTop) {
+    // 从上往下滑动
+    private int onFillVertical(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
         int availableSpace = -dy;
 
         int left = 0;
-        int top = anchorTop;
+        int top = anchorTop - mSpaceBottom;
         int right = 0;
-        int bottom = anchorTop;
+        int bottom = anchorTop - mSpaceBottom;
 
-        initStates(state.getMultiData(), recycler);
+        initStates(multiData, recycler);
 
         while (availableSpace > 0 && currentPosition >= mPositionOffset) {
             int key = currentPosition - mPositionOffset;
@@ -156,7 +225,7 @@ public class FlowLayouter extends AbsLayouter {
 
             View view = recycler.getViewForPosition(currentPosition--);
             MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
-            params.setMultiData(state.getMultiData());
+            params.setMultiData(multiData);
             getLayoutManager().addView(view, 0);
             getLayoutManager().measureChild(view, itemState.width, itemState.height);
 
@@ -168,29 +237,33 @@ public class FlowLayouter extends AbsLayouter {
             Log.d(TAG, "onFillVertical left=" + left + " top=" + top + " right=" + right + " bottom=" + bottom);
             layoutDecorated(view, left, top, right, bottom);
 
-            if (itemState.offsetX == 0) {
-                availableSpace -= itemState.height;
-                bottom = top;
+            top -= mSpaceTop;
+
+            if (itemState.offsetX == mSpaceLeft) {
+                availableSpace -= (itemState.height + mSpaceTop + mSpaceBottom);
+                bottom = top - mSpaceBottom;
             }
         }
         mTop = top;
         return Math.min(-dy, -dy - availableSpace - anchorTop);
     }
 
+    // 从下往上滑动
     private int onFillVertical2(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
 
         int availableSpace = dy;
 
         int left = 0;
-        int top = anchorTop;
+        int top = anchorTop + mSpaceBottom;
         int right = 0;
-        int bottom = anchorTop;
+        int bottom = anchorTop + mSpaceBottom;
 
         initStates(multiData, recycler);
 
         int key = currentPosition - mPositionOffset;
         ItemState itemState = states.get(key);
-        int row = itemState.row;
+        int row = -1;
+        Log.d(TAG, "availableSpace1=" + availableSpace);
         while (itemState != null && availableSpace > 0 && currentPosition < multiData.getCount() + mPositionOffset) {
 
             if (row < 0) {
@@ -201,22 +274,27 @@ public class FlowLayouter extends AbsLayouter {
             MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
             params.setMultiData(multiData);
             getLayoutManager().addView(view);
-            getLayoutManager().measureChild(view, itemState.width, itemState.height);
+            int childHeight = itemState.height;
+            getLayoutManager().measureChild(view, itemState.width, childHeight);
 
             left = itemState.offsetX;
             right = left + itemState.width;
 
             if (row != itemState.row) {
                 row = itemState.row;
-                top = bottom;
+                top = bottom + mSpaceTop;
             }
-            bottom = top + itemState.height;
+            bottom = top + childHeight;
 
+            Log.d(TAG, "availableSpace left=" + left + " top=" + top + " right=" + right + " bottom=" + bottom + " childHeight=" + childHeight);
             layoutDecorated(view, left, top, right, bottom);
+
+            bottom += mSpaceBottom;
 
             itemState = states.get(currentPosition - mPositionOffset);
             if (itemState == null || itemState.row != row) {
-                availableSpace -= (bottom - top);
+                availableSpace -= (childHeight + mSpaceTop + mSpaceBottom);
+                Log.d(TAG, "availableSpace=" + availableSpace);
             }
 
         }
@@ -226,7 +304,7 @@ public class FlowLayouter extends AbsLayouter {
     }
 
     @Override
-    public int fillHorizontal(View anchorView, int dx, RecyclerView.Recycler recycler, State state) {
+    public int fillHorizontal(View anchorView, int dx, RecyclerView.Recycler recycler, MultiData<?> multiData) {
         return 0;
     }
 

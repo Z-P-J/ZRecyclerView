@@ -4,6 +4,8 @@ import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
+import com.zpj.recyclerview.MultiData;
+
 public abstract class AbsLayouter implements Layouter {
 
     private RecyclerView.LayoutManager mManager;
@@ -16,6 +18,15 @@ public abstract class AbsLayouter implements Layouter {
 
     protected int mPositionOffset;
     protected int mChildOffset;
+
+    @Override
+    public void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition) {
+        if (getLayoutManager() == null || multiData.getCount() == 0 || mTop > getLayoutManager().getHeight()) {
+            mBottom = mTop;
+            return;
+        }
+        fillVertical(null, getLayoutManager().getHeight() - mTop, recycler, multiData);
+    }
 
     @Override
     public int getChildCount() {
@@ -103,6 +114,31 @@ public abstract class AbsLayouter implements Layouter {
     public void offsetTopAndBottom(int offset) {
         this.mTop += offset;
         this.mBottom += offset;
+    }
+
+    @Override
+    public int getPosition(@NonNull View child) {
+        return getLayoutManager().getPosition(child);
+    }
+
+    @Override
+    public int getDecoratedLeft(@NonNull View child) {
+        return getLayoutManager().getDecoratedLeft(child);
+    }
+
+    @Override
+    public int getDecoratedTop(@NonNull View child) {
+        return getLayoutManager().getDecoratedTop(child);
+    }
+
+    @Override
+    public int getDecoratedRight(@NonNull View child) {
+        return getLayoutManager().getDecoratedRight(child);
+    }
+
+    @Override
+    public int getDecoratedBottom(@NonNull View child) {
+        return getLayoutManager().getDecoratedBottom(child);
     }
 
     @Override

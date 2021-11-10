@@ -55,6 +55,16 @@ public interface Layouter {
 
     int getChildOffset();
 
+    int getPosition(@NonNull View child);
+
+    int getDecoratedLeft(@NonNull View child);
+
+    int getDecoratedTop(@NonNull View child);
+
+    int getDecoratedRight(@NonNull View child);
+
+    int getDecoratedBottom(@NonNull View child);
+
     void layoutDecorated(@NonNull View child, int left, int top, int right, int bottom);
 
     void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition);
@@ -67,9 +77,9 @@ public interface Layouter {
 
 //    int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state);
 
-    int fillVertical(View anchorView, int dy, RecyclerView.Recycler recycler, State state);
+    int fillVertical(View anchorView, int dy, RecyclerView.Recycler recycler, MultiData<?> multiData);
 
-    int fillHorizontal(View anchorView, int dx, RecyclerView.Recycler recycler, State state);
+    int fillHorizontal(View anchorView, int dx, RecyclerView.Recycler recycler, MultiData<?> multiData);
 
     void saveState(int firstPosition, int firstOffset);
 
