@@ -19,6 +19,7 @@ import com.zpj.recyclerview.layouter.Layouter;
 import com.zpj.recyclerview.layouter.VerticalLayouter;
 import com.zpj.recyclerview.manager.MultiLayoutManager;
 import com.zpj.recyclerview.refresh.IRefresher;
+import com.zpj.recyclerview.refresh.SimpleRefresher;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -90,7 +91,7 @@ public class LayoutManagerActivity extends AppCompatActivity {
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
         mRecycler = new MultiRecycler(recyclerView, multiDataList);
         mRecycler.setLayoutManager(new MultiLayoutManager())
-                .onRefresh(new IRefresher.OnRefreshListener() {
+                .onRefresh(new SimpleRefresher(), new IRefresher.OnRefreshListener() {
                     @Override
                     public void onRefresh(IRefresher refresher) {
                         new Thread(new Runnable() {

@@ -40,7 +40,7 @@ public class HorizontalLayouter extends AbsLayouter {
         if (dy > 0) {
             // 从下往上滑动
             if (anchorView == null) {
-                return onFillVertical2(recycler, multiData, mFirstPosition + mPositionOffset, dy, getTop());
+                return fillVerticalBottom(recycler, multiData, mFirstPosition + mPositionOffset, dy, getTop());
             } else {
                 // 如果占用两行则需要以下代码
                 int anchorBottom = getLayoutManager().getDecoratedTop(anchorView);
@@ -60,7 +60,7 @@ public class HorizontalLayouter extends AbsLayouter {
         } else {
             // 从上往下滑动
             if (anchorView == null) {
-                return onFillVertical(recycler, multiData, mFirstPosition + mPositionOffset, dy, getBottom());
+                return fillVerticalTop(recycler, multiData, mFirstPosition + mPositionOffset, dy, getBottom());
             } else {
                 // 如果占用两行则需要以下代码
                 int anchorTop = getLayoutManager().getDecoratedTop(anchorView);
@@ -83,7 +83,8 @@ public class HorizontalLayouter extends AbsLayouter {
         return 0;
     }
 
-    private int onFillVertical(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
+    @Override
+    protected int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
 
         int left = Math.min(0, mFirstOffset);
         int top = anchorTop;
@@ -117,12 +118,13 @@ public class HorizontalLayouter extends AbsLayouter {
         return Math.min(-dy, - mTop);
     }
 
-    private int onFillVertical2(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
+    @Override
+    protected int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorBottom) {
 
         int left = Math.min(0, mFirstOffset);
-        int top = anchorTop;
+        int top = anchorBottom;
         int right = 0;
-        int bottom = anchorTop;
+        int bottom = anchorBottom;
 
         int availableSpace = getLayoutManager().getWidth() - getLayoutManager().getPaddingRight() - left;
 
@@ -139,14 +141,12 @@ public class HorizontalLayouter extends AbsLayouter {
 
             right = left + measuredWidth;
             bottom = top + getLayoutManager().getDecoratedMeasuredHeight(view);
-            Log.d(TAG, "onFillVertical2 height=" + getLayoutManager().getDecoratedMeasuredHeight(view) + " top=" + top + " bottom=" + bottom);
 
             layoutDecorated(view, left, top, right, bottom);
             left += measuredWidth;
         }
         mBottom = bottom;
-        Log.d(TAG, "onFillVertical2 dy=" + dy + " height=" + (mBottom - anchorTop) + " mTop=" + mTop + " mBottom=" + mBottom);
-        return Math.min(dy, - anchorTop);
+        return Math.min(dy, - anchorBottom);
     }
 
     @Override

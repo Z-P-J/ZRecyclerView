@@ -100,7 +100,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
 
     @Override
     public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
-        Log.d(TAG, "scrollHorizontallyBy mTopMultiDataIndex=" + mTopMultiDataIndex
+        Log.d(TAG, "onLayoutChildren mTopMultiDataIndex=" + mTopMultiDataIndex
                 + " mTopPosition=" + mTopPosition + " mTopOffset=" + mTopOffset + " isPreLayout=" + state.isPreLayout());
 
         if (multiDataList == null) {
@@ -119,6 +119,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
             if (mTopMultiDataIndex == 0 && mTopPosition == 0 && mTopOffset == 0) {
                 View view = recycler.getViewForPosition(0);
                 addView(view);
+                measureChild(view, 0, 0);
             }
             positionOffset++;
         }
@@ -423,6 +424,9 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
         } else {
             MultiData<?> data = ((MultiLayoutParams) firstView.getLayoutParams()).getMultiData();
             if (data == null) {
+                mTopMultiDataIndex = 0;
+                mTopPosition = 0;
+                mTopOffset = 0;
                 return;
             }
             Layouter layouter = data.getLayouter();

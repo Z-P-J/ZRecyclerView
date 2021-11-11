@@ -25,8 +25,58 @@ public abstract class AbsLayouter implements Layouter {
             mBottom = mTop;
             return;
         }
-        fillVertical(null, getLayoutManager().getHeight() - mTop, recycler, multiData);
+//        fillVertical(null, getLayoutManager().getHeight() - mTop, recycler, multiData);
+
+        fillVerticalBottom(recycler, multiData, currentPosition, getLayoutManager().getHeight() - mTop, getTop());
     }
+
+    @Override
+    public int fillVertical(View anchorView, int dy, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+        if (dy > 0) {
+            // 从下往上滑动
+            if (anchorView == null) {
+                return fillVerticalBottom(recycler, multiData, mPositionOffset, dy, getTop());
+            } else {
+                int anchorBottom = getDecoratedBottom(anchorView);
+                if (anchorBottom > getLayoutManager().getHeight()) {
+                    if (anchorBottom - dy > getLayoutManager().getHeight()) {
+                        return dy;
+                    } else {
+                        int anchorPosition = getPosition(anchorView);
+                        if (anchorPosition == mPositionOffset + multiData.getCount() - 1) {
+                            return Math.max(0, anchorBottom - getLayoutManager().getHeight());
+                        }
+                        return fillVerticalBottom(recycler, multiData, anchorPosition + 1, dy, anchorBottom);
+                    }
+                }
+            }
+        } else {
+            // 从上往下滑动
+            if (anchorView == null) {
+                return fillVerticalTop(recycler, multiData,
+                        mPositionOffset + multiData.getCount() - 1,
+                        dy, getBottom());
+            } else {
+                int anchorTop = getDecoratedTop(anchorView);
+                if (anchorTop < 0) {
+                    if (anchorTop - dy < 0) {
+                        return -dy;
+                    } else {
+                        int anchorPosition = getPosition(anchorView);
+                        if (anchorPosition == mPositionOffset) {
+                            return -anchorTop;
+                        }
+                        return fillVerticalTop(recycler, multiData, anchorPosition - 1, dy, anchorTop);
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+
+    protected abstract int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorTop);
+
+    protected abstract int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorBottom);
 
     @Override
     public int getChildCount() {

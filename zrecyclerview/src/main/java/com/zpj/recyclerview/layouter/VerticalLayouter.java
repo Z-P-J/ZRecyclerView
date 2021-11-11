@@ -21,50 +21,7 @@ public class VerticalLayouter extends AbsLayouter {
     }
 
     @Override
-    public int fillVertical(View anchorView, int dy, RecyclerView.Recycler recycler, MultiData<?> multiData) {
-        if (dy > 0) {
-            // 从下往上滑动
-            if (anchorView == null) {
-                return onFillVertical2(recycler, multiData, mPositionOffset, dy, getTop());
-            } else {
-                int anchorBottom = getLayoutManager().getDecoratedBottom(anchorView);
-                if (anchorBottom > getLayoutManager().getHeight()) {
-                    if (anchorBottom - dy > getLayoutManager().getHeight()) {
-                        return dy;
-                    } else {
-                        int anchorPosition = getLayoutManager().getPosition(anchorView);
-                        if (anchorPosition == mPositionOffset + multiData.getCount() - 1) {
-                            return anchorBottom - getLayoutManager().getHeight();
-                        }
-                        return onFillVertical2(recycler, multiData, anchorPosition + 1, dy, anchorBottom);
-                    }
-                }
-            }
-        } else {
-            // 从上往下滑动
-            if (anchorView == null) {
-                return onFillVertical(recycler, multiData,
-                        mPositionOffset + multiData.getCount() - 1,
-                        dy, getBottom());
-            } else {
-                int anchorTop = getLayoutManager().getDecoratedTop(anchorView);
-                if (anchorTop < 0) {
-                    if (anchorTop - dy < 0) {
-                        return -dy;
-                    } else {
-                        int anchorPosition = getLayoutManager().getPosition(anchorView);
-                        if (anchorPosition == mPositionOffset) {
-                            return -anchorTop;
-                        }
-                        return onFillVertical(recycler, multiData, anchorPosition - 1, dy, anchorTop);
-                    }
-                }
-            }
-        }
-        return 0;
-    }
-
-    private int onFillVertical(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
+    protected int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
         int availableSpace = -dy;
 
         int left = 0;
@@ -91,13 +48,14 @@ public class VerticalLayouter extends AbsLayouter {
         return Math.min(-dy, -dy - availableSpace - anchorTop);
     }
 
-    private int onFillVertical2(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
+    @Override
+    protected int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorBottom) {
         int availableSpace = dy;
 
         int left = 0;
-        int top = anchorTop;
+        int top = anchorBottom;
         int right = getLayoutManager().getWidth();
-        int bottom = anchorTop;
+        int bottom = anchorBottom;
 
         while (availableSpace > 0 && currentPosition < mPositionOffset + multiData.getCount()) {
             View view = recycler.getViewForPosition(currentPosition++);
@@ -115,7 +73,7 @@ public class VerticalLayouter extends AbsLayouter {
             top = bottom;
         }
         mBottom = bottom;
-        return Math.min(dy, dy - availableSpace + (anchorTop - getLayoutManager().getHeight()));
+        return Math.min(dy, dy - availableSpace + (anchorBottom - getLayoutManager().getHeight()));
     }
 
     @Override
