@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
+import com.zpj.recyclerview.manager.MultiLayoutParams;
 
 public abstract class AbsLayouter implements Layouter {
 
@@ -58,17 +59,32 @@ public abstract class AbsLayouter implements Layouter {
                         dy, getBottom());
             } else {
                 int anchorTop = getDecoratedTop(anchorView);
-                if (anchorTop < 0) {
-                    if (anchorTop - dy < 0) {
-                        return -dy;
-                    } else {
-                        int anchorPosition = getPosition(anchorView);
-                        if (anchorPosition == mPositionOffset) {
-                            return -anchorTop;
-                        }
-                        return fillVerticalTop(recycler, multiData, anchorPosition - 1, dy, anchorTop);
+                int anchorPosition = getPosition(anchorView);
+                if (anchorTop - dy < 0) {
+                    return -dy;
+                } else {
+
+                    if (anchorPosition == mPositionOffset) {
+                        return -anchorTop;
                     }
+                    return fillVerticalTop(recycler, multiData, anchorPosition - 1, dy, anchorTop);
                 }
+//                if (anchorTop < 0) {
+//                    if (anchorTop - dy < 0) {
+//                        return -dy;
+//                    } else {
+//
+//                        if (anchorPosition == mPositionOffset) {
+//                            return -anchorTop;
+//                        }
+//                        return fillVerticalTop(recycler, multiData, anchorPosition - 1, dy, anchorTop);
+//                    }
+//                } else if (anchorPosition >= mPositionOffset) {
+//                    if (anchorPosition == mPositionOffset) {
+//                        return -anchorTop;
+//                    }
+//                    return fillVerticalTop(recycler, multiData, anchorPosition - 1, dy, anchorTop);
+//                }
             }
         }
         return 0;
@@ -202,4 +218,34 @@ public abstract class AbsLayouter implements Layouter {
     public void saveState(int firstPosition, int firstOffset) {
 
     }
+
+    public View getViewForPosition(int position, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+        View view = null;
+        if (multiData.isStickyItem(position - mPositionOffset)) {
+            view  = getLayoutManager().findViewByPosition(position);
+        }
+        if (view == null) {
+            view = recycler.getViewForPosition(position);
+        } else {
+            getLayoutManager().detachAndScrapView(view, recycler);
+        }
+        MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
+        params.setMultiData(multiData);
+        return view;
+    }
+
+    public View addViewAndMeasure(int position, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+        View view = getViewForPosition(position, recycler, multiData);
+        getLayoutManager().addView(view);
+        getLayoutManager().measureChild(view, 0, 0);
+        return view;
+    }
+
+    public View addViewAndMeasure(int position, int index, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+        View view = getViewForPosition(position, recycler, multiData);
+        getLayoutManager().addView(view, index);
+        getLayoutManager().measureChild(view, 0, 0);
+        return view;
+    }
+
 }

@@ -21,10 +21,10 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
 
     private static final String TAG = "MultiAdapter";
 
-    MultiAdapter(final Context context, List<MultiData<?>> list, final EasyStateConfig<?> config, IRefresher refresh) {
+    MultiAdapter(final Context context, List<MultiData<?>> list, final EasyStateConfig<?> config, IRefresher refresher) {
         super(context, list, 0, null, null,
                 null, null, null,
-                null, null, null, refresh, config);
+                null, null, null, refresher, config);
     }
 
     @NonNull
@@ -40,9 +40,11 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
                 view.setLayoutParams(layoutParams);
                 return new EasyViewHolder(view);
             }
-        } else if (viewType == TYPE_REFRESH) {
-            return new EasyViewHolder(mRefreshHeader.onCreateView(context, viewGroup));
-        } else if (viewType == TYPE_HEADER) {
+        }
+//        else if (viewType == TYPE_REFRESH) {
+//            return new EasyViewHolder(mRefreshHeader.onCreateView(context, viewGroup));
+//        }
+        else if (viewType == TYPE_HEADER) {
             return new EasyViewHolder(headerView);
         } else if (viewType == TYPE_FOOTER) {
             return footerViewHolder.onCreateViewHolder(viewGroup);
@@ -64,9 +66,9 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
                 break;
             }
         }
-        if (mRefreshHeader != null) {
-            count++;
-        }
+//        if (mRefreshHeader != null) {
+//            count++;
+//        }
         if (headerView != null) {
             count++;
         }
@@ -81,21 +83,32 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
     public int getItemViewType(int position) {
         if (state != State.STATE_CONTENT) {
             return state.hashCode();
-        } else if (isRefreshPosition(position)) {
-            return TYPE_REFRESH;
-        } else if (isHeaderPosition(position)) {
+        }
+//        else if (isRefreshPosition(position)) {
+//            return TYPE_REFRESH;
+//        }
+        else if (isHeaderPosition(position)) {
             return TYPE_HEADER;
         } else if (isFooterPosition(position)) {
             return TYPE_FOOTER;
         } else {
-            if (mRefreshHeader != null) {
-                position--;
-            }
+//            if (mRefreshHeader != null) {
+//                position--;
+//            }
             if (headerView != null) {
                 position--;
             }
             return onGetViewType(list, position);
         }
+    }
+
+    @Override
+    protected int getRealPosition(RecyclerView.ViewHolder holder) {
+        int position = holder.getLayoutPosition();
+        if (headerView != null) {
+            position--;
+        }
+        return position;
     }
 
     @Override
@@ -184,9 +197,9 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
                     if (isHeaderPosition(position) || isFooterPosition(position)) {
                         return gridManager.getSpanCount();
                     }
-                    if (mRefreshHeader != null) {
-                        position--;
-                    }
+//                    if (mRefreshHeader != null) {
+//                        position--;
+//                    }
                     if (headerView != null) {
                         position--;
                     }

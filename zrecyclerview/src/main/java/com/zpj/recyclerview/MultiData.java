@@ -137,6 +137,10 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
         return hasMore;
     }
 
+    public boolean isStickyItem(int position) {
+        return false;
+    }
+
     /**
      * 加载数据，建议在子线程中加载数据
      * @return 是否可以加载更多。true:可以加载更多 false:没有更多数据

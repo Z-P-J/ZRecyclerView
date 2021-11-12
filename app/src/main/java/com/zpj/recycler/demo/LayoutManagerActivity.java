@@ -51,6 +51,12 @@ public class LayoutManagerActivity extends AppCompatActivity {
         }
 
         List<MultiData<?>> multiDataList = new ArrayList<>();
+        multiDataList.add(new LayouterMultiData(list, new VerticalLayouter()) {
+            @Override
+            public boolean isStickyItem(int position) {
+                return position == 10;
+            }
+        });
         multiDataList.add(new TestErrorStringMultiData(new VerticalLayouter()));
         multiDataList.add(new LayouterMultiData(flowList, new FlowLayouter(20)) {
             @Override
@@ -91,28 +97,28 @@ public class LayoutManagerActivity extends AppCompatActivity {
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
         mRecycler = new MultiRecycler(recyclerView, multiDataList);
         mRecycler.setLayoutManager(new MultiLayoutManager())
-                .onRefresh(new SimpleRefresher(), new IRefresher.OnRefreshListener() {
-                    @Override
-                    public void onRefresh(IRefresher refresher) {
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    Thread.sleep(1000);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Toast.makeText(LayoutManagerActivity.this, "刷新成功！", Toast.LENGTH_SHORT).show();
-                                        mRecycler.notifyDataSetChanged();
-                                    }
-                                });
-                            }
-                        }).start();
-                    }
-                })
+//                .onRefresh(new SimpleRefresher(), new IRefresher.OnRefreshListener() {
+//                    @Override
+//                    public void onRefresh(IRefresher refresher) {
+//                        new Thread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                try {
+//                                    Thread.sleep(1000);
+//                                } catch (InterruptedException e) {
+//                                    e.printStackTrace();
+//                                }
+//                                runOnUiThread(new Runnable() {
+//                                    @Override
+//                                    public void run() {
+//                                        Toast.makeText(LayoutManagerActivity.this, "刷新成功！", Toast.LENGTH_SHORT).show();
+//                                        mRecycler.notifyDataSetChanged();
+//                                    }
+//                                });
+//                            }
+//                        }).start();
+//                    }
+//                })
                 .build();
     }
 

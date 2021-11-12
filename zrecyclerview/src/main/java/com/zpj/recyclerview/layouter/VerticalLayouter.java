@@ -1,6 +1,7 @@
 package com.zpj.recyclerview.layouter;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
@@ -29,12 +30,17 @@ public class VerticalLayouter extends AbsLayouter {
         int right = getLayoutManager().getWidth();
         int bottom = anchorTop;
 
+        boolean isFull = currentPosition == mPositionOffset + multiData.getCount() - 1;
         while (availableSpace > 0 && currentPosition >= mPositionOffset) {
-            View view = recycler.getViewForPosition(currentPosition--);
-            MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
-            params.setMultiData(multiData);
-            getLayoutManager().addView(view, 0);
-            getLayoutManager().measureChild(view, 0, 0);
+//            View view = recycler.getViewForPosition(currentPosition--);
+//            MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
+//            params.setMultiData(multiData);
+//            getLayoutManager().addView(view, 0);
+//            getLayoutManager().measureChild(view, 0, 0);
+
+            Log.d(TAG, "scrollVerticalBy decoratedTop currentPosition=" + currentPosition + " availableSpace=" + availableSpace);
+            View view = addViewAndMeasure(currentPosition--, 0, recycler, multiData);
+
             int measuredHeight= getLayoutManager().getDecoratedMeasuredHeight(view);
             availableSpace -= measuredHeight;
 
@@ -45,7 +51,8 @@ public class VerticalLayouter extends AbsLayouter {
             bottom = top;
         }
         mTop = top;
-        return Math.min(-dy, -dy - availableSpace - anchorTop);
+        return Math.min(-dy, Math.max(-dy - availableSpace, -dy - availableSpace - anchorTop));
+//        return Math.min(-dy, isFull ? -dy - availableSpace : -dy - availableSpace - anchorTop);
     }
 
     @Override
@@ -58,11 +65,12 @@ public class VerticalLayouter extends AbsLayouter {
         int bottom = anchorBottom;
 
         while (availableSpace > 0 && currentPosition < mPositionOffset + multiData.getCount()) {
-            View view = recycler.getViewForPosition(currentPosition++);
-            MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
-            params.setMultiData(multiData);
-            getLayoutManager().addView(view);
-            getLayoutManager().measureChild(view, 0, 0);
+//            View view = recycler.getViewForPosition(currentPosition++);
+//            MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
+//            params.setMultiData(multiData);
+//            getLayoutManager().addView(view);
+//            getLayoutManager().measureChild(view, 0, 0);
+            View view = addViewAndMeasure(currentPosition++, recycler, multiData);
             int measuredHeight= getLayoutManager().getDecoratedMeasuredHeight(view);
             availableSpace -= measuredHeight;
 

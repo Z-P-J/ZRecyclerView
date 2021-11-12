@@ -9,9 +9,12 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.layouter.Layouter;
+import com.zpj.recyclerview.layouter.VerticalLayouter;
+import com.zpj.recyclerview.refresh.IRefresher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +26,8 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
     private static final int DIRECTION_NONE = 0;
     private static final int DIRECTION_HORIZONTAL = 1;
     private static final int DIRECTION_VERTICAL = 2;
+
+    private final List<View> recycleViews = new ArrayList<>();
 
     private MultiRecycler mRecycler;
     private List<MultiData<?>> multiDataList;
@@ -36,9 +41,15 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
     private int mTopPosition;
     private int mTopOffset;
 
+    private int preStickyPosition = RecyclerView.NO_POSITION;
+    private int currentStickyPosition = RecyclerView.NO_POSITION;
+
     public void attachRecycler(MultiRecycler recycler) {
         this.mRecycler = recycler;
         this.multiDataList = recycler.getDataSet();
+        if (recycler.getRefresher() != null) {
+            this.multiDataList.add(0, new RefresherMultiData(recycler.getRefresher()));
+        }
         recycler.getRecyclerView().setOverScrollMode(View.OVER_SCROLL_NEVER);
         recycler.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
             @Override
@@ -114,15 +125,6 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
         detachAndScrapAttachedViews(recycler);
 
         int positionOffset = 0;
-
-        if (mRecycler.getRefresher() != null) {
-            if (mTopMultiDataIndex == 0 && mTopPosition == 0 && mTopOffset == 0) {
-                View view = recycler.getViewForPosition(0);
-                addView(view);
-                measureChild(view, 0, 0);
-            }
-            positionOffset++;
-        }
 
         Layouter last = null;
         for (int i = 0; i < multiDataList.size(); i++) {
@@ -294,8 +296,6 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
         return mScrollDirection == DIRECTION_VERTICAL;
     }
 
-    private final List<View> recycleViews = new ArrayList<>();
-
     @Override
     public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state) {
         if (multiDataList == null) {
@@ -309,12 +309,16 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
         if (dy < 0) {
             // 从上往下滑动
             int i = 0;
-            MultiData<?> multiData;
+            MultiData<?> multiData = null;
             View view;
             do {
                 view = getChildAt(i);
                 if (view == null) {
                     return 0;
+                }
+                if (currentStickyPosition == getPosition(view)) {
+                    i++;
+                    continue;
                 }
                 multiData = ((MultiLayoutParams) view.getLayoutParams()).getMultiData();
                 i++;
@@ -334,12 +338,16 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
             // 从下往上滑动
 
             int i = getChildCount() - 1;
-            MultiData<?> multiData;
+            MultiData<?> multiData = null;
             View view;
             do {
                 view = getChildAt(i);
                 if (view == null) {
                     return 0;
+                }
+                if (currentStickyPosition == getPosition(view)) {
+                    i--;
+                    continue;
                 }
                 multiData = ((MultiLayoutParams) view.getLayoutParams()).getMultiData();
                 i--;
@@ -374,6 +382,61 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
                     last = data;
                 }
                 if (layouter.canScrollVertically()) {
+                    int position = getPosition(view);
+                    boolean isStickyChild = data.isStickyItem(position - layouter.getPositionOffset());
+                    if (isStickyChild) {
+                        int decoratedTop = layouter.getDecoratedTop(view);
+                        int decoratedBottom = layouter.getDecoratedBottom(view);
+                        Log.d(TAG, "scrollVerticalBy decoratedTop=" + decoratedTop
+                                + " decoratedBottom=" + decoratedBottom + " height=" + getDecoratedMeasuredHeight(view)
+                                + " consumed=" + consumed + " dy=" + dy
+                                + " currentStickyPosition=" + currentStickyPosition + " position=" + position + " iii=" + i + " last=" + (getChildCount() - 1));
+
+
+//                        if (currentStickyPosition != position && )
+
+                        if (dy > 0 && decoratedTop - consumed < 0) {
+                            Log.d(TAG, "scrollVerticalBy decoratedTop 1");
+                            if (currentStickyPosition != RecyclerView.NO_POSITION && currentStickyPosition != position) {
+                                View v = getChildAt(getChildCount() - 1);
+                                if (v != null && getPosition(v) == currentStickyPosition) {
+                                    preStickyPosition = currentStickyPosition;
+                                    recycleViews.add(v);
+                                }
+                            }
+                            currentStickyPosition = position;
+                            layoutDecorated(view, 0, 0, getWidth(), getDecoratedMeasuredHeight(view));
+                            continue;
+                        }
+                        else if (dy < 0 && decoratedBottom - consumed > getDecoratedMeasuredHeight(view)) {
+                            Log.d(TAG, "scrollVerticalBy decoratedTop 2");
+                            if (i == getChildCount() - 1) {
+                                if (currentStickyPosition != RecyclerView.NO_POSITION && currentStickyPosition != position) {
+                                    View v = getChildAt(getChildCount() - 1);
+                                    if (v != null && getPosition(v) == currentStickyPosition) {
+                                        preStickyPosition = currentStickyPosition;
+                                        recycleViews.add(v);
+                                    }
+                                }
+                                currentStickyPosition = position;
+                                layoutDecorated(view, 0, 0, getWidth(), getDecoratedMeasuredHeight(view));
+                                continue;
+                            } else {
+                                if (currentStickyPosition == position) {
+                                    currentStickyPosition = RecyclerView.NO_POSITION;
+                                }
+
+                            }
+                        }
+                        else if (currentStickyPosition == position) {
+//                            currentStickyPosition = RecyclerView.NO_POSITION;
+                            if (i != getChildCount() - 1 && decoratedTop - consumed >= 0) {
+                                currentStickyPosition = preStickyPosition;
+//                                currentStickyPosition = RecyclerView.NO_POSITION;
+                            }
+                            Log.d(TAG, "scrollVerticalBy decoratedTop 3 currentStickyPosition=" + currentStickyPosition);
+                        }
+                    }
                     if (layouter.getDecoratedBottom(view) - consumed < 0
                             || layouter.getDecoratedTop(view) - consumed > getHeight()) {
                         recycleViews.add(view);
@@ -391,15 +454,49 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
             }
         }
         recycleViews(recycler);
-        if (mRecycler.getRefresher() != null && mTopMultiDataIndex == 0 && mTopPosition == 0 && mTopOffset == 0) {
-            View view = recycler.getViewForPosition(0);
-            addView(view, 0);
+
+//        View child = getChildAt(0);
+//        if (child != null) {
+//            int pos = getPosition(child);
+//            Log.d(TAG, "currentStickyPosition=" + currentStickyPosition + " pos=" + pos);
+//            if (pos == currentStickyPosition) {
+//                detachAndScrapView(child, recycler);
+//                child = recycler.getViewForPosition(pos);
+//                super.addView(child, getChildCount());
+//                measureChild(child, 0, 0);
+//                layoutDecorated(child, 0, 0, getWidth(), getDecoratedMeasuredHeight(child));
+//            }
+//        }
+
+        if (currentStickyPosition != RecyclerView.NO_POSITION) {
+            View child = findViewByPosition(currentStickyPosition);
+            if (child == null) {
+                child = recycler.getViewForPosition(currentStickyPosition);
+            } else {
+                detachAndScrapView(child, recycler);
+            }
+            super.addView(child, getChildCount());
+            measureChild(child, 0, 0);
+            layoutDecorated(child, 0, 0, getWidth(), getDecoratedMeasuredHeight(child));
         }
+
         Log.d(TAG, "scrollVerticallyBy getChildCount=" + getChildCount());
         return consumed;
     }
 
+    @Override
+    public void addView(View child) {
+        if (currentStickyPosition == RecyclerView.NO_POSITION) {
+            super.addView(child);
+        } else {
+            super.addView(child, getChildCount() - 1);
+        }
+    }
 
+    @Override
+    public void addView(View child, int index) {
+        super.addView(child, index);
+    }
 
     private void recycleViews(RecyclerView.Recycler recycler) {
         for (View view : recycleViews) {
@@ -436,6 +533,53 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
         }
     }
 
+    private static class RefresherMultiData extends MultiData<Void> {
 
+        private final IRefresher mRefresher;
+
+        public RefresherMultiData(IRefresher mRefresher) {
+            super(new VerticalLayouter());
+            hasMore = false;
+            this.mRefresher = mRefresher;
+        }
+
+        @Override
+        public View onCreateView(Context context, ViewGroup container, int viewType) {
+            if (mRefresher.getView() == null) {
+                return mRefresher.onCreateView(context, container);
+            }
+            return mRefresher.getView();
+        }
+
+        @Override
+        public int getViewType(int position) {
+            return mRefresher.hashCode();
+        }
+
+        @Override
+        public boolean hasViewType(int viewType) {
+            return viewType == mRefresher.hashCode();
+        }
+
+        @Override
+        public int getCount() {
+            return 1;
+        }
+
+        @Override
+        public int getLayoutId(int viewType) {
+            return 0;
+        }
+
+        @Override
+        public boolean loadData() {
+            return false;
+        }
+
+        @Override
+        public void onBindViewHolder(EasyViewHolder holder, List<Void> list, int position, List<Object> payloads) {
+
+        }
+    }
 
 }
