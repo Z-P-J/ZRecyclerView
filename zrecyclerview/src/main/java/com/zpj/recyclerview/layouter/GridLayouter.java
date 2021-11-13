@@ -31,7 +31,8 @@ public class GridLayouter extends AbsLayouter {
 
     @Override
     protected int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
-        int availableSpace = -dy;
+//        int availableSpace = -dy;
+        int availableSpace = -dy + anchorTop;
 
         int left = 0;
         int top = anchorTop;
@@ -79,12 +80,14 @@ public class GridLayouter extends AbsLayouter {
             }
         }
         mTop = top;
-        return Math.min(-dy, -dy - availableSpace - anchorTop);
+//        return Math.min(-dy, -dy - availableSpace - anchorTop);
+        return Math.min(-dy, -dy - availableSpace);
     }
 
     @Override
     protected int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorBottom) {
-        int availableSpace = dy;
+//        int availableSpace = dy;
+        int availableSpace = dy + getLayoutManager().getHeight() - anchorBottom;
 
         int left = 0;
         int top = anchorBottom;
@@ -133,7 +136,8 @@ public class GridLayouter extends AbsLayouter {
             }
         }
         mBottom = bottom;
-        return Math.min(dy, dy - availableSpace + (anchorBottom - getLayoutManager().getHeight()));
+//        return Math.min(dy, dy - availableSpace + (anchorBottom - getLayoutManager().getHeight()));
+        return Math.min(dy, dy - availableSpace);
     }
 
     @Override

@@ -23,14 +23,14 @@ public class VerticalLayouter extends AbsLayouter {
 
     @Override
     protected int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
-        int availableSpace = -dy;
+        int availableSpace = -dy + Math.abs(anchorTop);
 
         int left = 0;
         int top = anchorTop;
         int right = getLayoutManager().getWidth();
         int bottom = anchorTop;
 
-        boolean isFull = currentPosition == mPositionOffset + multiData.getCount() - 1;
+//        boolean isFull = currentPosition == mPositionOffset + multiData.getCount() - 1;
         while (availableSpace > 0 && currentPosition >= mPositionOffset) {
 //            View view = recycler.getViewForPosition(currentPosition--);
 //            MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
@@ -38,7 +38,7 @@ public class VerticalLayouter extends AbsLayouter {
 //            getLayoutManager().addView(view, 0);
 //            getLayoutManager().measureChild(view, 0, 0);
 
-            Log.d(TAG, "scrollVerticalBy decoratedTop currentPosition=" + currentPosition + " availableSpace=" + availableSpace);
+            Log.e(TAG, "scrollVerticallyBy decoratedTop currentPosition=" + currentPosition + " availableSpace=" + availableSpace);
             View view = addViewAndMeasure(currentPosition--, 0, recycler, multiData);
 
             int measuredHeight= getLayoutManager().getDecoratedMeasuredHeight(view);
@@ -50,19 +50,29 @@ public class VerticalLayouter extends AbsLayouter {
 
             bottom = top;
         }
+        Log.e(TAG, "scrollVerticallyBy dy=" + dy + " availableSpace=" + availableSpace + " anchorTop=" + anchorTop + " return=" + Math.min(-dy, -dy - availableSpace));
         mTop = top;
-        return Math.min(-dy, Math.max(-dy - availableSpace, -dy - availableSpace - anchorTop));
+//        return Math.min(-dy, -dy - availableSpace - anchorTop);
+        return Math.min(-dy, -dy - availableSpace);
+//        if (anchorTop < 0) {
+//            Math.min(-dy, -dy - availableSpace - anchorTop);
+//        } else {
+//            Math.min(-dy, Math.min(-dy - availableSpace, -dy - availableSpace - anchorTop))
+//        }
+//        return Math.min(-dy, Math.min(-dy - availableSpace, -dy - availableSpace - anchorTop));
 //        return Math.min(-dy, isFull ? -dy - availableSpace : -dy - availableSpace - anchorTop);
     }
 
     @Override
     protected int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorBottom) {
-        int availableSpace = dy;
+        int availableSpace = dy + Math.abs(anchorBottom - getLayoutManager().getHeight());
 
         int left = 0;
         int top = anchorBottom;
         int right = getLayoutManager().getWidth();
         int bottom = anchorBottom;
+        Log.e(TAG, "onLayoutChildren scrollVerticallyBy anchorBottom=" + anchorBottom + " height=" + getLayoutManager().getHeight());
+        Log.e(TAG, "onLayoutChildren scrollVerticallyBy availableSpace=" + availableSpace + " dy=" + dy);
 
         while (availableSpace > 0 && currentPosition < mPositionOffset + multiData.getCount()) {
 //            View view = recycler.getViewForPosition(currentPosition++);
@@ -70,6 +80,7 @@ public class VerticalLayouter extends AbsLayouter {
 //            params.setMultiData(multiData);
 //            getLayoutManager().addView(view);
 //            getLayoutManager().measureChild(view, 0, 0);
+            Log.e(TAG, "onLayoutChildren scrollVerticallyBy decoratedTop currentPosition=" + currentPosition + " availableSpace=" + availableSpace);
             View view = addViewAndMeasure(currentPosition++, recycler, multiData);
             int measuredHeight= getLayoutManager().getDecoratedMeasuredHeight(view);
             availableSpace -= measuredHeight;
@@ -81,7 +92,9 @@ public class VerticalLayouter extends AbsLayouter {
             top = bottom;
         }
         mBottom = bottom;
-        return Math.min(dy, dy - availableSpace + (anchorBottom - getLayoutManager().getHeight()));
+        Log.e(TAG, "onLayoutChildren scrollVerticallyBy dy=" + dy + " availableSpace=" + availableSpace + " return=" + Math.min(dy, dy - availableSpace));
+//        return Math.min(dy, dy - availableSpace + (anchorBottom - getLayoutManager().getHeight()));
+        return Math.min(dy, dy - availableSpace);
     }
 
     @Override

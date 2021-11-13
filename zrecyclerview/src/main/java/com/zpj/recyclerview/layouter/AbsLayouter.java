@@ -28,7 +28,7 @@ public abstract class AbsLayouter implements Layouter {
         }
 //        fillVertical(null, getLayoutManager().getHeight() - mTop, recycler, multiData);
 
-        fillVerticalBottom(recycler, multiData, currentPosition, getLayoutManager().getHeight() - mTop, getTop());
+        fillVerticalBottom(recycler, multiData, currentPosition, 0, getTop()); // getLayoutManager().getHeight() - mTop
     }
 
     @Override

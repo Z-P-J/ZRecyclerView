@@ -6,6 +6,7 @@ import android.widget.Toast;
 import com.zpj.recycler.demo.R;
 import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.HeaderMultiData;
+import com.zpj.recyclerview.layouter.Layouter;
 
 import java.util.List;
 
@@ -20,6 +21,16 @@ public abstract class BaseHeaderMultiData<T> extends HeaderMultiData<T> {
 
     public BaseHeaderMultiData(String title, List<T> list) {
         super(list);
+        this.title = title;
+    }
+
+    public BaseHeaderMultiData(String title, Layouter layouter) {
+        super(layouter);
+        this.title = title;
+    }
+
+    public BaseHeaderMultiData(String title, List<T> list, Layouter layouter) {
+        super(list, layouter);
         this.title = title;
     }
 

@@ -51,10 +51,11 @@ public class LayoutManagerActivity extends AppCompatActivity {
         }
 
         List<MultiData<?>> multiDataList = new ArrayList<>();
+        multiDataList.add(new StringMultiData("测试", new VerticalLayouter()));
         multiDataList.add(new LayouterMultiData(list, new VerticalLayouter()) {
             @Override
             public boolean isStickyItem(int position) {
-                return position == 10;
+                return position == 0 || position == 10 || position == 18;
             }
         });
         multiDataList.add(new TestErrorStringMultiData(new VerticalLayouter()));
@@ -83,7 +84,12 @@ public class LayoutManagerActivity extends AppCompatActivity {
                 return R.layout.item_text_grid;
             }
         });
-        multiDataList.add(new LayouterMultiData(list, new VerticalLayouter()));
+        multiDataList.add(new LayouterMultiData(list, new VerticalLayouter()) {
+            @Override
+            public boolean isStickyItem(int position) {
+                return position == 0;
+            }
+        });
         multiDataList.add(new LayouterMultiData(list, new GridLayouter(2)));
         multiDataList.add(new LayouterMultiData(list, new HorizontalLayouter()) {
             @Override
@@ -192,6 +198,68 @@ public class LayoutManagerActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(final EasyViewHolder holder, List<Integer> list, final int position, List<Object> payloads) {
+            holder.setText(R.id.tv_text, "StringData position=" + position);
+            holder.setOnItemClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(v.getContext(), "StringData position=" + position, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+    }
+
+    private static class StringMultiData extends BaseHeaderMultiData<String> {
+
+//        public StringMultiData(String title) {
+//            super(title);
+//        }
+//
+//        public StringMultiData(String title, List<String> list) {
+//            super(title, list);
+//        }
+//
+//        public StringMultiData(String title, Layouter layouter) {
+//            super(title, layouter);
+//        }
+
+        public StringMultiData(String title, Layouter layouter) {
+            super(title, layouter);
+            hasMore = false;
+            showError();
+        }
+
+        @Override
+        public int getChildColumnCount(int viewType) {
+            return getMaxColumnCount();
+        }
+
+        @Override
+        public int getMaxColumnCount() {
+            return 4;
+        }
+
+        @Override
+        public boolean loadData() {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(1000);
+                        for (int i = 0; i < 16; i++) {
+                            mData.add("" + i);
+                        }
+                        showContent();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+            return false;
+        }
+
+        @Override
+        public void onBindChild(EasyViewHolder holder, List<String> list, final int position, List<Object> payloads) {
             holder.setText(R.id.tv_text, "StringData position=" + position);
             holder.setOnItemClickListener(new View.OnClickListener() {
                 @Override
