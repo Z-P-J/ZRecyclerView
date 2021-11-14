@@ -131,14 +131,14 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             return;
         }
         if (isFooterPosition(position)) {
-            Log.d(TAG, "isFooterPosition");
+//            Log.d(TAG, "isFooterPosition");
             ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                     list.isEmpty() ? ViewGroup.LayoutParams.MATCH_PARENT : ViewGroup.LayoutParams.WRAP_CONTENT);
             footerViewHolder.getView().setLayoutParams(params);
             holder.setOnItemClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.d(TAG, "isFooterPosition click canScroll=" + canScroll() + " mIsLoading=" + mIsLoading + " isBottom=" + isBottom());
+//                    Log.d(TAG, "isFooterPosition click canScroll=" + canScroll() + " mIsLoading=" + mIsLoading + " isBottom=" + isBottom());
                     tryToLoadMore();
                 }
             });
@@ -622,7 +622,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     }
 
     private void notifyFooterHolderChanged() {
-        Log.d(TAG, "notifyFooterHolderChanged getLoadMoreEnabled=" + getLoadMoreEnabled());
+//        Log.d(TAG, "notifyFooterHolderChanged getLoadMoreEnabled=" + getLoadMoreEnabled());
         if (getLoadMoreEnabled()) {
             mShouldRemove = false;
             postNotifyItemChanged(getItemCount() - 1);
@@ -635,7 +635,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
               @see android.support.v7.widget.RecyclerView.Recycler#validateViewHolderForOffsetPosition(RecyclerView.ViewHolder)
              */
             int position = getItemCount() - 1;
-            Log.d(TAG, "notifyFooterHolderChanged isFooterPosition(position)=" + isFooterPosition(position));
+//            Log.d(TAG, "notifyFooterHolderChanged isFooterPosition(position)=" + isFooterPosition(position));
             if (isFooterPosition(position)) {
 //                notifyItemRemoved(position);
                 postNotifyItemRemoved(position);
@@ -719,12 +719,12 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         public void notifyLoadFailed(boolean isLoadFailed) {
             mIsLoadFailed = isLoadFailed;
 //            notifyFooterHolderChanged();
-            Log.d(TAG, "notifyLoadFailed isLoadFailed=" + isLoadFailed);
+//            Log.d(TAG, "notifyLoadFailed isLoadFailed=" + isLoadFailed);
         }
     };
 
     protected void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-        Log.d(TAG, "onScrollStateChanged newState=" + newState);
+//        Log.d(TAG, "onScrollStateChanged newState=" + newState);
         if (newState == RecyclerView.SCROLL_STATE_IDLE) {
             onLoadMore();
         }
@@ -733,10 +733,10 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     protected boolean isBottom() {
         boolean isBottom;
         RecyclerView.LayoutManager layoutManager = mRecyclerView.getLayoutManager();
-        Log.d(TAG, "isBottom layoutManager=" + layoutManager);
+//        Log.d(TAG, "isBottom layoutManager=" + layoutManager);
         if (layoutManager instanceof LinearLayoutManager) {
             int last = ((LinearLayoutManager) layoutManager).findLastVisibleItemPosition();
-            Log.d(TAG, "isBottom last=" + last + " itemCount=" + getItemCount() + " count=" + layoutManager.getItemCount() + " isFirst=" + isFooterPosition(last));
+//            Log.d(TAG, "isBottom last=" + last + " itemCount=" + getItemCount() + " count=" + layoutManager.getItemCount() + " isFirst=" + isFooterPosition(last));
             isBottom = isFooterPosition(last);
         } else if (layoutManager instanceof StaggeredGridLayoutManager) {
             StaggeredGridLayoutManager sgLayoutManager = (StaggeredGridLayoutManager) layoutManager;
@@ -782,7 +782,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             }
 //            notifyDataSetChanged();
             mIsLoading = false;
-            Log.d(TAG, "onChanged getCount=" + getItemCount());
+//            Log.d(TAG, "onChanged getCount=" + getItemCount());
 //            onScrollStateChanged(mRecyclerView, RecyclerView.SCROLL_STATE_IDLE);
 
             if (mRefreshHeader != null) {
@@ -798,7 +798,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 //            notifyItemRangeChanged(positionStart, itemCount);
             mIsLoading = false;
 //            onScrollStateChanged(mRecyclerView, RecyclerView.SCROLL_STATE_IDLE);
-            Log.d(TAG, "onItemRangeChanged getCount=" + getItemCount() + " positionStart=" + positionStart + " itemCount=" + itemCount);
+//            Log.d(TAG, "onItemRangeChanged getCount=" + getItemCount() + " positionStart=" + positionStart + " itemCount=" + itemCount);
         }
 
 //        @Override
@@ -819,7 +819,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 //                notifyItemRemoved(0);
 //            }
 //            notifyItemRangeInserted(positionStart, itemCount);
-            Log.d(TAG, "onItemRangeInserted positionStart=" + positionStart + " itemCount=" + itemCount + " getCount=" + getItemCount());
+//            Log.d(TAG, "onItemRangeInserted positionStart=" + positionStart + " itemCount=" + itemCount + " getCount=" + getItemCount());
 //            postDelayed(new Runnable() {
 //                @Override
 //                public void run() {
@@ -832,7 +832,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
         @Override
         public void onItemRangeRemoved(int positionStart, int itemCount) {
-            Log.d(TAG, "onItemRangeRemoved positionStart=" + positionStart + " itemCount=" + itemCount + " getCount=" + getItemCount());
+//            Log.d(TAG, "onItemRangeRemoved positionStart=" + positionStart + " itemCount=" + itemCount + " getCount=" + getItemCount());
             if (mShouldRemove && positionStart == getItemCount() - 1) {
                 mShouldRemove = false;
             }

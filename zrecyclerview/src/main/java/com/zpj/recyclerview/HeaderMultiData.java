@@ -39,7 +39,7 @@ public abstract class HeaderMultiData<T> extends StateMultiData<T> {
     }
 
     @Override
-    public boolean isStickyItem(int position) {
+    public boolean isStickyPosition(int position) {
         return position == 0;
     }
 

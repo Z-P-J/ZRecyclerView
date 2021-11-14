@@ -1,6 +1,7 @@
 package com.zpj.recycler.demo;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
@@ -51,11 +52,28 @@ public class LayoutManagerActivity extends AppCompatActivity {
         }
 
         List<MultiData<?>> multiDataList = new ArrayList<>();
-        multiDataList.add(new StringMultiData("测试", new VerticalLayouter()));
+        multiDataList.add(new StringMultiData("测试", new VerticalLayouter()) {
+//            @Override
+//            public boolean isStickyItem(int position) {
+//                return false;
+//            }
+        });
         multiDataList.add(new LayouterMultiData(list, new VerticalLayouter()) {
             @Override
-            public boolean isStickyItem(int position) {
-                return position == 0 || position == 10 || position == 18;
+            public boolean isStickyPosition(int position) {
+                return position == 5 || position == 12 || position == 20;
+            }
+
+            @Override
+            public void onBindViewHolder(EasyViewHolder holder, List<Integer> list, int position, List<Object> payloads) {
+                super.onBindViewHolder(holder, list, position, payloads);
+                holder.getItemView().setBackgroundColor(Color.TRANSPARENT);
+            }
+
+            @Override
+            public void onItemSticky(EasyViewHolder holder, int position, final boolean isSticky) {
+                super.onItemSticky(holder, position, isSticky);
+                holder.getItemView().setBackgroundColor(isSticky ? Color.WHITE : Color.TRANSPARENT);
             }
         });
         multiDataList.add(new TestErrorStringMultiData(new VerticalLayouter()));
@@ -86,7 +104,7 @@ public class LayoutManagerActivity extends AppCompatActivity {
         });
         multiDataList.add(new LayouterMultiData(list, new VerticalLayouter()) {
             @Override
-            public boolean isStickyItem(int position) {
+            public boolean isStickyPosition(int position) {
                 return position == 0;
             }
         });

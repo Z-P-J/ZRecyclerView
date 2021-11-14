@@ -2,12 +2,15 @@ package com.zpj.recyclerview.layouter;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.manager.MultiLayoutParams;
 
 public abstract class AbsLayouter implements Layouter {
+
+    private static final String TAG = "AbsLayouter";
 
     private RecyclerView.LayoutManager mManager;
     protected int mLeft;
@@ -28,35 +31,57 @@ public abstract class AbsLayouter implements Layouter {
         }
 //        fillVertical(null, getLayoutManager().getHeight() - mTop, recycler, multiData);
 
-        fillVerticalBottom(recycler, multiData, currentPosition, 0, getTop()); // getLayoutManager().getHeight() - mTop
+        fillVerticalBottom(recycler, multiData, currentPosition, getLayoutManager().getHeight() - mTop, getTop()); // getLayoutManager().getHeight() - mTop
     }
 
     @Override
     public int fillVertical(View anchorView, int dy, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+        Log.e(TAG, "fillVertical anchorView is null=" + (anchorView == null) + " dy=" + dy);
         if (dy > 0) {
             // 从下往上滑动
             if (anchorView == null) {
-                return fillVerticalBottom(recycler, multiData, mPositionOffset, dy, getTop());
+                int result = fillVerticalBottom(recycler, multiData, mPositionOffset, dy, getTop());
+                Log.e(TAG, "fillVertical111 result=" + result + " return=" + Math.min(dy, dy - result));
+                return Math.min(dy, dy - result);
             } else {
                 int anchorBottom = getDecoratedBottom(anchorView);
-                if (anchorBottom > getLayoutManager().getHeight()) {
-                    if (anchorBottom - dy > getLayoutManager().getHeight()) {
-                        return dy;
-                    } else {
-                        int anchorPosition = getPosition(anchorView);
-                        if (anchorPosition == mPositionOffset + multiData.getCount() - 1) {
-                            return Math.max(0, anchorBottom - getLayoutManager().getHeight());
-                        }
-                        return fillVerticalBottom(recycler, multiData, anchorPosition + 1, dy, anchorBottom);
+//                Log.d(TAG, "fillVertical anchorBottom=" + anchorBottom + " height=" + getLayoutManager().getHeight());
+//                if (anchorBottom > getLayoutManager().getHeight()) {
+//                    if (anchorBottom - dy > getLayoutManager().getHeight()) {
+//                        Log.d(TAG, "fillVertical return dy=" + dy);
+//                        return dy;
+//                    } else {
+//                        int anchorPosition = getPosition(anchorView);
+//                        if (anchorPosition == mPositionOffset + multiData.getCount() - 1) {
+//                            return Math.max(0, anchorBottom - getLayoutManager().getHeight());
+//                        }
+//                        int availableSpace = dy + getLayoutManager().getHeight() - anchorBottom;
+//                        int result = fillVerticalBottom(recycler, multiData, anchorPosition + 1, availableSpace, anchorBottom);
+//                        return Math.min(dy, availableSpace - result);
+//                    }
+//                }
+                Log.e(TAG, "fillVertical222 anchorBottom=" + anchorBottom + " height=" + getLayoutManager().getHeight() + " anchorBottom - dy=" + (anchorBottom - dy));
+                if (anchorBottom - dy > getLayoutManager().getHeight()) {
+//                    Log.d(TAG, "fillVertical return dy=" + dy);
+                    return dy;
+                } else {
+                    int anchorPosition = getPosition(anchorView);
+                    if (anchorPosition == mPositionOffset + multiData.getCount() - 1) {
+                        return Math.max(0, anchorBottom - getLayoutManager().getHeight());
                     }
+                    int availableSpace = dy + getLayoutManager().getHeight() - anchorBottom;
+                    int result = fillVerticalBottom(recycler, multiData, anchorPosition + 1, availableSpace, anchorBottom);
+                    Log.e(TAG, "fillVertical222 result=" + result + " return=" + Math.min(dy, dy - result) + " availableSpace=" + availableSpace);
+                    return Math.min(dy, dy - result);
                 }
             }
         } else {
             // 从上往下滑动
             if (anchorView == null) {
-                return fillVerticalTop(recycler, multiData,
-                        mPositionOffset + multiData.getCount() - 1,
-                        dy, getBottom());
+                int result = fillVerticalTop(recycler, multiData, mPositionOffset + multiData.getCount() - 1,
+                        -dy, getBottom());
+                Log.e(TAG, "fillVertical111 result=" + result + " return=" + Math.min(-dy, -dy - result));
+                return Math.min(-dy, -dy - result);
             } else {
                 int anchorTop = getDecoratedTop(anchorView);
                 int anchorPosition = getPosition(anchorView);
@@ -67,27 +92,14 @@ public abstract class AbsLayouter implements Layouter {
                     if (anchorPosition == mPositionOffset) {
                         return -anchorTop;
                     }
-                    return fillVerticalTop(recycler, multiData, anchorPosition - 1, dy, anchorTop);
+                    int availableSpace = -dy + anchorTop;
+                    int result = fillVerticalTop(recycler, multiData, anchorPosition - 1, availableSpace, anchorTop);
+                    Log.e(TAG, "fillVertical222 result=" + result + " return=" + Math.min(-dy, availableSpace - result) + " availableSpace=" + availableSpace);
+                    return Math.min(-dy, -dy - result);
                 }
-//                if (anchorTop < 0) {
-//                    if (anchorTop - dy < 0) {
-//                        return -dy;
-//                    } else {
-//
-//                        if (anchorPosition == mPositionOffset) {
-//                            return -anchorTop;
-//                        }
-//                        return fillVerticalTop(recycler, multiData, anchorPosition - 1, dy, anchorTop);
-//                    }
-//                } else if (anchorPosition >= mPositionOffset) {
-//                    if (anchorPosition == mPositionOffset) {
-//                        return -anchorTop;
-//                    }
-//                    return fillVerticalTop(recycler, multiData, anchorPosition - 1, dy, anchorTop);
-//                }
             }
         }
-        return 0;
+//        return 0;
     }
 
     protected abstract int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorTop);
@@ -221,7 +233,7 @@ public abstract class AbsLayouter implements Layouter {
 
     public View getViewForPosition(int position, RecyclerView.Recycler recycler, MultiData<?> multiData) {
         View view = null;
-        if (multiData.isStickyItem(position - mPositionOffset)) {
+        if (multiData.isStickyPosition(position - mPositionOffset)) {
             view  = getLayoutManager().findViewByPosition(position);
         }
         if (view == null) {

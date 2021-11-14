@@ -163,9 +163,9 @@ public class FlowLayouter extends AbsLayouter {
 
     // 从上往下滑动
     @Override
-    protected int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
+    protected int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop) {
 //        int availableSpace = -dy;
-        int availableSpace = -dy + anchorTop;
+//        int availableSpace = -dy + anchorTop;
 
         int left = 0;
         int top = anchorTop - mSpaceBottom;
@@ -202,16 +202,17 @@ public class FlowLayouter extends AbsLayouter {
             }
         }
         mTop = top;
-//        return Math.min(-dy, -dy - availableSpace - anchorTop);
-        return Math.min(-dy, -dy - availableSpace);
+//        return Math.min(-dy, -dy + anchorTop - availableSpace);
+//        return Math.min(-dy, -dy - availableSpace);
+        return availableSpace;
     }
 
     // 从下往上滑动
     @Override
-    protected int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorBottom) {
+    protected int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom) {
 
 //        int availableSpace = dy;
-        int availableSpace = dy + getLayoutManager().getHeight() - anchorBottom;
+//        int availableSpace = dy + getLayoutManager().getHeight() - anchorBottom;
 
         int left = 0;
         int top = anchorBottom + mSpaceBottom;
@@ -223,7 +224,7 @@ public class FlowLayouter extends AbsLayouter {
         int key = currentPosition - mPositionOffset;
         ItemState itemState = states.get(key);
         int row = -1;
-        Log.d(TAG, "availableSpace1=" + availableSpace);
+//        Log.d(TAG, "availableSpace1=" + availableSpace);
         while (itemState != null && availableSpace > 0 && currentPosition < multiData.getCount() + mPositionOffset) {
 
             if (row < 0) {
@@ -254,13 +255,14 @@ public class FlowLayouter extends AbsLayouter {
             itemState = states.get(currentPosition - mPositionOffset);
             if (itemState == null || itemState.row != row) {
                 availableSpace -= (childHeight + mSpaceTop + mSpaceBottom);
-                Log.d(TAG, "availableSpace=" + availableSpace);
+//                Log.d(TAG, "availableSpace=" + availableSpace);
             }
 
         }
         mBottom = Math.max(bottom, mTop);
-//        return Math.min(dy, dy - availableSpace + (anchorBottom - getLayoutManager().getHeight()));
-        return Math.min(dy, dy - availableSpace);
+//        return Math.min(dy, dy + getLayoutManager().getHeight() - anchorBottom - availableSpace);
+//        return Math.min(dy, dy - availableSpace);
+        return availableSpace;
 
     }
 

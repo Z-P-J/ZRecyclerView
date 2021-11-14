@@ -13,6 +13,7 @@ import com.zpj.recyclerview.layouter.Layouter;
 import com.zpj.recyclerview.layouter.VerticalLayouter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // extends BaseStateConfig<MultiData<T>>
@@ -137,7 +138,11 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
         return hasMore;
     }
 
-    public boolean isStickyItem(int position) {
+    public void onItemSticky(final EasyViewHolder holder, final int position, final boolean isSticky) {
+        onBindViewHolder(holder, mData, getRealPosition(position), Collections.emptyList());
+    }
+
+    public boolean isStickyPosition(int position) {
         return false;
     }
 
