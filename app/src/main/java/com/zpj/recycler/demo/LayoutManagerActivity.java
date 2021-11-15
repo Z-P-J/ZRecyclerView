@@ -3,9 +3,11 @@ package com.zpj.recycler.demo;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.zpj.recycler.demo.mutildata.BaseHeaderMultiData;
@@ -38,7 +40,7 @@ public class LayoutManagerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_recycler);
+        setContentView(R.layout.activity_layouter);
 
         List<Integer> list = new ArrayList<>();
         for (int i = 0; i < 57; i++) {
@@ -68,12 +70,14 @@ public class LayoutManagerActivity extends AppCompatActivity {
             public void onBindViewHolder(EasyViewHolder holder, List<Integer> list, int position, List<Object> payloads) {
                 super.onBindViewHolder(holder, list, position, payloads);
                 holder.getItemView().setBackgroundColor(Color.TRANSPARENT);
+                ViewCompat.setElevation(holder.getItemView(), 0);
             }
 
             @Override
             public void onItemSticky(EasyViewHolder holder, int position, final boolean isSticky) {
                 super.onItemSticky(holder, position, isSticky);
                 holder.getItemView().setBackgroundColor(isSticky ? Color.WHITE : Color.TRANSPARENT);
+                ViewCompat.setElevation(holder.getItemView(), isSticky ? 20 : 0);
             }
         });
         multiDataList.add(new TestErrorStringMultiData(new VerticalLayouter()));
@@ -121,29 +125,46 @@ public class LayoutManagerActivity extends AppCompatActivity {
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
         mRecycler = new MultiRecycler(recyclerView, multiDataList);
         mRecycler.setLayoutManager(new MultiLayoutManager())
-//                .onRefresh(new SimpleRefresher(), new IRefresher.OnRefreshListener() {
-//                    @Override
-//                    public void onRefresh(IRefresher refresher) {
-//                        new Thread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                try {
-//                                    Thread.sleep(1000);
-//                                } catch (InterruptedException e) {
-//                                    e.printStackTrace();
-//                                }
-//                                runOnUiThread(new Runnable() {
-//                                    @Override
-//                                    public void run() {
-//                                        Toast.makeText(LayoutManagerActivity.this, "刷新成功！", Toast.LENGTH_SHORT).show();
-//                                        mRecycler.notifyDataSetChanged();
-//                                    }
-//                                });
-//                            }
-//                        }).start();
-//                    }
-//                })
+                .onRefresh(new SimpleRefresher(), new IRefresher.OnRefreshListener() {
+                    @Override
+                    public void onRefresh(IRefresher refresher) {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    Thread.sleep(1000);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(LayoutManagerActivity.this, "刷新成功！", Toast.LENGTH_SHORT).show();
+                                        mRecycler.notifyDataSetChanged();
+                                    }
+                                });
+                            }
+                        }).start();
+                    }
+                })
                 .build();
+
+        Button btn1 = findViewById(R.id.btn_1);
+        Button btn2 = findViewById(R.id.btn_2);
+        btn1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mRecycler.scrollToPosition(9);
+            }
+        });
+
+        btn2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mRecycler.smoothScrollToPosition(100);
+            }
+        });
+
     }
 
     public static class LayouterMultiData extends SingleTypeMultiData<Integer> {

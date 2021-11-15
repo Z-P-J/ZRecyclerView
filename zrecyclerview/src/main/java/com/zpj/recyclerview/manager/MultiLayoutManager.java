@@ -1,8 +1,13 @@
 package com.zpj.recyclerview.manager;
 
 import android.content.Context;
+import android.graphics.PointF;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.LinearSmoothScroller;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -22,7 +27,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class MultiLayoutManager extends RecyclerView.LayoutManager {
+public class MultiLayoutManager extends RecyclerView.LayoutManager implements ItemTouchHelper.ViewDropHandler, RecyclerView.SmoothScroller.ScrollVectorProvider {
 
     private static final String TAG = "MultiLayoutManager";
 
@@ -147,8 +152,10 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
         detachAndScrapAttachedViews(recycler);
 
         StickyInfo temp = stickyInfo;
+        stickyInfo = null;
 
         int positionOffset = 0;
+        int topPosition = mTopPosition;
 
         Layouter last = null;
         for (int i = 0; i < multiDataList.size(); i++) {
@@ -163,6 +170,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
                 } else {
                     layouter.setTop(mTopOffset);
                     layouter.layoutChildren(multiData, recycler, mTopPosition + positionOffset);
+                    topPosition = mTopPosition + positionOffset;
                 }
                 last = layouter;
             }
@@ -177,6 +185,22 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
         saveState();
 
         stickyInfo = temp;
+
+        Log.d(TAG, "stickyInfo111=" + stickyInfo + " topPosition=" + topPosition);
+        if (stickyInfo == null || topPosition > stickyInfo.position) {
+            initStickyInfoStack(topPosition);
+            stickyInfo = stickyInfoStack.poll();
+        } else if (topPosition < stickyInfo.position) {
+            if (stickyInfoStack.isEmpty()) {
+                initStickyInfoStack(topPosition);
+            }
+            while (stickyInfo != null && topPosition < stickyInfo.position) {
+                stickyInfo = stickyInfoStack.poll();
+            }
+        }
+
+        Log.d(TAG, "stickyInfo111222=" + stickyInfo);
+
         if (stickyInfo != null) {
             View child = findViewByPosition(stickyInfo.position);
             if (child == null) {
@@ -194,6 +218,25 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
             stickyInfo.multiData.onItemSticky(new EasyViewHolder(child), stickyInfo.position - layouter.getPositionOffset(), true);
         }
 
+    }
+
+    private void initStickyInfoStack(int position) {
+        stickyInfoStack.clear();
+        int offset = 0;
+        for (int i = 0; i < multiDataList.size(); i++) {
+            MultiData<?> multiData = multiDataList.get(i);
+            int count = multiData.getCount();
+            for (int pos = offset; pos < offset + count; pos++) {
+                if (multiData.isStickyPosition(pos - offset)) {
+                    Log.d(TAG, "stickyInfo111 pos=" + pos);
+                    stickyInfoStack.push(new StickyInfo(pos, multiData));
+                }
+                if (pos >= position) {
+                    return;
+                }
+            }
+            offset += count;
+        }
     }
 
     @Override
@@ -417,10 +460,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
         Log.d(TAG, "scrollVerticallyBy consumed=" + consumed);
 
         MultiData<?> last = null;
-        int nextStickPosition = -1;
-        boolean handleSticky = true;
-        View currentStickyView = null;
-        View nextStickyView = null;
+        handleSticky = true;
         for (int i = 0; i < getChildCount(); i++) {
             View view = getChildAt(i);
             if (view == null) {
@@ -437,142 +477,8 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
                 last = data;
             }
             if (layouter.canScrollVertically()) {
-                int position = getPosition(view);
-                boolean isStickyChild = data.isStickyPosition(position - layouter.getPositionOffset());
-                if (isStickyChild) {
-                    Log.e(TAG, "scrollVerticallyBy");
-                    Log.e(TAG, "scrollVerticallyBy ================================start");
-                    Log.d(TAG, "scrollVerticallyBy i=" + i + " stickyPosition=" + position);
-                    int decoratedTop = layouter.getDecoratedTop(view);
-                    int decoratedBottom = layouter.getDecoratedBottom(view);
-//                        Log.d(TAG, "scrollVerticallyBy decoratedTop=" + decoratedTop
-//                                + " decoratedBottom=" + decoratedBottom + " height=" + getDecoratedMeasuredHeight(view)
-//                                + " consumed=" + consumed + " dy=" + dy
-//                                + " currentStickyPosition=" + currentStickyPosition + " position=" + position + " iii=" + i + " last=" + (getChildCount() - 1));
-
-                    Log.d(TAG, "scrollVerticallyBy isStickyChild i=" + i + " position=" + position + " stickyInfo=" + stickyInfo);
-
-                    if (stickyInfo != null && stickyInfo.position == position) {
-                        // 已是当前吸顶view
-
-//                            Log.d(TAG, "scrollVerticallyBy decoratedTop=" + decoratedTop + " childPos=" + (getChildCount() - 1) + " i=" + i + " consumed=" + consumed);
-                        if (i != getChildCount() - 1 && decoratedTop - consumed >= 0) { //  && decoratedTop - consumed >= 0
-//                            currentStickyOffset = decoratedTop - getDecoratedMeasuredHeight(view) - consumed;
-                            if (stickyInfo != null) {
-                                stickyInfo.multiData.onItemSticky(new EasyViewHolder(view), stickyInfo.position - stickyInfo.multiData.getLayouter().getPositionOffset(), false);
-                            }
-                            if (stickyInfoStack.isEmpty()) {
-                                stickyInfo = null;
-                                currentStickyOffset = 0;
-                            } else {
-                                stickyInfo = stickyInfoStack.pop();
-                            }
-                            handleSticky = false;
-                            if (stickyInfo != null) {
-                                View child = findViewByPosition(stickyInfo.position);
-                                if (child == null) {
-                                    child = recycler.getViewForPosition(stickyInfo.position);
-                                    measureChild(child, 0, 0);
-                                }
-                                MultiLayoutParams params = (MultiLayoutParams) child.getLayoutParams();
-                                params.setMultiData(stickyInfo.multiData);
-
-                                currentStickyOffset = decoratedTop - getDecoratedMeasuredHeight(child) - consumed;
-                            }
-                            Log.d(TAG, "scrollVerticallyBy 吸顶==>下一个吸顶 stickyInfo=" + stickyInfo + " currentStickyOffset=" + currentStickyOffset);
-                        } else {
-                            continue;
-                        }
-                    } else if (handleSticky) {
-                        handleSticky = false;
-                        // 不是当前吸顶view
-                        if (stickyInfo == null) {
-                            // 无吸顶
-                            if (dy > 0 && decoratedTop - consumed < 0) {
-                                currentStickyOffset = 0;
-                                stickyInfo = new StickyInfo(position, data);
-                                layoutDecorated(view, 0, 0, getWidth(), getDecoratedMeasuredHeight(view));
-                                Log.d(TAG, "scrollVerticallyBy 无吸顶===》当前吸顶 currentStickyPosition==position : " + position);
-                                continue;
-                            }
-                            Log.d(TAG, "scrollVerticallyBy 无吸顶");
-                        } else {
-                            // 说明已经有sticky吸顶item
-                            View child = findViewByPosition(stickyInfo.position);
-                            if (child == null) {
-                                child = recycler.getViewForPosition(stickyInfo.position);
-                                measureChild(child, 0, 0);
-                            }
-                            MultiLayoutParams params = (MultiLayoutParams) child.getLayoutParams();
-                            params.setMultiData(stickyInfo.multiData);
-                            Log.d(TAG, "scrollVerticallyBy 有吸顶 stickyInfo=" + stickyInfo + " position=" + position);
-
-                            if (position > stickyInfo.position) {
-                                Log.d(TAG, "scrollVerticallyBy 有吸顶 decoratedTop - consumed="
-                                        + (decoratedTop - consumed) + " childHeight=" +  getDecoratedMeasuredHeight(view)
-                                        + " pos=" + position + " stickyPos=" + stickyInfo.position);
-                                if (decoratedTop - consumed <= 0) {
-                                    stickyInfoStack.push(stickyInfo);
-                                    recycleViews.add(child);
-                                    if (stickyInfo != null) {
-                                        stickyInfo.multiData.onItemSticky(new EasyViewHolder(child), stickyInfo.position - stickyInfo.multiData.getLayouter().getPositionOffset(), false);
-                                    }
-                                    stickyInfo = new StickyInfo(position, data);
-                                    currentStickyOffset = 0;
-                                    layoutDecorated(view, 0, 0, getWidth(), getDecoratedMeasuredHeight(view));
-                                    Log.d(TAG, "scrollVerticallyBy 更改吸顶 child continue + position=" + position);
-                                    continue;
-                                } else if (decoratedTop - consumed < getDecoratedMeasuredHeight(child)) {
-                                    child.offsetTopAndBottom(-consumed);
-//                                    currentStickyOffset = Math.min(layouter.getDecoratedTop(child), getDecoratedMeasuredHeight(child));
-                                    if (layouter.getDecoratedTop(child) > 0) {
-                                        child.offsetTopAndBottom(-layouter.getDecoratedTop(child));
-                                    }
-                                    currentStickyOffset = layouter.getDecoratedTop(child);
-                                    Log.d(TAG, "scrollVerticallyBy 更改吸顶 child continue currentStickyOffset=" + currentStickyOffset + " position=" + position);
-                                } else {
-                                    currentStickyOffset = 0;
-                                }
-                            } else {
-                                if (decoratedBottom - consumed >= 0) {
-                                    child.offsetTopAndBottom(-consumed);
-//                                    currentStickyOffset = Math.min(layouter.getDecoratedTop(child), getDecoratedMeasuredHeight(child));
-                                    if (layouter.getDecoratedTop(child) > 0) {
-                                        child.offsetTopAndBottom(-layouter.getDecoratedTop(child));
-                                    }
-                                    currentStickyOffset = layouter.getDecoratedTop(child);
-
-                                } else if (decoratedBottom - consumed > getDecoratedMeasuredHeight(child)) {
-//                                    currentStickyOffset = decoratedTop - getDecoratedMeasuredHeight() - consumed;
-                                    if (stickyInfo != null) {
-                                        stickyInfo.multiData.onItemSticky(new EasyViewHolder(child), stickyInfo.position - stickyInfo.multiData.getLayouter().getPositionOffset(), false);
-                                    }
-                                    if (stickyInfoStack.isEmpty()) {
-                                        stickyInfo = null;
-                                        currentStickyOffset = 0;
-                                    } else {
-                                        stickyInfo = stickyInfoStack.pop();
-                                    }
-
-                                    if (stickyInfo != null) {
-                                        child = findViewByPosition(stickyInfo.position);
-                                        if (child == null) {
-                                            child = recycler.getViewForPosition(stickyInfo.position);
-                                            measureChild(child, 0, 0);
-                                        }
-                                        params = (MultiLayoutParams) child.getLayoutParams();
-                                        params.setMultiData(stickyInfo.multiData);
-
-                                        currentStickyOffset = Math.min(0, decoratedTop - getDecoratedMeasuredHeight(child) - consumed);
-                                    }
-
-                                    layoutDecorated(view, 0, 0, getWidth(), getDecoratedMeasuredHeight(view));
-                                    Log.d(TAG, "scrollVerticallyBy 更改吸顶 child continue");
-                                    continue;
-                                }
-                            }
-                        }
-                    }
+                if (handleSticky(recycler, data, view, i, consumed)) {
+                    continue;
                 }
                 if (layouter.getDecoratedBottom(view) - consumed < 0
                         || layouter.getDecoratedTop(view) - consumed > getHeight()) {
@@ -606,11 +512,158 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
         return consumed;
     }
 
+    private boolean handleSticky;
+    private boolean handleSticky(RecyclerView.Recycler recycler, MultiData<?> data, View view, int i, int consumed) {
+        Layouter layouter = data.getLayouter();
+        int position = getPosition(view);
+
+        boolean isStickyPosition = data.isStickyPosition(position - layouter.getPositionOffset());
+        if (!isStickyPosition) {
+            return false;
+        }
+
+        Log.e(TAG, "scrollVerticallyBy");
+        Log.e(TAG, "scrollVerticallyBy ================================start");
+        Log.d(TAG, "scrollVerticallyBy i=" + i + " stickyPosition=" + position);
+        int decoratedTop = layouter.getDecoratedTop(view);
+        int decoratedBottom = layouter.getDecoratedBottom(view);
+//                        Log.d(TAG, "scrollVerticallyBy decoratedTop=" + decoratedTop
+//                                + " decoratedBottom=" + decoratedBottom + " height=" + getDecoratedMeasuredHeight(view)
+//                                + " consumed=" + consumed + " dy=" + dy
+//                                + " currentStickyPosition=" + currentStickyPosition + " position=" + position + " iii=" + i + " last=" + (getChildCount() - 1));
+
+        Log.d(TAG, "scrollVerticallyBy isStickyChild i=" + i + " position=" + position + " stickyInfo=" + stickyInfo);
+
+        if (stickyInfo != null && stickyInfo.position == position) {
+            // 已是当前吸顶view
+
+//                            Log.d(TAG, "scrollVerticallyBy decoratedTop=" + decoratedTop + " childPos=" + (getChildCount() - 1) + " i=" + i + " consumed=" + consumed);
+            if (i != getChildCount() - 1 && decoratedTop - consumed >= 0) { //  && decoratedTop - consumed >= 0
+//                            currentStickyOffset = decoratedTop - getDecoratedMeasuredHeight(view) - consumed;
+                if (stickyInfo != null) {
+                    stickyInfo.multiData.onItemSticky(new EasyViewHolder(view), stickyInfo.position - stickyInfo.multiData.getLayouter().getPositionOffset(), false);
+                }
+                if (stickyInfoStack.isEmpty()) {
+                    stickyInfo = null;
+                    currentStickyOffset = 0;
+                } else {
+                    stickyInfo = stickyInfoStack.pop();
+                }
+                handleSticky = false;
+                if (stickyInfo != null) {
+                    View child = findViewByPosition(stickyInfo.position);
+                    if (child == null) {
+                        child = recycler.getViewForPosition(stickyInfo.position);
+                        measureChild(child, 0, 0);
+                    }
+                    MultiLayoutParams params = (MultiLayoutParams) child.getLayoutParams();
+                    params.setMultiData(stickyInfo.multiData);
+
+                    currentStickyOffset = decoratedTop - getDecoratedMeasuredHeight(child) - consumed;
+                }
+                Log.d(TAG, "scrollVerticallyBy 吸顶==>下一个吸顶 stickyInfo=" + stickyInfo + " currentStickyOffset=" + currentStickyOffset);
+            } else {
+                return true;
+            }
+        } else if (handleSticky) {
+            handleSticky = false;
+            // 不是当前吸顶view
+            if (stickyInfo == null) {
+                // 无吸顶
+                // dy > 0 &&
+                if (decoratedTop - consumed < 0) {
+                    currentStickyOffset = 0;
+                    stickyInfo = new StickyInfo(position, data);
+                    layoutDecorated(view, 0, 0, getWidth(), getDecoratedMeasuredHeight(view));
+                    Log.d(TAG, "scrollVerticallyBy 无吸顶===》当前吸顶 currentStickyPosition==position : " + position);
+                    return true;
+                }
+                Log.d(TAG, "scrollVerticallyBy 无吸顶");
+            } else {
+                // 说明已经有sticky吸顶item
+                View child = findViewByPosition(stickyInfo.position);
+                if (child == null) {
+                    child = recycler.getViewForPosition(stickyInfo.position);
+                    measureChild(child, 0, 0);
+                }
+                MultiLayoutParams params = (MultiLayoutParams) child.getLayoutParams();
+                params.setMultiData(stickyInfo.multiData);
+                Log.d(TAG, "scrollVerticallyBy 有吸顶 stickyInfo=" + stickyInfo + " position=" + position);
+
+                if (position > stickyInfo.position) {
+                    Log.d(TAG, "scrollVerticallyBy 有吸顶 decoratedTop - consumed="
+                            + (decoratedTop - consumed) + " childHeight=" +  getDecoratedMeasuredHeight(view)
+                            + " pos=" + position + " stickyPos=" + stickyInfo.position);
+                    if (decoratedTop - consumed <= 0) {
+                        stickyInfoStack.push(stickyInfo);
+                        recycleViews.add(child);
+                        if (stickyInfo != null) {
+                            stickyInfo.multiData.onItemSticky(new EasyViewHolder(child), stickyInfo.position - stickyInfo.multiData.getLayouter().getPositionOffset(), false);
+                        }
+                        stickyInfo = new StickyInfo(position, data);
+                        currentStickyOffset = 0;
+                        layoutDecorated(view, 0, 0, getWidth(), getDecoratedMeasuredHeight(view));
+                        Log.d(TAG, "scrollVerticallyBy 更改吸顶 child continue + position=" + position);
+                        return true;
+                    } else if (decoratedTop - consumed < getDecoratedMeasuredHeight(child)) {
+                        child.offsetTopAndBottom(-consumed);
+//                                    currentStickyOffset = Math.min(layouter.getDecoratedTop(child), getDecoratedMeasuredHeight(child));
+                        if (layouter.getDecoratedTop(child) > 0) {
+                            child.offsetTopAndBottom(-layouter.getDecoratedTop(child));
+                        }
+                        currentStickyOffset = layouter.getDecoratedTop(child);
+                        Log.d(TAG, "scrollVerticallyBy 更改吸顶 child continue currentStickyOffset=" + currentStickyOffset + " position=" + position);
+                    } else {
+                        currentStickyOffset = 0;
+                    }
+                } else {
+                    if (decoratedBottom - consumed >= 0) {
+                        child.offsetTopAndBottom(-consumed);
+//                                    currentStickyOffset = Math.min(layouter.getDecoratedTop(child), getDecoratedMeasuredHeight(child));
+                        if (layouter.getDecoratedTop(child) > 0) {
+                            child.offsetTopAndBottom(-layouter.getDecoratedTop(child));
+                        }
+                        currentStickyOffset = layouter.getDecoratedTop(child);
+
+                    } else if (decoratedBottom - consumed > getDecoratedMeasuredHeight(child)) {
+//                                    currentStickyOffset = decoratedTop - getDecoratedMeasuredHeight() - consumed;
+                        if (stickyInfo != null) {
+                            stickyInfo.multiData.onItemSticky(new EasyViewHolder(child), stickyInfo.position - stickyInfo.multiData.getLayouter().getPositionOffset(), false);
+                        }
+                        if (stickyInfoStack.isEmpty()) {
+                            stickyInfo = null;
+                            currentStickyOffset = 0;
+                        } else {
+                            stickyInfo = stickyInfoStack.pop();
+                        }
+
+                        if (stickyInfo != null) {
+                            child = findViewByPosition(stickyInfo.position);
+                            if (child == null) {
+                                child = recycler.getViewForPosition(stickyInfo.position);
+                                measureChild(child, 0, 0);
+                            }
+                            params = (MultiLayoutParams) child.getLayoutParams();
+                            params.setMultiData(stickyInfo.multiData);
+
+                            currentStickyOffset = Math.min(0, decoratedTop - getDecoratedMeasuredHeight(child) - consumed);
+                        }
+
+                        layoutDecorated(view, 0, 0, getWidth(), getDecoratedMeasuredHeight(view));
+                        Log.d(TAG, "scrollVerticallyBy 更改吸顶 child continue");
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     @Override
     public void addView(View child) {
         Log.d(TAG, "addView psoition=" + getPosition(child) + " stickyInfo=" + stickyInfo + " lastIndex=" + (getChildCount() - 1));
         if (stickyInfo == null) {
-            super.addView(child);
+            super.addView(child, getChildCount());
         } else {
             super.addView(child, getChildCount() - 1);
         }
@@ -619,6 +672,67 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager {
     @Override
     public void addView(View child, int index) {
         super.addView(child, index);
+    }
+
+    @Override
+    public void scrollToPosition(int position) {
+        scrollToPositionWithOffset(position, 0);
+    }
+
+    public void scrollToPositionWithOffset(int position, int offset) {
+
+        int positionOffset = 0;
+
+        for (int i = 0; i < multiDataList.size(); i++) {
+            MultiData<?> multiData = multiDataList.get(i);
+            int count = multiData.getCount();
+            if (position >= positionOffset && position < positionOffset + count) {
+                mTopMultiDataIndex = i;
+                mTopPosition = position - positionOffset;
+                mTopOffset = offset;
+                break;
+            }
+            positionOffset += count;
+        }
+
+        requestLayout();
+    }
+
+    @Override
+    public void smoothScrollToPosition(RecyclerView recyclerView, RecyclerView.State state, int position) {
+        LinearSmoothScroller linearSmoothScroller = new LinearSmoothScroller(recyclerView.getContext()) {
+            @Override
+            protected void onStart() {
+                super.onStart();
+                mScrollDirection = DIRECTION_VERTICAL;
+            }
+
+            @Override
+            protected void onStop() {
+                super.onStop();
+                mScrollDirection = DIRECTION_NONE;
+            }
+        };
+        linearSmoothScroller.setTargetPosition(position);
+        this.startSmoothScroll(linearSmoothScroller);
+    }
+
+    @Nullable
+    @Override
+    public PointF computeScrollVectorForPosition(int targetPosition) {
+        View firstChild = getChildAt(0);
+        if (firstChild == null) {
+            return null;
+        } else {
+            int firstChildPosition = getPosition(firstChild);
+            float direction = targetPosition < firstChildPosition ? -1f : 1f;
+            return new PointF(0f, direction);
+        }
+    }
+
+    @Override
+    public void prepareForDrop(@NonNull View view, @NonNull View view1, int i, int i1) {
+
     }
 
     private void recycleViews(RecyclerView.Recycler recycler) {
