@@ -1,17 +1,22 @@
 package com.zpj.recyclerview.manager;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.PointF;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.widget.LinearSmoothScroller;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.VelocityTracker;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 
 import com.zpj.recyclerview.EasyViewHolder;
@@ -35,6 +40,9 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements It
     private static final int DIRECTION_HORIZONTAL = 1;
     private static final int DIRECTION_VERTICAL = 2;
 
+    private static final int OVER_SCROLL_DOWN = 1;
+    private static final int OVER_SCROLL_UP = 2;
+
     private final Set<View> recycleViews = new LinkedHashSet<>();
     private final Deque<StickyInfo> stickyInfoStack = new ArrayDeque<>();
 
@@ -52,6 +60,12 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements It
 
     private StickyInfo stickyInfo;
     private int currentStickyOffset = 0;
+
+    private boolean isOverScrolling;
+    private int overScrollDirection;
+    private int overScrollDistance;
+
+    private ValueAnimator mOverScrollAnimator;
 
     private static class StickyInfo {
         int position;
@@ -79,13 +93,24 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements It
         }
         recycler.getRecyclerView().setOverScrollMode(View.OVER_SCROLL_NEVER);
         recycler.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+
+            private VelocityTracker mTracker;
+
             @Override
             public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent event) {
                 int action = event.getAction();
+                if (mTracker == null) {
+                    mTracker = VelocityTracker.obtain();
+                }
+                mTracker.addMovement(event);
                 if (MotionEvent.ACTION_DOWN == action) {
                     mScrollDirection = DIRECTION_NONE;
                     mDownX = event.getRawX();
                     mDownY = event.getRawY();
+                    if (mOverScrollAnimator != null) {
+                        mOverScrollAnimator.pause();
+                        mOverScrollAnimator = null;
+                    }
                 } else if (MotionEvent.ACTION_MOVE == action) {
                     if (mScrollDirection == 0) {
                         float deltaX = event.getRawX() - mDownX;
@@ -100,6 +125,13 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements It
                             mScrollDirection = DIRECTION_VERTICAL;
                         }
                     }
+                } else if (MotionEvent.ACTION_UP == action || MotionEvent.ACTION_CANCEL == action) {
+                    mTracker.computeCurrentVelocity(1000);
+                    if (mTracker.getYVelocity() < ViewConfiguration.get(mRecycler.getRecyclerView().getContext()).getScaledMinimumFlingVelocity()) {
+                        onStopOverScroll();
+                    }
+                    mTracker.recycle();
+                    mTracker = null;
                 }
                 return false;
             }
@@ -114,6 +146,93 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements It
 
             }
         });
+
+        recycler.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if (RecyclerView.SCROLL_STATE_IDLE == newState) {
+                    onStopOverScroll();
+                }
+            }
+        });
+
+    }
+
+    public boolean isOverScrolling() {
+        return isOverScrolling;
+    }
+
+    private void onStopOverScroll() {
+        if (isOverScrolling) {
+            if (mOverScrollAnimator != null) {
+                mOverScrollAnimator.pause();
+                mOverScrollAnimator = null;
+            }
+
+            final View firstChild = getChildAt(0);
+            if (firstChild != null) {
+                final int firstTop = getDecoratedTop(firstChild);
+                if (firstTop > 0) {
+                    mOverScrollAnimator = ValueAnimator.ofFloat(1f, 0f);
+                    mOverScrollAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                        int lastTop = firstTop;
+                        @Override
+                        public void onAnimationUpdate(ValueAnimator animation) {
+                            float percent = (float) animation.getAnimatedValue();
+                            int top = (int) (percent * firstTop);
+                            offsetChildrenVertical(top - lastTop);
+                            lastTop = top;
+                        }
+                    });
+                }
+
+            }
+
+            if (mOverScrollAnimator == null) {
+                View lastChild = getChildAt(stickyInfo == null ? getChildCount() - 1 : getChildCount() - 2);
+                if (lastChild != null) {
+                    final int bottom = getDecoratedBottom(lastChild);
+                    if (bottom < getHeight()) {
+                        mOverScrollAnimator = ValueAnimator.ofFloat(0f, 1f);
+                        mOverScrollAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                            int lastBottom = bottom;
+                            @Override
+                            public void onAnimationUpdate(ValueAnimator animation) {
+                                float percent = (float) animation.getAnimatedValue();
+                                int b = (int) (percent * (getHeight() - bottom) + bottom);
+                                offsetChildrenVertical(b - lastBottom);
+                                lastBottom = b;
+                            }
+                        });
+                    }
+                }
+            }
+
+
+
+
+            if (mOverScrollAnimator != null) {
+                mOverScrollAnimator.setInterpolator(new FastOutSlowInInterpolator());
+                mOverScrollAnimator.setDuration(500);
+                mOverScrollAnimator.addListener(new AnimatorListenerAdapter() {
+
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        isOverScrolling = false;
+                    }
+                });
+                mOverScrollAnimator.start();
+                return;
+            }
+
+            isOverScrolling = false;
+        }
+    }
+
+    private void onOverScroll() {
+
     }
 
     @Override
@@ -203,6 +322,11 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements It
 
         if (stickyInfo != null) {
             View child = findViewByPosition(stickyInfo.position);
+            if (stickyInfoStack.isEmpty() && child != null && getDecoratedTop(child) == 0) {
+                stickyInfo = null;
+                return;
+            }
+
             if (child == null) {
                 child = recycler.getViewForPosition(stickyInfo.position);
             } else {
@@ -382,6 +506,21 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements It
     }
 
     @Override
+    public void offsetChildrenVertical(int dy) {
+
+        if (isOverScrolling && stickyInfo != null && overScrollDirection == OVER_SCROLL_UP) {
+            for (int i = 0; i < getChildCount(); i++) {
+                View child = getChildAt(i);
+                if (child != null && getPosition(child) != stickyInfo.position) {
+                    child.offsetTopAndBottom(dy);
+                }
+            }
+        } else {
+            super.offsetChildrenVertical(dy);
+        }
+    }
+
+    @Override
     public boolean canScrollVertically() {
         return mScrollDirection == DIRECTION_VERTICAL;
     }
@@ -390,6 +529,52 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements It
     public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state) {
         if (multiDataList == null) {
             return 0;
+        }
+
+        if (isOverScrolling) {
+            overScrollDistance += dy;
+
+            Log.d(TAG, "scrollVerticallyBy isOverScrolling overScrollDistance=" + overScrollDistance + " dy=" + dy + " overScrollDirection=" + overScrollDirection);
+
+            if (overScrollDirection == OVER_SCROLL_UP) {
+                if (overScrollDistance < 0) {
+                    isOverScrolling = false;
+                }
+            } else if (overScrollDirection == OVER_SCROLL_DOWN) {
+                if (overScrollDistance > 0) {
+                    isOverScrolling = false;
+                }
+            }
+
+            if (isOverScrolling) {
+                Log.d(TAG, "scrollVerticallyBy isOverScrolling");
+                int maxHeight = getHeight() / 2;
+                float overScrollRatio = (float) Math.min(Math.abs(overScrollDistance), maxHeight) / maxHeight;
+                int overScroll = (int) ((0.68f - overScrollRatio / 2f) * dy);
+
+//                if (stickyInfo != null && overScrollDirection == OVER_SCROLL_UP) {
+//                    for (int i = 0; i < getChildCount(); i++) {
+//                        View child = getChildAt(i);
+//                        if (child != null && getPosition(child) != stickyInfo.position) {
+//                            child.offsetTopAndBottom(-overScroll);
+//                        }
+//                    }
+//                } else {
+//                    offsetChildrenVertical(-overScroll);
+//                }
+                offsetChildrenVertical(-overScroll);
+
+                if (overScrollRatio >= 1f || Math.abs(overScroll) < 20) {
+                    return 0;
+                }
+
+                if (Math.abs(overScrollDistance) > maxHeight) {
+                    return 0;
+                }
+
+                return dy;
+            }
+
         }
 
         int consumed = 0;
@@ -489,6 +674,15 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements It
             }
         }
         recycleViews(recycler);
+
+        if (dy != consumed) {
+            int overScroll = (int) ((consumed - dy) * 0.1f);
+            isOverScrolling = true;
+            overScrollDirection = dy > 0 ? OVER_SCROLL_UP : OVER_SCROLL_DOWN;
+            overScrollDistance = dy - consumed;
+            offsetChildrenVertical(overScroll);
+            consumed = dy;
+        }
 
         if (stickyInfo != null) {
             View child = findViewByPosition(stickyInfo.position);

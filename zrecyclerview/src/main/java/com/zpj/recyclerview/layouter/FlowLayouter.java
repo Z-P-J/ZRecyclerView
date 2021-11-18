@@ -131,7 +131,7 @@ public class FlowLayouter extends AbsLayouter {
         int offsetY = 0;
         for (int i = 0; i < multiData.getCount(); i++) {
             View view = recycler.getViewForPosition(i + mPositionOffset);
-            getLayoutManager().measureChild(view, 0, 0);
+            getLayoutManager().measureChild(view, mSpaceLeft + mSpaceRight, 0);
             int childWidth = getLayoutManager().getDecoratedMeasuredWidth(view);
             int childHeight = getLayoutManager().getDecoratedMeasuredHeight(view);
 
@@ -184,7 +184,8 @@ public class FlowLayouter extends AbsLayouter {
             MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
             params.setMultiData(multiData);
             getLayoutManager().addView(view, 0);
-            getLayoutManager().measureChild(view, itemState.width, itemState.height);
+//            getLayoutManager().measureChild(view, itemState.width, itemState.height);
+            getLayoutManager().measureChild(view, mSpaceLeft + mSpaceRight, 0);
 
             left = itemState.offsetX;
             right = left + itemState.width;
@@ -236,7 +237,8 @@ public class FlowLayouter extends AbsLayouter {
             params.setMultiData(multiData);
             getLayoutManager().addView(view);
             int childHeight = itemState.height;
-            getLayoutManager().measureChild(view, itemState.width, childHeight);
+//            getLayoutManager().measureChild(view, itemState.width, childHeight);
+            getLayoutManager().measureChild(view, mSpaceLeft + mSpaceRight, 0);
 
             left = itemState.offsetX;
             right = left + itemState.width;

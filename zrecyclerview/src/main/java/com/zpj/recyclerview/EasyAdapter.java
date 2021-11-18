@@ -7,7 +7,6 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -15,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.zpj.recyclerview.footer.IFooterViewHolder;
+import com.zpj.recyclerview.manager.MultiLayoutManager;
 import com.zpj.recyclerview.refresh.IRefresher;
 
 import java.util.List;
@@ -252,9 +252,15 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
             @Override
             public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent event) {
+
+                if (recyclerView.getLayoutManager() instanceof MultiLayoutManager && ((MultiLayoutManager) recyclerView.getLayoutManager()).isOverScrolling()) {
+                    return false;
+                }
+
                 if (mRefreshHeader == null) {
                     return false;
                 }
+
                 if (mIsDraggingOrSwiping) {
                     return false;
                 }
