@@ -42,7 +42,10 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
             }
         }
 //        else if (viewType == TYPE_REFRESH) {
-//            return new EasyViewHolder(mRefreshHeader.onCreateView(context, viewGroup));
+//            View view = onCreateView(viewGroup.getContext(), viewGroup, viewType);
+//            if (view == null) {
+//                return new EasyViewHolder(mRefreshHeader.onCreateView(context, viewGroup));
+//            }
 //        }
         else if (viewType == TYPE_HEADER) {
             return new EasyViewHolder(headerView);

@@ -318,7 +318,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements It
             }
         }
 
-        Log.d(TAG, "stickyInfo111222=" + stickyInfo);
+        Log.d(TAG, "stickyInfo111222=" + stickyInfo + " stickyInfoStack.size=" + stickyInfoStack.size());
 
         if (stickyInfo != null) {
             View child = findViewByPosition(stickyInfo.position);
@@ -552,16 +552,6 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements It
                 float overScrollRatio = (float) Math.min(Math.abs(overScrollDistance), maxHeight) / maxHeight;
                 int overScroll = (int) ((0.68f - overScrollRatio / 2f) * dy);
 
-//                if (stickyInfo != null && overScrollDirection == OVER_SCROLL_UP) {
-//                    for (int i = 0; i < getChildCount(); i++) {
-//                        View child = getChildAt(i);
-//                        if (child != null && getPosition(child) != stickyInfo.position) {
-//                            child.offsetTopAndBottom(-overScroll);
-//                        }
-//                    }
-//                } else {
-//                    offsetChildrenVertical(-overScroll);
-//                }
                 offsetChildrenVertical(-overScroll);
 
                 if (overScrollRatio >= 1f || Math.abs(overScroll) < 20) {
@@ -595,6 +585,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements It
                     i++;
                     continue;
                 }
+                view.setTag(i);
                 multiData = ((MultiLayoutParams) view.getLayoutParams()).getMultiData();
                 i++;
             } while (multiData == null);
@@ -624,6 +615,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements It
                     i--;
                     continue;
                 }
+                view.setTag(i);
                 multiData = ((MultiLayoutParams) view.getLayoutParams()).getMultiData();
                 i--;
             } while (multiData == null);

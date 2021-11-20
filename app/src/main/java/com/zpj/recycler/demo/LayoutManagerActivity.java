@@ -19,6 +19,7 @@ import com.zpj.recyclerview.layouter.FlowLayouter;
 import com.zpj.recyclerview.layouter.GridLayouter;
 import com.zpj.recyclerview.layouter.HorizontalLayouter;
 import com.zpj.recyclerview.layouter.Layouter;
+import com.zpj.recyclerview.layouter.StaggeredGridLayouter;
 import com.zpj.recyclerview.layouter.VerticalLayouter;
 import com.zpj.recyclerview.manager.MultiLayoutManager;
 import com.zpj.recyclerview.refresh.IRefresher;
@@ -47,13 +48,20 @@ public class LayoutManagerActivity extends AppCompatActivity {
             list.add(i);
         }
 
-        List<Integer> flowList = new ArrayList<>();
-
-        for (int i = 0; i < 100; i++) {
-            flowList.addAll(Arrays.asList(flowArray));
-        }
 
         List<MultiData<?>> multiDataList = new ArrayList<>();
+
+        List<Integer> staggeredList = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            staggeredList.addAll(Arrays.asList(flowArray));
+        }
+        multiDataList.add(new LayouterMultiData(staggeredList, new StaggeredGridLayouter(4)) {
+            @Override
+            public int getLayoutId() {
+                return R.layout.item_text_card;
+            }
+        });
+
         multiDataList.add(new StringMultiData("测试", new VerticalLayouter()) {
 //            @Override
 //            public boolean isStickyItem(int position) {
@@ -81,6 +89,12 @@ public class LayoutManagerActivity extends AppCompatActivity {
             }
         });
         multiDataList.add(new TestErrorStringMultiData(new VerticalLayouter()));
+
+
+        List<Integer> flowList = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            flowList.addAll(Arrays.asList(flowArray));
+        }
         multiDataList.add(new LayouterMultiData(flowList, new FlowLayouter(20)) {
             @Override
             public int getLayoutId() {
@@ -99,6 +113,7 @@ public class LayoutManagerActivity extends AppCompatActivity {
                 });
             }
         });
+
         multiDataList.add(new TestErrorStringMultiData(new GridLayouter(2)));
         multiDataList.add(new LayouterMultiData(list, new HorizontalLayouter()) {
             @Override

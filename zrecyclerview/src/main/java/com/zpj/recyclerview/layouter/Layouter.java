@@ -67,13 +67,13 @@ public interface Layouter {
 
     void layoutDecorated(@NonNull View child, int left, int top, int right, int bottom);
 
-    void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition);
-
     boolean canScrollHorizontally();
 
 //    int scrollHorizontallyBy(int dx, RecyclerView.Recycler recycler, RecyclerView.State state);
 
     boolean canScrollVertically();
+
+    void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition);
 
 //    int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state);
 

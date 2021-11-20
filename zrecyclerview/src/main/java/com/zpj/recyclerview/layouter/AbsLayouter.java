@@ -29,9 +29,7 @@ public abstract class AbsLayouter implements Layouter {
             mBottom = mTop;
             return;
         }
-//        fillVertical(null, getLayoutManager().getHeight() - mTop, recycler, multiData);
-
-        fillVerticalBottom(recycler, multiData, currentPosition, getLayoutManager().getHeight() - mTop, getTop()); // getLayoutManager().getHeight() - mTop
+        fillVerticalBottom(recycler, multiData, currentPosition, getLayoutManager().getHeight() - mTop, getTop());
     }
 
     @Override
@@ -101,10 +99,6 @@ public abstract class AbsLayouter implements Layouter {
         }
 //        return 0;
     }
-
-    protected abstract int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorTop);
-
-    protected abstract int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorBottom);
 
     @Override
     public int getChildCount() {
@@ -230,6 +224,10 @@ public abstract class AbsLayouter implements Layouter {
     public void saveState(int firstPosition, int firstOffset) {
 
     }
+
+    protected abstract int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop);
+
+    protected abstract int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom);
 
     public View getViewForPosition(int position, RecyclerView.Recycler recycler, MultiData<?> multiData) {
         View view = null;
