@@ -1,18 +1,23 @@
 package com.zpj.recyclerview.layouter;
 
+import android.graphics.Rect;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.Px;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
+import com.zpj.recyclerview.manager.MultiLayoutManager;
 import com.zpj.recyclerview.manager.MultiLayoutParams;
 
 public abstract class AbsLayouter implements Layouter {
 
     private static final String TAG = "AbsLayouter";
 
-    private RecyclerView.LayoutManager mManager;
+    private MultiLayoutManager mManager;
     protected int mLeft;
     protected int mTop;
     protected int mRight;
@@ -25,11 +30,11 @@ public abstract class AbsLayouter implements Layouter {
 
     @Override
     public void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition) {
-        if (getLayoutManager() == null || multiData.getCount() == 0 || mTop > getLayoutManager().getHeight()) {
+        if (getLayoutManager() == null || multiData.getCount() == 0 || mTop > getHeight()) {
             mBottom = mTop;
             return;
         }
-        fillVerticalBottom(recycler, multiData, currentPosition, getLayoutManager().getHeight() - mTop, getTop());
+        fillVerticalBottom(recycler, multiData, currentPosition, getHeight() - mTop, getTop());
     }
 
     @Override
@@ -43,31 +48,16 @@ public abstract class AbsLayouter implements Layouter {
                 return Math.min(dy, dy - result);
             } else {
                 int anchorBottom = getDecoratedBottom(anchorView);
-//                Log.d(TAG, "fillVertical anchorBottom=" + anchorBottom + " height=" + getLayoutManager().getHeight());
-//                if (anchorBottom > getLayoutManager().getHeight()) {
-//                    if (anchorBottom - dy > getLayoutManager().getHeight()) {
-//                        Log.d(TAG, "fillVertical return dy=" + dy);
-//                        return dy;
-//                    } else {
-//                        int anchorPosition = getPosition(anchorView);
-//                        if (anchorPosition == mPositionOffset + multiData.getCount() - 1) {
-//                            return Math.max(0, anchorBottom - getLayoutManager().getHeight());
-//                        }
-//                        int availableSpace = dy + getLayoutManager().getHeight() - anchorBottom;
-//                        int result = fillVerticalBottom(recycler, multiData, anchorPosition + 1, availableSpace, anchorBottom);
-//                        return Math.min(dy, availableSpace - result);
-//                    }
-//                }
-                Log.e(TAG, "fillVertical222 anchorBottom=" + anchorBottom + " height=" + getLayoutManager().getHeight() + " anchorBottom - dy=" + (anchorBottom - dy));
-                if (anchorBottom - dy > getLayoutManager().getHeight()) {
+                Log.e(TAG, "fillVertical222 anchorBottom=" + anchorBottom + " height=" + getHeight() + " anchorBottom - dy=" + (anchorBottom - dy));
+                if (anchorBottom - dy > getHeight()) {
 //                    Log.d(TAG, "fillVertical return dy=" + dy);
                     return dy;
                 } else {
                     int anchorPosition = getPosition(anchorView);
                     if (anchorPosition == mPositionOffset + multiData.getCount() - 1) {
-                        return Math.max(0, anchorBottom - getLayoutManager().getHeight());
+                        return Math.max(0, anchorBottom - getHeight());
                     }
-                    int availableSpace = dy + getLayoutManager().getHeight() - anchorBottom;
+                    int availableSpace = dy + getHeight() - anchorBottom;
                     int result = fillVerticalBottom(recycler, multiData, anchorPosition + 1, availableSpace, anchorBottom);
                     Log.e(TAG, "fillVertical222 result=" + result + " return=" + Math.min(dy, dy - result) + " availableSpace=" + availableSpace);
                     return Math.min(dy, dy - result);
@@ -101,11 +91,6 @@ public abstract class AbsLayouter implements Layouter {
     }
 
     @Override
-    public int getChildCount() {
-        return mChildCount;
-    }
-
-    @Override
     public void setPositionOffset(int offset) {
         this.mPositionOffset = offset;
     }
@@ -126,12 +111,12 @@ public abstract class AbsLayouter implements Layouter {
     }
 
     @Override
-    public void setLayoutManager(RecyclerView.LayoutManager manager) {
+    public void setLayoutManager(MultiLayoutManager manager) {
         this.mManager = manager;
     }
 
     @Override
-    public RecyclerView.LayoutManager getLayoutManager() {
+    public MultiLayoutManager getLayoutManager() {
         return mManager;
     }
 
@@ -246,16 +231,85 @@ public abstract class AbsLayouter implements Layouter {
 
     public View addViewAndMeasure(int position, RecyclerView.Recycler recycler, MultiData<?> multiData) {
         View view = getViewForPosition(position, recycler, multiData);
-        getLayoutManager().addView(view);
-        getLayoutManager().measureChild(view, 0, 0);
+        addView(view);
+        measureChild(view, 0, 0);
         return view;
     }
 
     public View addViewAndMeasure(int position, int index, RecyclerView.Recycler recycler, MultiData<?> multiData) {
         View view = getViewForPosition(position, recycler, multiData);
-        getLayoutManager().addView(view, index);
-        getLayoutManager().measureChild(view, 0, 0);
+        addView(view, index);
+        measureChild(view, 0, 0);
         return view;
+    }
+
+    public void measureChild(@NonNull View child, int widthUsed, int heightUsed) {
+        getLayoutManager().measureChild(child, widthUsed, heightUsed);
+    }
+
+    public void addView(View child) {
+        getLayoutManager().addView(child);
+    }
+
+    public void addView(View child, int index) {
+        getLayoutManager().addView(child, index);
+    }
+
+    public int getDecoratedMeasuredWidth(@NonNull View child) {
+        return getLayoutManager().getDecoratedMeasuredWidth(child);
+    }
+
+    public int getDecoratedMeasuredHeight(@NonNull View child) {
+        return getLayoutManager().getDecoratedMeasuredHeight(child);
+    }
+
+    @Px
+    public int getWidth() {
+        return getLayoutManager().getWidth();
+    }
+
+    @Px
+    public int getHeight() {
+        return getLayoutManager().getHeight();
+    }
+
+    @Px
+    public int getPaddingLeft() {
+        return getLayoutManager().getPaddingLeft();
+    }
+
+    @Px
+    public int getPaddingTop() {
+        return getLayoutManager().getPaddingTop();
+    }
+
+    @Px
+    public int getPaddingRight() {
+        return getLayoutManager().getPaddingRight();
+    }
+
+    @Px
+    public int getPaddingBottom() {
+        return getLayoutManager().getPaddingBottom();
+    }
+
+    @Px
+    public int getPaddingStart() {
+        return getLayoutManager().getPaddingStart();
+    }
+
+    @Px
+    public int getPaddingEnd() {
+        return getLayoutManager().getPaddingEnd();
+    }
+
+    public int getChildCount() {
+        return getLayoutManager().getChildCount();
+    }
+
+    @Nullable
+    public View getChildAt(int index) {
+        return getLayoutManager().getChildAt(index);
     }
 
 }

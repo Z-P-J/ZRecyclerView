@@ -5,25 +5,13 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
+import com.zpj.recyclerview.manager.MultiLayoutManager;
 
 public interface Layouter {
 
-    class State {
+    void setLayoutManager(MultiLayoutManager manager);
 
-        private MultiData<?> multiData;
-
-        public void setMultiData(MultiData<?> multiData) {
-            this.multiData = multiData;
-        }
-
-        public MultiData<?> getMultiData() {
-            return multiData;
-        }
-    }
-
-    void setLayoutManager(RecyclerView.LayoutManager manager);
-
-    RecyclerView.LayoutManager getLayoutManager();
+    MultiLayoutManager getLayoutManager();
 
     void setLeft(int left);
 
@@ -44,8 +32,6 @@ public interface Layouter {
     void offsetLeftAndRight(int offset);
 
     void offsetTopAndBottom(int offset);
-
-    int getChildCount();
 
     void setPositionOffset(int offset);
 

@@ -19,21 +19,8 @@ public class StaggeredGridLayouter extends AbsLayouter {
 
     private static final String TAG = "StaggeredGridLayouter";
 
-    private final int[] mBottoms;
-
-    private final ItemInfo[] mBottomItemInfo;
-
-    private int minBottom;
-    private int maxBottom;
-    private int minBottomIndex = 0;
-    private int maxBottomIndex = 0;
-    private int lastBottomIndex;
-
-
-    private final int[] mTops;
-    private int minTop;
-    private int maxTop;
-    private int maxTopIndex = 0;
+    private int[] mTops;
+    private int[] mPositions;
 
     private int mSpanCount = 1;
 
@@ -81,9 +68,61 @@ public class StaggeredGridLayouter extends AbsLayouter {
 
     public StaggeredGridLayouter(int mSpanCount) {
         this.mSpanCount = Math.max(mSpanCount, 1);
-        this.mTops = new int[mSpanCount];
-        this.mBottoms = new int[mSpanCount];
-        this.mBottomItemInfo = new ItemInfo[mSpanCount];
+    }
+
+    public void saveState() {
+        int childWidth = getWidth() / mSpanCount;
+        boolean[] places = new boolean[mSpanCount];
+
+        if (this.mTops == null || this.mPositions == null) {
+            this.mTops = new int[mSpanCount];
+            this.mPositions = new int[mSpanCount];
+        }
+
+        int count = 0;
+        for (int i = 0; i < getChildCount(); i++) {
+            View view = getChildAt(i);
+            if (view == null) {
+                continue;
+            }
+
+            MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
+            if (params.getMultiData().getLayouter() != this) {
+                continue;
+            }
+
+            int col = getDecoratedLeft(view) / childWidth;
+            if (!places[col]) {
+                places[col] = true;
+                mTops[col] = getDecoratedTop(view);
+                int index = columns[col].positions.indexOf(params.getViewLayoutPosition());
+//                mPositions[col] = params.getViewLayoutPosition();
+                if (index == 0) {
+                    mPositions[col] = -1;
+                } else if (index > 0) {
+                    mPositions[col] = columns[col].positions.get(index - 1);
+                } else {
+                    mPositions[col] = columns[col].getLast();
+                }
+                count++;
+            }
+
+            if (count >= mSpanCount) {
+                break;
+            }
+        }
+
+        for (int i = 0; i < mSpanCount; i++) {
+            Log.d(TAG, "fillVertical bottom=" + columns[i].bottom + " isPlace=" + places[i]);
+            if (!places[i]) {
+                Column column = columns[i];
+                mPositions[i] = column.getLast();
+            }
+        }
+
+        Log.d(TAG, "layoutChildren saveState mTops=" + Arrays.toString(mTops));
+        Log.d(TAG, "layoutChildren saveState mPositions=" + Arrays.toString(mPositions));
+
     }
 
     @Override
@@ -98,18 +137,38 @@ public class StaggeredGridLayouter extends AbsLayouter {
 
     @Override
     public void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition) {
-        if (getLayoutManager() == null || multiData.getCount() == 0 || mTop > getLayoutManager().getHeight()) {
+        if (getLayoutManager() == null || multiData.getCount() == 0 || mTop > getHeight()) {
             mBottom = mTop;
             return;
         }
-        fillVertical(null, 1, recycler, multiData);
+
+        Log.d(TAG, "layoutChildren mTops=" + Arrays.toString(mTops) + " mPositions=" + Arrays.toString(mPositions));
+
+        if (this.mTops == null || this.mPositions == null) {
+            this.mTops = new int[mSpanCount];
+            Arrays.fill(this.mTops, mTop);
+            fillVertical(null, 1, recycler, multiData);
+        } else {
+            if (mTop > 0) {
+                Arrays.fill(this.mTops, mTop);
+            }
+            int maxBottom = mBottom;
+            for (int i = 0; i < mSpanCount; i++) {
+
+                Column column = columns[i];
+                int position = mPositions[i];
+
+                int bottom = fillColumnBottom(recycler, multiData, column, getHeight(), position, mTops[i]);
+                maxBottom = Math.max(bottom, maxBottom);
+            }
+            mBottom = maxBottom;
+        }
     }
 
     @Override
     public int fillVertical(View anchorView, int dy, RecyclerView.Recycler recycler, MultiData<?> multiData) {
         Log.e(TAG, "fillVertical anchorView is null=" + (anchorView == null) + " dy=" + dy);
         initColumns(multiData, recycler);
-
 
         Log.e(TAG, "fillVertical anchorView is null=" + (anchorView == null) + " dy=" + dy);
         if (dy > 0) {
@@ -121,9 +180,9 @@ public class StaggeredGridLayouter extends AbsLayouter {
                 for (int i = 0; i < mSpanCount; i++) {
 
                     Column column = columns[i];
-                    int position = column.positions.get(0);
+//                    int position = column.positions.get(0);
 
-                    int bottom = fillColumnBottom(recycler, multiData, column, dy, position, mTop);
+                    int bottom = fillColumnBottom(recycler, multiData, column, dy, -1, mTop);
                     maxBottom = Math.max(bottom, maxBottom);
                 }
 
@@ -132,7 +191,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
             } else {
 
 
-                int childWidth = getLayoutManager().getWidth() / mSpanCount;
+                int childWidth = getWidth() / mSpanCount;
 
                 boolean[] places = new boolean[mSpanCount];
                 int[] bottoms = new int[mSpanCount];
@@ -140,7 +199,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
 
                 int index = (int) anchorView.getTag();
                 for (int i = index; i >= 0; i--) {
-                    View view = getLayoutManager().getChildAt(i);
+                    View view = getChildAt(i);
                     if (view == null) {
                         continue;
                     }
@@ -180,7 +239,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
                     maxBottom = Math.max(bottom, maxBottom);
                 }
                 mBottom = maxBottom;
-                return Math.min(dy, maxBottom - getLayoutManager().getHeight());
+                return Math.min(dy, maxBottom - getHeight());
             }
         } else {
             // 从上往下滑动
@@ -190,9 +249,9 @@ public class StaggeredGridLayouter extends AbsLayouter {
                 for (int i = 0; i < mSpanCount; i++) {
 
                     Column column = columns[i];
-                    int position = column.getLast();
+//                    int position = column.getLast();
 
-                    int top = fillColumnTop(recycler, multiData, column, dy, position, mBottom + column.bottom);
+                    int top = fillColumnTop(recycler, multiData, column, dy, -1, mBottom + column.bottom);
                     minTop = Math.min(top, minTop);
                 }
 
@@ -200,16 +259,17 @@ public class StaggeredGridLayouter extends AbsLayouter {
                 return Math.min(-dy, mBottom - minTop);
             } else {
 
-                int childWidth = getLayoutManager().getWidth() / mSpanCount;
+                int childWidth = getWidth() / mSpanCount;
 
                 boolean[] places = new boolean[mSpanCount];
                 int[] tops = new int[mSpanCount];
                 int[] positions = new int[mSpanCount];
+                Arrays.fill(positions, -1);
 
                 int index = (int) anchorView.getTag();
                 int count = 0;
-                for (int i = index; i < getLayoutManager().getChildCount(); i++) {
-                    View view = getLayoutManager().getChildAt(i);
+                for (int i = index; i < getChildCount(); i++) {
+                    View view = getChildAt(i);
                     if (view == null) {
                         continue;
                     }
@@ -237,12 +297,14 @@ public class StaggeredGridLayouter extends AbsLayouter {
                 Column anchorColumn = columns[col];
                 int anchorBottom = getDecoratedBottom(anchorView) - anchorColumn.bottom;
 
+                Log.d(TAG, "fillVertical bottom col=" + col);
+
                 for (int i = 0; i < mSpanCount; i++) {
                     Log.d(TAG, "fillVertical bottom=" + columns[i].bottom + " isPlace=" + places[i]);
                     if (!places[i]) {
                         Column column = columns[i];
                         tops[i] = anchorBottom + column.bottom;
-                        positions[i] = column.getLast();
+//                        positions[i] = column.getLast();
                     }
                 }
 
@@ -252,6 +314,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
                     Column column = columns[i];
                     int position = positions[i];
 
+                    Log.d(TAG, "fillVertical fillColumnTop tops[i]=" + tops[i] + " pos=" + position + " i=" + i);
                     int top = fillColumnTop(recycler, multiData, column, dy, position, tops[i]);
                     minTop = Math.min(top, minTop);
                 }
@@ -264,26 +327,42 @@ public class StaggeredGridLayouter extends AbsLayouter {
 
     }
 
+    @Override
+    protected int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop) {
+        return 0;
+    }
+
+    @Override
+    protected int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom) {
+        return 0;
+    }
+
     private int fillColumnTop(RecyclerView.Recycler recycler, MultiData<?> multiData, Column column, int dy, int currentPosition, int anchorTop) {
 
         if (anchorTop - dy < 0) {
             return anchorTop;
         }
 
-        int index = column.positions.indexOf(currentPosition);
-        if (index < 0) {
-            throw new RuntimeException("fillColumnTop error");
+        int next;
+        if (currentPosition < 0) {
+            next = column.positions.size() - 1;
+        } else {
+            int index = column.positions.indexOf(currentPosition);
+            if (index < 0) {
+                throw new RuntimeException("fillColumnTop error");
+            }
+            next = index - 1;
         }
-        int next = index - 1;
-        int childWidth = getLayoutManager().getWidth() / mSpanCount;
-        int childWidthUsed = getLayoutManager().getWidth() - childWidth;
-        while (next > 0) {
+
+        int childWidth = getWidth() / mSpanCount;
+        int childWidthUsed = getWidth() - childWidth;
+        while (next >= 0) {
             int nextPosition = column.positions.get(next--);
             View view = getViewForPosition(nextPosition, recycler, multiData);
-            getLayoutManager().addView(view, 0);
-            getLayoutManager().measureChild(view, childWidthUsed, 0);
+            addView(view, 0);
+            measureChild(view, childWidthUsed, 0);
 
-            int height = getLayoutManager().getDecoratedMeasuredHeight(view);
+            int height = getDecoratedMeasuredHeight(view);
 
             int left = column.index * childWidth;
             int bottom = anchorTop;
@@ -304,65 +383,33 @@ public class StaggeredGridLayouter extends AbsLayouter {
 
     }
 
-    @Override
-    protected int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop) {
-
-
-        int childWidth = getLayoutManager().getWidth() / mSpanCount;
-        int childWidthUsed = getLayoutManager().getWidth() - childWidth;
-
-        while (currentPosition >= mPositionOffset) {
-            View view = getViewForPosition(currentPosition--, recycler, multiData);
-            getLayoutManager().addView(view, 0);
-            getLayoutManager().measureChild(view, childWidthUsed, 0);
-
-            int height = getLayoutManager().getDecoratedMeasuredHeight(view);
-
-            int left = maxTopIndex * childWidth;
-            int right = left + childWidth;
-            int bottom = maxTop;
-            int top = bottom - height;
-
-            layoutDecorated(view, left, top, right, bottom);
-
-            maxTop = top;
-            mTops[maxTopIndex] = maxTop;
-            minTop = maxTop;
-
-            updateTops();
-
-            if (anchorTop - maxTop > availableSpace) {
-                break;
-            }
-        }
-
-        availableSpace = availableSpace - (anchorTop - maxTop);
-        mTop = minTop;
-
-        return availableSpace;
-    }
-
-
     private int fillColumnBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, Column column, int dy, int currentPosition, int anchorBottom) {
 
-        if (anchorBottom - dy > getLayoutManager().getHeight()) {
+        if (anchorBottom - dy > getHeight()) {
             return anchorBottom;
         }
 
-        int index = column.positions.indexOf(currentPosition);
-        if (index < 0) {
-            throw new RuntimeException("fillColumnBottom error");
+        int next;
+        if (currentPosition < 0) {
+            next = 0;
+        } else {
+            int index = column.positions.indexOf(currentPosition);
+            if (index < 0) {
+                throw new RuntimeException("fillColumnBottom error");
+            }
+            next = index + 1;
         }
-        int next = index + 1;
-        int childWidth = getLayoutManager().getWidth() / mSpanCount;
-        int childWidthUsed = getLayoutManager().getWidth() - childWidth;
+
+
+        int childWidth = getWidth() / mSpanCount;
+        int childWidthUsed = getWidth() - childWidth;
         while (next < column.positions.size()) {
             int nextPosition = column.positions.get(next++);
             View view = getViewForPosition(nextPosition, recycler, multiData);
-            getLayoutManager().addView(view);
-            getLayoutManager().measureChild(view, childWidthUsed, 0);
+            addView(view);
+            measureChild(view, childWidthUsed, 0);
 
-            int height = getLayoutManager().getDecoratedMeasuredHeight(view);
+            int height = getDecoratedMeasuredHeight(view);
 
             int left = column.index * childWidth;
             int top = anchorBottom;
@@ -373,52 +420,13 @@ public class StaggeredGridLayouter extends AbsLayouter {
 
             layoutDecorated(view, left, top, right, bottom);
 
-            if (anchorBottom - dy > getLayoutManager().getHeight()) {
+            if (anchorBottom - dy > getHeight()) {
                 break;
             }
         }
 
         return anchorBottom;
 
-    }
-
-    @Override
-    protected int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom) {
-
-        int childWidth = getLayoutManager().getWidth() / mSpanCount;
-        int childWidthUsed = getLayoutManager().getWidth() - childWidth;
-
-        while (currentPosition < mPositionOffset + multiData.getCount()) {
-            View view = getViewForPosition(currentPosition++, recycler, multiData);
-            getLayoutManager().addView(view);
-            getLayoutManager().measureChild(view, childWidthUsed, 0);
-
-            int height = getLayoutManager().getDecoratedMeasuredHeight(view);
-
-            int left = minBottomIndex * childWidth;
-            int top = minBottom;
-            int right = left + childWidth;
-            int bottom = top + height;
-
-            layoutDecorated(view, left, top, right, bottom);
-
-            minBottom = bottom;
-            mBottoms[minBottomIndex] = minBottom;
-            maxBottom = minBottom;
-
-            lastBottomIndex = minBottomIndex;
-
-            updateBottoms();
-
-            if (minBottom - anchorBottom > availableSpace) {
-                break;
-            }
-        }
-
-        availableSpace = availableSpace - (maxBottom - anchorBottom);
-        mBottom = maxBottom;
-
-        return availableSpace;
     }
 
     @Override
@@ -436,8 +444,8 @@ public class StaggeredGridLayouter extends AbsLayouter {
                 columns[i] = new Column(i);
             }
 
-            int childWidth = getLayoutManager().getWidth() / mSpanCount;
-            int childWidthUsed = getLayoutManager().getWidth() - childWidth;
+            int childWidth = getWidth() / mSpanCount;
+            int childWidthUsed = getWidth() - childWidth;
             int minIndex = 0;
             int minBottom = 0;
             int maxBottom = 0;
@@ -445,9 +453,9 @@ public class StaggeredGridLayouter extends AbsLayouter {
 
             for (int i = mPositionOffset; i < mPositionOffset + multiData.getCount(); i++) {
                 View view = getViewForPosition(i, recycler, multiData);
-                getLayoutManager().measureChild(view, childWidthUsed, 0);
+                measureChild(view, childWidthUsed, 0);
 
-                int height = getLayoutManager().getDecoratedMeasuredHeight(view);
+                int height = getDecoratedMeasuredHeight(view);
 
                 Column column = columns[minIndex];
                 column.bottom += height;
@@ -483,44 +491,6 @@ public class StaggeredGridLayouter extends AbsLayouter {
                 Log.d(TAG, "initColumns column.bottom=" + column.bottom);
             }
 
-        }
-    }
-
-    private void updateTops() {
-        for (int i = 0; i < mSpanCount; i++) {
-            updateTop(i);
-        }
-    }
-
-    private void updateTop(int i) {
-        if (mTops[i] == maxBottom) {
-            if (i < maxTopIndex) {
-                maxTopIndex = i;
-            }
-        } else if (mTops[i] > maxTop) {
-            maxTop = mTops[i];
-            maxTopIndex = i;
-        } else if (mBottoms[i] < minTop) {
-            minTop = mTops[i];
-        }
-    }
-
-    private void updateBottoms() {
-        for (int i = 0; i < mSpanCount; i++) {
-            updateBottom(i);
-        }
-    }
-
-    private void updateBottom(int i) {
-        if (mBottoms[i] == minBottom) {
-            if (i < minBottomIndex) {
-                minBottomIndex = i;
-            }
-        } else if (mBottoms[i] < minBottom) {
-            minBottom = mBottoms[i];
-            minBottomIndex = i;
-        } else if (mBottoms[i] > maxBottom) {
-            maxBottom = mBottoms[i];
         }
     }
 

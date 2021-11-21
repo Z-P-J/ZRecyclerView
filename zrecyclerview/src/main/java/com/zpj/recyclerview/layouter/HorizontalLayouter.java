@@ -43,12 +43,12 @@ public class HorizontalLayouter extends AbsLayouter {
                 return fillVerticalBottom(recycler, multiData, mFirstPosition + mPositionOffset, dy, getTop());
             } else {
                 // 如果占用两行则需要以下代码
-                int anchorBottom = getLayoutManager().getDecoratedTop(anchorView);
-                if (anchorBottom > getLayoutManager().getHeight()) {
-                    if (anchorBottom - dy > getLayoutManager().getHeight()) {
+                int anchorBottom = getDecoratedTop(anchorView);
+                if (anchorBottom > getHeight()) {
+                    if (anchorBottom - dy > getHeight()) {
                         return dy;
                     } else {
-                        return anchorBottom - getLayoutManager().getHeight();
+                        return anchorBottom - getHeight();
 //                        int anchorPosition = getLayoutManager().getPosition(anchorView);
 //                        if (anchorPosition == mPositionOffset + state.getMultiData().getCount() - 1) {
 //                            return anchorBottom - getLayoutManager().getHeight();
@@ -63,7 +63,7 @@ public class HorizontalLayouter extends AbsLayouter {
                 return fillVerticalTop(recycler, multiData, mFirstPosition + mPositionOffset, dy, getBottom());
             } else {
                 // 如果占用两行则需要以下代码
-                int anchorTop = getLayoutManager().getDecoratedTop(anchorView);
+                int anchorTop = getDecoratedTop(anchorView);
                 if (anchorTop < 0) {
                     if (anchorTop - dy < 0) {
                         return -dy;
@@ -91,23 +91,23 @@ public class HorizontalLayouter extends AbsLayouter {
         int right = 0;
         int bottom = anchorTop;
 
-        int availableSpace = getLayoutManager().getWidth() - getLayoutManager().getPaddingRight() - left;
+        int availableSpace = getWidth() - getPaddingRight() - left;
 
         int i = 0;
         while (availableSpace > 0 && currentPosition < multiData.getCount() + mPositionOffset) {
             View view = recycler.getViewForPosition(currentPosition++);
             MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
             params.setMultiData(multiData);
-            getLayoutManager().addView(view, i);
+            addView(view, i);
             i++;
 
-            getLayoutManager().measureChild(view, 0, 0);
-            int measuredWidth = getLayoutManager().getDecoratedMeasuredWidth(view);
+            measureChild(view, 0, 0);
+            int measuredWidth = getDecoratedMeasuredWidth(view);
             availableSpace -= measuredWidth;
 
             right = left + measuredWidth;
             if (top == bottom) {
-                top = bottom - getLayoutManager().getDecoratedMeasuredHeight(view);
+                top = bottom - getDecoratedMeasuredHeight(view);
             }
 
             layoutDecorated(view, left, top, right, bottom);
@@ -126,21 +126,21 @@ public class HorizontalLayouter extends AbsLayouter {
         int right = 0;
         int bottom = anchorBottom;
 
-        int availableSpace = getLayoutManager().getWidth() - getLayoutManager().getPaddingRight() - left;
+        int availableSpace = getWidth() - getPaddingRight() - left;
 
         while (availableSpace > 0 && currentPosition < multiData.getCount() + mPositionOffset) {
             Log.d(TAG, "onFillVertical2 currentPosition=" + currentPosition);
             View view = recycler.getViewForPosition(currentPosition++);
             MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
             params.setMultiData(multiData);
-            getLayoutManager().addView(view);
+            addView(view);
 
-            getLayoutManager().measureChild(view, 0, 0);
-            int measuredWidth = getLayoutManager().getDecoratedMeasuredWidth(view);
+            measureChild(view, 0, 0);
+            int measuredWidth = getDecoratedMeasuredWidth(view);
             availableSpace -= measuredWidth;
 
             right = left + measuredWidth;
-            bottom = top + getLayoutManager().getDecoratedMeasuredHeight(view);
+            bottom = top + getDecoratedMeasuredHeight(view);
 
             layoutDecorated(view, left, top, right, bottom);
             left += measuredWidth;
@@ -154,7 +154,7 @@ public class HorizontalLayouter extends AbsLayouter {
         if (anchorView == null) {
             return 0;
         }
-        int anchorPosition = getLayoutManager().getPosition(anchorView);
+        int anchorPosition = getPosition(anchorView);
         if (anchorPosition < mPositionOffset || anchorPosition >= mPositionOffset + multiData.getCount()) {
             return 0;
         }
@@ -162,47 +162,47 @@ public class HorizontalLayouter extends AbsLayouter {
         if (dx > 0) {
             // 从右往左滑动，从右边填充view
 
-            int anchorRight = getLayoutManager().getDecoratedRight(anchorView);
-            if (anchorRight > getLayoutManager().getWidth()) {
-                if (anchorRight - dx > getLayoutManager().getWidth()) {
+            int anchorRight = getDecoratedRight(anchorView);
+            if (anchorRight > getWidth()) {
+                if (anchorRight - dx > getWidth()) {
                     return dx;
                 } else {
 
 
                     if (anchorPosition == mPositionOffset + multiData.getCount() - 1) {
-                        return anchorRight - getLayoutManager().getWidth();
+                        return anchorRight - getWidth();
                     }
 
                     int availableSpace = dx;
                     int currentPosition = anchorPosition + 1;
                     int left = anchorRight;
-                    int top = getLayoutManager().getDecoratedTop(anchorView);
+                    int top = getDecoratedTop(anchorView);
                     int right = 0;
-                    int bottom = getLayoutManager().getDecoratedBottom(anchorView);
+                    int bottom = getDecoratedBottom(anchorView);
 
                     int i = index + 1;
                     while (availableSpace > 0 && currentPosition < mPositionOffset + multiData.getCount()) {
                         View view = recycler.getViewForPosition(currentPosition++);
                         MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
                         params.setMultiData(multiData);
-                        getLayoutManager().addView(view, i);
+                        addView(view, i);
                         i++;
 
-                        getLayoutManager().measureChild(view, 0, bottom - top);
-                        int measuredWidth = getLayoutManager().getDecoratedMeasuredWidth(view);
+                        measureChild(view, 0, bottom - top);
+                        int measuredWidth = getDecoratedMeasuredWidth(view);
                         availableSpace -= measuredWidth;
 
                         right = left + measuredWidth;
                         layoutDecorated(view, left, top, right, bottom);
                         left = right;
                     }
-                    return Math.min(dx, dx - availableSpace + (anchorRight - getLayoutManager().getWidth()));
+                    return Math.min(dx, dx - availableSpace + (anchorRight - getWidth()));
                 }
             }
         } else {
             // 从左往右滑动，从左边填充view
 
-            int anchorLeft = getLayoutManager().getDecoratedLeft(anchorView);
+            int anchorLeft = getDecoratedLeft(anchorView);
             if (anchorLeft < 0) {
                 if (anchorLeft - dx < 0) {
                     return -dx;
@@ -216,18 +216,18 @@ public class HorizontalLayouter extends AbsLayouter {
                     int availableSpace = -dx;
                     int currentPosition = anchorPosition - 1;
                     int left = 0;
-                    int top = getLayoutManager().getDecoratedTop(anchorView);
+                    int top = getDecoratedTop(anchorView);
                     int right = anchorLeft;
-                    int bottom = getLayoutManager().getDecoratedBottom(anchorView);
+                    int bottom = getDecoratedBottom(anchorView);
 
                     while (availableSpace > 0 && currentPosition >= mPositionOffset) {
                         View view = recycler.getViewForPosition(currentPosition--);
                         MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
                         params.setMultiData(multiData);
-                        getLayoutManager().addView(view, index);
+                        addView(view, index);
 
-                        getLayoutManager().measureChild(view, 0, bottom - top);
-                        int measuredWidth = getLayoutManager().getDecoratedMeasuredWidth(view);
+                        measureChild(view, 0, bottom - top);
+                        int measuredWidth = getDecoratedMeasuredWidth(view);
                         availableSpace -= measuredWidth;
 
                         left = right - measuredWidth;

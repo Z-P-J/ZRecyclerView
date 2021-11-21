@@ -23,16 +23,20 @@ import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.layouter.Layouter;
+import com.zpj.recyclerview.layouter.StaggeredGridLayouter;
 import com.zpj.recyclerview.layouter.VerticalLayouter;
 import com.zpj.recyclerview.refresh.IRefresher;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class MultiLayoutManager extends RecyclerView.LayoutManager implements ItemTouchHelper.ViewDropHandler, RecyclerView.SmoothScroller.ScrollVectorProvider {
+public class MultiLayoutManager extends RecyclerView.LayoutManager
+        implements ItemTouchHelper.ViewDropHandler,
+        RecyclerView.SmoothScroller.ScrollVectorProvider {
 
     private static final String TAG = "MultiLayoutManager";
 
@@ -284,6 +288,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements It
             layouter.setLayoutManager(this);
             if (i >= mTopMultiDataIndex) {
                 if (last != null) {
+                    Log.d(TAG, "onLayoutChildren bottom=" + last.getBottom() + " i=" + i);
                     layouter.setTop(last.getBottom());
                     layouter.layoutChildren(multiData, recycler, positionOffset);
                 } else {
@@ -638,6 +643,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements It
 
         MultiData<?> last = null;
         handleSticky = true;
+        List<Layouter> layouters = new ArrayList<>();
         for (int i = 0; i < getChildCount(); i++) {
             View view = getChildAt(i);
             if (view == null) {
@@ -650,6 +656,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements It
             }
             Layouter layouter = data.getLayouter();
             if (data != last) {
+                layouters.add(layouter);
                 layouter.offsetTopAndBottom(-consumed);
                 last = data;
             }
@@ -666,6 +673,12 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements It
             }
         }
         recycleViews(recycler);
+
+        for (Layouter layouter : layouters) {
+            if (layouter instanceof StaggeredGridLayouter) {
+                ((StaggeredGridLayouter) layouter).saveState();
+            }
+        }
 
         if (dy != consumed) {
             int overScroll = (int) ((consumed - dy) * 0.1f);
@@ -921,6 +934,10 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements It
 
     }
 
+    public int indexOfChild(View child) {
+        return mRecycler.getRecyclerView().indexOfChild(child);
+    }
+
     private void recycleViews(RecyclerView.Recycler recycler) {
         for (View view : recycleViews) {
             Log.d(TAG, "recycleViews pos=" + getPosition(view));
@@ -951,6 +968,9 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager implements It
                 return;
             }
             Layouter layouter = data.getLayouter();
+//            if (layouter instanceof StaggeredGridLayouter) {
+//                ((StaggeredGridLayouter) layouter).saveState();
+//            }
             mTopMultiDataIndex = multiDataList.indexOf(data);
             mTopPosition = getPosition(firstView) - layouter.getPositionOffset();
             mTopOffset = layouter.getDecoratedTop(firstView);

@@ -131,11 +131,11 @@ public class FlowLayouter extends AbsLayouter {
         int offsetY = 0;
         for (int i = 0; i < multiData.getCount(); i++) {
             View view = recycler.getViewForPosition(i + mPositionOffset);
-            getLayoutManager().measureChild(view, mSpaceLeft + mSpaceRight, 0);
-            int childWidth = getLayoutManager().getDecoratedMeasuredWidth(view);
-            int childHeight = getLayoutManager().getDecoratedMeasuredHeight(view);
+            measureChild(view, mSpaceLeft + mSpaceRight, 0);
+            int childWidth = getDecoratedMeasuredWidth(view);
+            int childHeight = getDecoratedMeasuredHeight(view);
 
-            if (offsetX + childWidth + mSpaceRight > getLayoutManager().getWidth()) {
+            if (offsetX + childWidth + mSpaceRight > getWidth()) {
                 offsetX = mSpaceLeft;
                 offsetY += childHeight;
                 row++;
@@ -164,9 +164,6 @@ public class FlowLayouter extends AbsLayouter {
     // 从上往下滑动
     @Override
     protected int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop) {
-//        int availableSpace = -dy;
-//        int availableSpace = -dy + anchorTop;
-
         int left = 0;
         int top = anchorTop - mSpaceBottom;
         int right = 0;
@@ -183,9 +180,8 @@ public class FlowLayouter extends AbsLayouter {
             View view = recycler.getViewForPosition(currentPosition--);
             MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
             params.setMultiData(multiData);
-            getLayoutManager().addView(view, 0);
-//            getLayoutManager().measureChild(view, itemState.width, itemState.height);
-            getLayoutManager().measureChild(view, mSpaceLeft + mSpaceRight, 0);
+            addView(view, 0);
+            measureChild(view, mSpaceLeft + mSpaceRight, 0);
 
             left = itemState.offsetX;
             right = left + itemState.width;
@@ -203,18 +199,12 @@ public class FlowLayouter extends AbsLayouter {
             }
         }
         mTop = top;
-//        return Math.min(-dy, -dy + anchorTop - availableSpace);
-//        return Math.min(-dy, -dy - availableSpace);
         return availableSpace;
     }
 
     // 从下往上滑动
     @Override
     protected int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom) {
-
-//        int availableSpace = dy;
-//        int availableSpace = dy + getLayoutManager().getHeight() - anchorBottom;
-
         int left = 0;
         int top = anchorBottom + mSpaceBottom;
         int right = 0;
@@ -235,10 +225,9 @@ public class FlowLayouter extends AbsLayouter {
             View view = recycler.getViewForPosition(currentPosition++);
             MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
             params.setMultiData(multiData);
-            getLayoutManager().addView(view);
+            addView(view);
             int childHeight = itemState.height;
-//            getLayoutManager().measureChild(view, itemState.width, childHeight);
-            getLayoutManager().measureChild(view, mSpaceLeft + mSpaceRight, 0);
+            measureChild(view, mSpaceLeft + mSpaceRight, 0);
 
             left = itemState.offsetX;
             right = left + itemState.width;
@@ -262,8 +251,6 @@ public class FlowLayouter extends AbsLayouter {
 
         }
         mBottom = Math.max(bottom, mTop);
-//        return Math.min(dy, dy + getLayoutManager().getHeight() - anchorBottom - availableSpace);
-//        return Math.min(dy, dy - availableSpace);
         return availableSpace;
 
     }
