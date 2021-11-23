@@ -253,8 +253,11 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             @Override
             public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent event) {
 
-                if (recyclerView.getLayoutManager() instanceof MultiLayoutManager && ((MultiLayoutManager) recyclerView.getLayoutManager()).isOverScrolling()) {
-                    return false;
+                if (recyclerView.getLayoutManager() instanceof MultiLayoutManager) {
+                    MultiLayoutManager layoutManager = (MultiLayoutManager) recyclerView.getLayoutManager();
+                    if (layoutManager.isOverScrolling() || layoutManager.canScrollHorizontally()) {
+                        return false;
+                    }
                 }
 
                 if (mRefreshHeader == null) {

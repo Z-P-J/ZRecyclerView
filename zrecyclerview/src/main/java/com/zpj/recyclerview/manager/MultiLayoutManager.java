@@ -46,6 +46,8 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
 
     private static final int OVER_SCROLL_DOWN = 1;
     private static final int OVER_SCROLL_UP = 2;
+    private static final int OVER_SCROLL_LEFT = 3;
+    private static final int OVER_SCROLL_RIGHT = 4;
 
     private final Set<View> recycleViews = new LinkedHashSet<>();
     private final Deque<StickyInfo> stickyInfoStack = new ArrayDeque<>();
@@ -103,23 +105,25 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
             @Override
             public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent event) {
                 int action = event.getAction();
+                Log.d(TAG, "onInterceptTouchEvent event=" + MotionEvent.actionToString(action) + " mScrollDirection=" + mScrollDirection);
                 if (mTracker == null) {
                     mTracker = VelocityTracker.obtain();
                 }
                 mTracker.addMovement(event);
                 if (MotionEvent.ACTION_DOWN == action) {
                     mScrollDirection = DIRECTION_NONE;
-                    mDownX = event.getRawX();
-                    mDownY = event.getRawY();
+                    mDownX = event.getX();
+                    mDownY = event.getY();
                     if (mOverScrollAnimator != null) {
                         mOverScrollAnimator.pause();
                         mOverScrollAnimator = null;
                     }
                 } else if (MotionEvent.ACTION_MOVE == action) {
-                    if (mScrollDirection == 0) {
-                        float deltaX = event.getRawX() - mDownX;
-                        float deltaY = event.getRawY() - mDownY;
+                    if (mScrollDirection == DIRECTION_NONE) {
+                        float deltaX = event.getX() - mDownX;
+                        float deltaY = event.getY() - mDownY;
                         float radio = Math.abs(deltaX / deltaY);
+                        Log.d(TAG, "onInterceptTouchEvent deltaX=" + deltaX + " deltaY=" + deltaY + " radio=" + radio);
                         if (radio == 1f) {
                             return false;
                         }
@@ -174,47 +178,135 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                 mOverScrollAnimator = null;
             }
 
-            final View firstChild = getChildAt(0);
-            if (firstChild != null) {
-                final int firstTop = getDecoratedTop(firstChild);
-                if (firstTop > 0) {
-                    mOverScrollAnimator = ValueAnimator.ofFloat(1f, 0f);
-                    mOverScrollAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                        int lastTop = firstTop;
-                        @Override
-                        public void onAnimationUpdate(ValueAnimator animation) {
-                            float percent = (float) animation.getAnimatedValue();
-                            int top = (int) (percent * firstTop);
-                            offsetChildrenVertical(top - lastTop);
-                            lastTop = top;
-                        }
-                    });
-                }
-
-            }
-
-            if (mOverScrollAnimator == null) {
-                View lastChild = getChildAt(stickyInfo == null ? getChildCount() - 1 : getChildCount() - 2);
-                if (lastChild != null) {
-                    final int bottom = getDecoratedBottom(lastChild);
-                    if (bottom < getHeight()) {
-                        mOverScrollAnimator = ValueAnimator.ofFloat(0f, 1f);
+            if (overScrollDirection <= OVER_SCROLL_UP) {
+                final View firstChild = getChildAt(0);
+                if (firstChild != null) {
+                    final int firstTop = getDecoratedTop(firstChild);
+                    if (firstTop > 0) {
+                        mOverScrollAnimator = ValueAnimator.ofFloat(1f, 0f);
                         mOverScrollAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                            int lastBottom = bottom;
+                            int lastTop = firstTop;
                             @Override
                             public void onAnimationUpdate(ValueAnimator animation) {
                                 float percent = (float) animation.getAnimatedValue();
-                                int b = (int) (percent * (getHeight() - bottom) + bottom);
-                                offsetChildrenVertical(b - lastBottom);
-                                lastBottom = b;
+                                int top = (int) (percent * firstTop);
+                                offsetChildrenVertical(top - lastTop);
+                                lastTop = top;
                             }
                         });
                     }
+
+                }
+
+                if (mOverScrollAnimator == null) {
+                    View lastChild = getChildAt(stickyInfo == null ? getChildCount() - 1 : getChildCount() - 2);
+                    if (lastChild != null) {
+                        final int bottom = getDecoratedBottom(lastChild);
+                        if (bottom < getHeight()) {
+                            mOverScrollAnimator = ValueAnimator.ofFloat(0f, 1f);
+                            mOverScrollAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                                int lastBottom = bottom;
+                                @Override
+                                public void onAnimationUpdate(ValueAnimator animation) {
+                                    float percent = (float) animation.getAnimatedValue();
+                                    int b = (int) (percent * (getHeight() - bottom) + bottom);
+                                    offsetChildrenVertical(b - lastBottom);
+                                    lastBottom = b;
+                                }
+                            });
+                        }
+                    }
+                }
+            } else {
+                MultiData<?> tempMultiData = null;
+                if (overScrollDirection == OVER_SCROLL_LEFT) {
+                    for (int i = 0; i < getChildCount(); i++) {
+                        View view = getChildAt(i);
+                        if (view == null) {
+                            continue;
+                        }
+                        final MultiData<?> multiData = getMultiData(view);
+                        if (multiData == null || multiData == tempMultiData) {
+                            continue;
+                        }
+                        tempMultiData = multiData;
+                        final Layouter layouter = multiData.getLayouter();
+                        if (layouter.canScrollHorizontally()) {
+                            if (mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
+                                final int firstLeft = getDecoratedLeft(view);
+                                final int index = i;
+                                if (firstLeft > 0) {
+                                    mOverScrollAnimator = ValueAnimator.ofFloat(1f, 0f);
+                                    mOverScrollAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                                        int lastLeft = firstLeft;
+                                        @Override
+                                        public void onAnimationUpdate(ValueAnimator animation) {
+                                            float percent = (float) animation.getAnimatedValue();
+                                            int left = (int) (percent * firstLeft);
+                                            for (int i = index; i < getChildCount(); i++) {
+                                                View child = getChildAt(i);
+                                                if (child == null) {
+                                                    break;
+                                                }
+                                                MultiData<?> data = getMultiData(child);
+                                                if (data == null || data != multiData || multiData.getLayouter() != layouter) {
+                                                    break;
+                                                }
+                                                child.offsetLeftAndRight(left - lastLeft);
+                                            }
+                                            lastLeft = left;
+                                        }
+                                    });
+                                }
+                                break;
+                            }
+                        }
+                    }
+                } else if (overScrollDirection == OVER_SCROLL_RIGHT) {
+                    for (int i = getChildCount() - 1; i >= 0; i--) {
+                        View view = getChildAt(i);
+                        if (view == null) {
+                            continue;
+                        }
+                        final MultiData<?> multiData = getMultiData(view);
+                        if (multiData == null || multiData == tempMultiData) {
+                            continue;
+                        }
+                        tempMultiData = multiData;
+                        final Layouter layouter = multiData.getLayouter();
+                        if (layouter.canScrollHorizontally()) {
+                            if (mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
+                                final int right = getDecoratedRight(view);
+                                final int index = i;
+                                if (right < getWidth()) {
+                                    mOverScrollAnimator = ValueAnimator.ofFloat(0f, 1f);
+                                    mOverScrollAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                                        int lastRight = right;
+                                        @Override
+                                        public void onAnimationUpdate(ValueAnimator animation) {
+                                            float percent = (float) animation.getAnimatedValue();
+                                            int r = (int) (percent * (getWidth() - right) + right);
+                                            for (int i = index; i >= 0; i--) {
+                                                View child = getChildAt(i);
+                                                if (child == null) {
+                                                    break;
+                                                }
+                                                MultiData<?> data = getMultiData(child);
+                                                if (data == null || data != multiData || multiData.getLayouter() != layouter) {
+                                                    break;
+                                                }
+                                                child.offsetLeftAndRight(r - lastRight);
+                                            }
+                                            lastRight = r;
+                                        }
+                                    });
+                                }
+                                break;
+                            }
+                        }
+                    }
                 }
             }
-
-
-
 
             if (mOverScrollAnimator != null) {
                 mOverScrollAnimator.setInterpolator(new FastOutSlowInInterpolator());
@@ -379,6 +471,71 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
             return 0;
         }
 
+        if (isOverScrolling) {
+            overScrollDistance += dx;
+            if (overScrollDirection == OVER_SCROLL_LEFT) {
+                if (overScrollDistance > 0) {
+                    isOverScrolling = false;
+                }
+            } else if (overScrollDirection == OVER_SCROLL_RIGHT) {
+                if (overScrollDistance < 0) {
+                    isOverScrolling = false;
+                }
+            }
+
+            if (isOverScrolling) {
+
+                int maxWidth = getWidth() / 2;
+                float overScrollRadio = (float) Math.min(Math.abs(overScrollDistance), maxWidth) / maxWidth;
+                int overScroll = (int) ((0.68f - overScrollRadio / 2f) * dx);
+
+                Log.d(TAG, "scrollHorizontallyBy dx=" + dx + " overScrollRadio=" + overScrollRadio + " overScroll=" + overScroll);
+
+                MultiData<?> tempMultiData = null;
+                for (int i = 0; i < getChildCount(); i++) {
+                    View view = getChildAt(i);
+                    if (view == null) {
+                        continue;
+                    }
+                    final MultiData<?> multiData = getMultiData(view);
+                    if (multiData == null || multiData == tempMultiData) {
+                        continue;
+                    }
+                    tempMultiData = multiData;
+                    final Layouter layouter = multiData.getLayouter();
+                    if (layouter.canScrollHorizontally()) {
+                        Log.d(TAG, "scrollHorizontallyBy mDownY=" + mDownY + " top=" + layouter.getTop() + " bottom=" + layouter.getBottom() + " b=" + getDecoratedBottom(view));
+                        if (mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
+                            for (int j = i; j < getChildCount(); j++) {
+                                View child = getChildAt(j);
+                                if (child == null) {
+                                    break;
+                                }
+                                MultiData<?> data = getMultiData(child);
+                                if (data == null || data != multiData || multiData.getLayouter() != layouter) {
+                                    break;
+                                }
+                                Log.d(TAG, "scrollHorizontallyBy i=" + i);
+                                child.offsetLeftAndRight(-overScroll);
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                if (overScrollRadio >= 1f) {
+                    return 0;
+                }
+
+                if (Math.abs(overScrollDistance) > maxWidth) {
+                    return 0;
+                }
+
+                return dx;
+
+            }
+        }
+
         int consumed = 0;
         View firstChild = getChildAt(0);
         View lastChild = getChildAt(getChildCount() - 1);
@@ -406,18 +563,22 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                 Layouter layouter = multiData.getLayouter();
                 if (layouter.canScrollHorizontally()) {
 
-                    view.getLocationInWindow(location);
-                    if (mDownY < location[1] - getTopDecorationHeight(view)
-                            || mDownY > location[1] - getTopDecorationHeight(view) + getDecoratedMeasuredHeight(view)) {
-                        continue;
+                    if (mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
+                        scrollMultiData = multiData;
+                        index = i;
+
+                        view.setTag(i);
+                        consumed += layouter.fillHorizontal(view, dx, recycler, multiData);
+                        break;
                     }
 
-                    scrollMultiData = multiData;
-                    index = i;
+//                    view.getLocationInWindow(location);
+//                    if (mDownY < location[1] - getTopDecorationHeight(view)
+//                            || mDownY > location[1] - getTopDecorationHeight(view) + getDecoratedMeasuredHeight(view)) {
+//                        continue;
+//                    }
 
-                    view.setTag(i);
-                    consumed += layouter.fillHorizontal(view, dx, recycler, multiData);
-                    break;
+
                 }
             }
         } else {
@@ -435,17 +596,19 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                 Layouter layouter = multiData.getLayouter();
                 if (layouter.canScrollHorizontally()) {
 
-                    view.getLocationInWindow(location);
-                    if (mDownY < location[1] - getTopDecorationHeight(view)
-                            || mDownY > location[1] - getTopDecorationHeight(view) + getDecoratedMeasuredHeight(view)) {
-                        continue;
+                    if (mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
+                        scrollMultiData = multiData;
+                        index = i;
+                        view.setTag(i);
+                        consumed -= layouter.fillHorizontal(view, dx, recycler, multiData);
+                        break;
                     }
 
-                    scrollMultiData = multiData;
-                    index = i;
-                    view.setTag(i);
-                    consumed -= layouter.fillHorizontal(view, dx, recycler, multiData);
-                    break;
+//                    view.getLocationInWindow(location);
+//                    if (mDownY < location[1] - getTopDecorationHeight(view)
+//                            || mDownY > location[1] - getTopDecorationHeight(view) + getDecoratedMeasuredHeight(view)) {
+//                        continue;
+//                    }
                 }
             }
         }
@@ -500,12 +663,35 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
         recycleViews(recycler);
 
 
+
+
+        if (dx != consumed) {
+            isOverScrolling = true;
+            overScrollDirection = dx < 0 ? OVER_SCROLL_LEFT : OVER_SCROLL_RIGHT;
+            overScrollDistance = dx - consumed;
+            int overScroll = (int) (overScrollDistance * 0.1f);
+            for (int i = index; i < getChildCount(); i++) {
+                View view = getChildAt(i);
+                if (view == null) {
+                    break;
+                }
+                MultiData<?> multiData = getMultiData(view);
+                if (multiData.getLayouter() != layouter) {
+                    break;
+                }
+                view.offsetLeftAndRight(-overScroll);
+            }
+            consumed = dx;
+        }
+
         View child = getChildAt(index);
         if (child != null) {
             int firstPosition = getPosition(child);
             int firstOffset = layouter.getDecoratedLeft(child);
             layouter.saveState(firstPosition, firstOffset);
         }
+
+        Log.d(TAG, "scrollHorizontallyBy dx=" + dx + " consumed=" + consumed + " isOverScrolling=" + isOverScrolling);
 
         return consumed;
     }
@@ -932,6 +1118,21 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
     @Override
     public void prepareForDrop(@NonNull View view, @NonNull View view1, int i, int i1) {
 
+    }
+
+    public MultiData<?> getMultiData(View child) {
+        if (child == null) {
+            return null;
+        }
+        return ((MultiLayoutParams) child.getLayoutParams()).getMultiData();
+    }
+
+    public Layouter getLayouter(View child) {
+        MultiData<?> multiData = getMultiData(child);
+        if (multiData == null) {
+            return null;
+        }
+        return multiData.getLayouter();
     }
 
     public int indexOfChild(View child) {

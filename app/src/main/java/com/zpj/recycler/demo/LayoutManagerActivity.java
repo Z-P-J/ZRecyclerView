@@ -18,6 +18,7 @@ import com.zpj.recyclerview.SingleTypeMultiData;
 import com.zpj.recyclerview.layouter.FlowLayouter;
 import com.zpj.recyclerview.layouter.GridLayouter;
 import com.zpj.recyclerview.layouter.HorizontalLayouter;
+import com.zpj.recyclerview.layouter.InfiniteHorizontalLayouter;
 import com.zpj.recyclerview.layouter.Layouter;
 import com.zpj.recyclerview.layouter.StaggeredGridLayouter;
 import com.zpj.recyclerview.layouter.VerticalLayouter;
@@ -50,6 +51,20 @@ public class LayoutManagerActivity extends AppCompatActivity {
 
 
         List<MultiData<?>> multiDataList = new ArrayList<>();
+
+        multiDataList.add(new LayouterMultiData(list, new InfiniteHorizontalLayouter()) {
+            @Override
+            public int getLayoutId() {
+                return R.layout.item_text_grid;
+            }
+        });
+
+        multiDataList.add(new LayouterMultiData(list, new HorizontalLayouter()) {
+            @Override
+            public int getLayoutId() {
+                return R.layout.item_text_grid;
+            }
+        });
 
         List<Integer> staggeredList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {

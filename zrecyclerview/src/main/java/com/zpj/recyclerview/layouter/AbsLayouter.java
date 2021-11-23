@@ -312,4 +312,8 @@ public abstract class AbsLayouter implements Layouter {
         return getLayoutManager().getChildAt(index);
     }
 
+    public int indexOfChild(View child) {
+        return getLayoutManager().indexOfChild(child);
+    }
+
 }
