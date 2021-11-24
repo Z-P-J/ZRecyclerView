@@ -177,9 +177,7 @@ public class FlowLayouter extends AbsLayouter {
 
             Log.d(TAG, "onFillVertical itemState=" + itemState);
 
-            View view = recycler.getViewForPosition(currentPosition--);
-            MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
-            params.setMultiData(multiData);
+            View view = getViewForPosition(currentPosition--, recycler, multiData);
             addView(view, 0);
             measureChild(view, mSpaceLeft + mSpaceRight, 0);
 
@@ -222,9 +220,7 @@ public class FlowLayouter extends AbsLayouter {
                 row = itemState.row;
             }
 
-            View view = recycler.getViewForPosition(currentPosition++);
-            MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
-            params.setMultiData(multiData);
+            View view = getViewForPosition(currentPosition++, recycler, multiData);
             addView(view);
             int childHeight = itemState.height;
             measureChild(view, mSpaceLeft + mSpaceRight, 0);

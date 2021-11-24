@@ -37,11 +37,8 @@ public class GridLayouter extends AbsLayouter {
         int bottom = anchorTop;
 
         if (multiData instanceof StateMultiData && ((StateMultiData<?>) multiData).getState() != com.zpj.statemanager.State.STATE_CONTENT) {
-            View view = recycler.getViewForPosition(mPositionOffset);
-            MultiLayoutParams params1 = (MultiLayoutParams) view.getLayoutParams();
-            params1.setMultiData(multiData);
-            addView(view, 0);
-            measureChild(view, 0, 0);
+            View view = addViewAndMeasure(mPositionOffset, 0, recycler, multiData);
+
             int childHeight = getDecoratedMeasuredHeight(view);
             top = bottom - childHeight;
             right = getWidth();
@@ -56,11 +53,8 @@ public class GridLayouter extends AbsLayouter {
                 right = (posInLine + 1) * childWidth;
                 left = right - childWidth;
 
-                View view = recycler.getViewForPosition(currentPosition--);
-                MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
-                params.setMultiData(multiData);
-                addView(view, 0);
-                measureChild(view, childWidth, 0);
+                View view = addViewAndMeasure(currentPosition--, 0, recycler, multiData);
+//                measureChild(view, childWidth, 0);
 
                 if (childHeight <= 0) {
                     childHeight = getDecoratedMeasuredHeight(view);
@@ -88,11 +82,8 @@ public class GridLayouter extends AbsLayouter {
         int bottom = anchorBottom;
 
         if (multiData instanceof StateMultiData && ((StateMultiData<?>) multiData).getState() != com.zpj.statemanager.State.STATE_CONTENT) {
-            View view = recycler.getViewForPosition(mPositionOffset);
-            MultiLayoutParams params1 = (MultiLayoutParams) view.getLayoutParams();
-            params1.setMultiData(multiData);
-            addView(view);
-            measureChild(view, 0, 0);
+            View view = addViewAndMeasure(mPositionOffset, recycler, multiData);
+
             int childHeight = getDecoratedMeasuredHeight(view);
             bottom = top + childHeight;
             right = getWidth();
@@ -107,11 +98,8 @@ public class GridLayouter extends AbsLayouter {
                 left = posInLine * childWidth;
                 right = left + childWidth;
 
-                View view = recycler.getViewForPosition(currentPosition++);
-                MultiLayoutParams params1 = (MultiLayoutParams) view.getLayoutParams();
-                params1.setMultiData(multiData);
-                addView(view);
-                measureChild(view, childWidth, 0);
+                View view = addViewAndMeasure(currentPosition++, recycler, multiData);
+//                measureChild(view, childWidth, 0);
 
                 if (childHeight <= 0) {
                     childHeight = getDecoratedMeasuredHeight(view);

@@ -95,13 +95,8 @@ public class HorizontalLayouter extends AbsLayouter {
 
         int i = 0;
         while (availableSpace > 0 && currentPosition < multiData.getCount() + mPositionOffset) {
-            View view = recycler.getViewForPosition(currentPosition++);
-            MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
-            params.setMultiData(multiData);
-            addView(view, i);
-            i++;
+            View view = addViewAndMeasure(currentPosition++, i++, recycler, multiData);
 
-            measureChild(view, 0, 0);
             int measuredWidth = getDecoratedMeasuredWidth(view);
             availableSpace -= measuredWidth;
 
@@ -130,12 +125,8 @@ public class HorizontalLayouter extends AbsLayouter {
 
         while (availableSpace > 0 && currentPosition < multiData.getCount() + mPositionOffset) {
             Log.d(TAG, "onFillVertical2 currentPosition=" + currentPosition);
-            View view = recycler.getViewForPosition(currentPosition++);
-            MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
-            params.setMultiData(multiData);
-            addView(view);
+            View view = addViewAndMeasure(currentPosition++, recycler, multiData);
 
-            measureChild(view, 0, 0);
             int measuredWidth = getDecoratedMeasuredWidth(view);
             availableSpace -= measuredWidth;
 
@@ -158,7 +149,7 @@ public class HorizontalLayouter extends AbsLayouter {
         if (anchorPosition < mPositionOffset || anchorPosition >= mPositionOffset + multiData.getCount()) {
             return 0;
         }
-        int index = (int) anchorView.getTag();
+        int index = indexOfChild(anchorView);
         if (dx > 0) {
             // 从右往左滑动，从右边填充view
 
@@ -182,11 +173,8 @@ public class HorizontalLayouter extends AbsLayouter {
 
                     int i = index + 1;
                     while (availableSpace > 0 && currentPosition < mPositionOffset + multiData.getCount()) {
-                        View view = recycler.getViewForPosition(currentPosition++);
-                        MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
-                        params.setMultiData(multiData);
-                        addView(view, i);
-                        i++;
+                        View view = getViewForPosition(currentPosition++, recycler, multiData);
+                        addView(view, i++);
 
                         measureChild(view, 0, bottom - top);
                         int measuredWidth = getDecoratedMeasuredWidth(view);
@@ -221,9 +209,7 @@ public class HorizontalLayouter extends AbsLayouter {
                     int bottom = getDecoratedBottom(anchorView);
 
                     while (availableSpace > 0 && currentPosition >= mPositionOffset) {
-                        View view = recycler.getViewForPosition(currentPosition--);
-                        MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
-                        params.setMultiData(multiData);
+                        View view = getViewForPosition(currentPosition--, recycler, multiData);
                         addView(view, index);
 
                         measureChild(view, 0, bottom - top);

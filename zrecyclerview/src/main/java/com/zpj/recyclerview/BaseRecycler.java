@@ -1,6 +1,7 @@
 package com.zpj.recyclerview;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
@@ -655,6 +656,10 @@ public class BaseRecycler<T, R extends BaseRecycler<T, R>> extends EasyStateConf
 
     public EasyStateAdapter<T> getAdapter() {
         return easyAdapter;
+    }
+
+    public Context getContext() {
+        return recyclerView.getContext();
     }
 
     public RecyclerView getRecyclerView() {

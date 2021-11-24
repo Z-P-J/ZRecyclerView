@@ -197,7 +197,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
                 int[] bottoms = new int[mSpanCount];
                 int[] positions = new int[mSpanCount];
 
-                int index = (int) anchorView.getTag();
+                int index = indexOfChild(anchorView);
                 for (int i = index; i >= 0; i--) {
                     View view = getChildAt(i);
                     if (view == null) {
@@ -266,7 +266,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
                 int[] positions = new int[mSpanCount];
                 Arrays.fill(positions, -1);
 
-                int index = (int) anchorView.getTag();
+                int index = indexOfChild(anchorView);
                 int count = 0;
                 for (int i = index; i < getChildCount(); i++) {
                     View view = getChildAt(i);
