@@ -349,7 +349,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
         } else {
             int index = column.positions.indexOf(currentPosition);
             if (index < 0) {
-                throw new RuntimeException("fillColumnTop error");
+                throw new RuntimeException("fillColumnTop error! index=" + index + " currentPosition=" + currentPosition);
             }
             next = index - 1;
         }
@@ -395,7 +395,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
         } else {
             int index = column.positions.indexOf(currentPosition);
             if (index < 0) {
-                throw new RuntimeException("fillColumnBottom error");
+                throw new RuntimeException("fillColumnBottom error! index=" + index + " currentPosition=" + currentPosition);
             }
             next = index + 1;
         }

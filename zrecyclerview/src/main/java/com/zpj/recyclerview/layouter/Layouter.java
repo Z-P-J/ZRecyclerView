@@ -69,4 +69,8 @@ public interface Layouter {
 
     void saveState(int firstPosition, int firstOffset);
 
+    void onTouchDown(MultiData<?> multiData, float downX, float downY);
+
+    void onTouchUp(MultiData<?> multiData, float velocityX, float velocityY);
+
 }

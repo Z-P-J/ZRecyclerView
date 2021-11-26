@@ -15,6 +15,7 @@ import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.SingleTypeMultiData;
+import com.zpj.recyclerview.layouter.BannerLayouter;
 import com.zpj.recyclerview.layouter.FlowLayouter;
 import com.zpj.recyclerview.layouter.GridLayouter;
 import com.zpj.recyclerview.layouter.HorizontalLayouter;
@@ -51,6 +52,13 @@ public class LayoutManagerActivity extends AppCompatActivity {
 
 
         List<MultiData<?>> multiDataList = new ArrayList<>();
+
+        multiDataList.add(new LayouterMultiData(list, new BannerLayouter()) {
+            @Override
+            public int getLayoutId() {
+                return R.layout.item_banner;
+            }
+        });
 
         multiDataList.add(new LayouterMultiData(list, new InfiniteHorizontalLayouter()) {
             @Override

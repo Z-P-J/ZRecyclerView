@@ -26,6 +26,7 @@ import android.widget.OverScroller;
 import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
+import com.zpj.recyclerview.layouter.AbsLayouter;
 import com.zpj.recyclerview.layouter.Layouter;
 import com.zpj.recyclerview.layouter.StaggeredGridLayouter;
 import com.zpj.recyclerview.layouter.VerticalLayouter;
@@ -53,7 +54,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
     private static final int OVER_SCROLL_LEFT = 3;
     private static final int OVER_SCROLL_RIGHT = 4;
 
-    private final Set<View> recycleViews = new LinkedHashSet<>();
+    public final Set<View> recycleViews = new LinkedHashSet<>();
     private final Deque<StickyInfo> stickyInfoStack = new ArrayDeque<>();
 
     private MultiRecycler mRecycler;
@@ -122,6 +123,13 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                         mOverScrollAnimator.pause();
                         mOverScrollAnimator = null;
                     }
+                    for (int i = 0; i < multiDataList.size(); i++) {
+                        MultiData<?> multiData = multiDataList.get(i);
+                        Layouter layouter = multiData.getLayouter();
+                        if (mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
+                            layouter.onTouchDown(multiData, mDownX, mDownY);
+                        }
+                    }
                 } else if (MotionEvent.ACTION_MOVE == action) {
                     if (mScrollDirection == DIRECTION_NONE) {
                         float deltaX = event.getX() - mDownX;
@@ -139,10 +147,25 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                     }
                 } else if (MotionEvent.ACTION_UP == action || MotionEvent.ACTION_CANCEL == action) {
                     mTracker.computeCurrentVelocity(1000);
-                    new HorizontalFlinger(mRecycler.getContext(), mDownX, mDownY)
-                            .fling(mTracker.getXVelocity(), mTracker.getYVelocity());
-                    if (mTracker.getYVelocity() < ViewConfiguration.get(mRecycler.getContext()).getScaledMinimumFlingVelocity()) {
+//                    new HorizontalFlinger(mRecycler.getContext(), getTouchMultiData(mDownX, mDownY))
+//                            .fling(mTracker.getXVelocity(), mTracker.getYVelocity());
+//                    if (mTracker.getYVelocity() < ViewConfiguration.get(mRecycler.getContext()).getScaledMinimumFlingVelocity()) {
+//                        onStopOverScroll();
+//                    }
+
+                    if (isOverScrolling) {
                         onStopOverScroll();
+                    }
+
+                    if (mScrollDirection == DIRECTION_HORIZONTAL) {
+                        mScrollDirection = DIRECTION_NONE;
+                    }
+                    for (int i = 0; i < multiDataList.size(); i++) {
+                        MultiData<?> multiData = multiDataList.get(i);
+                        Layouter layouter = multiData.getLayouter();
+                        if (mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
+                            layouter.onTouchUp(multiData, mTracker.getXVelocity(), mTracker.getYVelocity());
+                        }
                     }
                     mTracker.recycle();
                     mTracker = null;
@@ -173,173 +196,79 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
 
     }
 
-    private class HorizontalFlinger implements Runnable {
-
-        private int mLastFlingX;
-        private final OverScroller mScroller;
-        private MultiData<?> scrollMultiData;
-
-        public HorizontalFlinger(Context context, float downX, float downY) {
-
-            MultiData<?> tempMultiData = null;
-            for (int i = getChildCount() - 1; i >= 0; i--) {
-                View view = getChildAt(i);
-                if (view == null) {
-                    continue;
-                }
-                MultiData<?> multiData = getMultiData(view);
-                if (multiData == null || multiData == tempMultiData) {
-                    continue;
-                }
-                tempMultiData = multiData;
-                Layouter layouter = multiData.getLayouter();
-                if (layouter.canScrollHorizontally() && downY >= layouter.getTop() && downY <= layouter.getBottom()) {
-                    scrollMultiData = multiData;
-                    break;
-                }
-            }
-
-            this.mScroller = new OverScroller(context, new Interpolator() {
-                @Override
-                public float getInterpolation(float t) {
-                    --t;
-                    return t * t * t * t * t + 1f;
-                }
-            });
-        }
-
-        @Override
-        public void run() {
-            if (scrollMultiData == null) {
-                stop();
-                return;
-            }
-            if (mScroller.computeScrollOffset()) {
-                int x = mScroller.getCurrX();
-                int dx = mLastFlingX - x;
-                if (dx == 0 && !mScroller.isFinished()) {
-                    postOnAnimation();
-                    return;
-                }
-
-                int consumed = 0;
-
-                int index = -1;
-                Layouter layouter = scrollMultiData.getLayouter();
-                if (dx > 0) {
-                    // 从右往左滑动
-                    for (int i = getChildCount() - 1; i >= 0; i--) {
-                        View view = getChildAt(i);
-                        if (view == null) {
-                            break;
-                        }
-                        MultiData<?> multiData = getMultiData(view);
-                        if (multiData == scrollMultiData) {
-                            index = i;
-                            consumed += layouter.fillHorizontal(view, dx, RecyclerViewHelper.getRecycler(mRecycler), multiData);
-                            break;
-                        }
-                    }
-                } else {
-                    // 从左往右滑动
-                    for (int i = 0; i < getChildCount(); i++) {
-                        View view = getChildAt(i);
-                        if (view == null) {
-                            break;
-                        }
-                        MultiData<?> multiData = getMultiData(view);
-                        if (multiData == scrollMultiData) {
-                            index = i;
-                            consumed -= layouter.fillHorizontal(view, dx, RecyclerViewHelper.getRecycler(mRecycler), multiData);
-                            break;
-                        }
-                    }
-                }
-
-                if (index < 0) {
-                    stop();
-                    return;
-                }
-
-                if (dx > 0) {
-                    // 从右往左滑动
-                    for (int i = getChildCount() - 1; i >= 0; i--) {
-                        View view = getChildAt(i);
-                        if (view == null) {
-                            break;
-                        }
-                        MultiData<?> multiData = getMultiData(view);
-                        if (multiData != scrollMultiData) {
-                            continue;
-                        }
-                        if (view.getRight() - consumed + getRightDecorationWidth(view) < 0
-                                || view.getLeft() - consumed + getLeftDecorationWidth(view) > getWidth()) {
-                            recycleViews.add(view);
-                        } else {
-                            view.offsetLeftAndRight(-consumed);
-                            index = i;
-                        }
-                    }
-                } else {
-                    // 从左往右滑动
-                    for (int i = 0; i < getChildCount(); i++) {
-                        View view = getChildAt(i);
-                        if (view == null) {
-                            break;
-                        }
-                        MultiData<?> multiData = getMultiData(view);
-                        if (multiData != scrollMultiData) {
-                            continue;
-                        }
-                        if (view.getRight() - consumed + getRightDecorationWidth(view) < 0
-                                || view.getLeft() - consumed + getLeftDecorationWidth(view) > getWidth()) {
-                            recycleViews.add(view);
-                        } else {
-                            view.offsetLeftAndRight(-consumed);
-                        }
-                    }
-                }
-
-                recycleViews(RecyclerViewHelper.getRecycler(mRecycler));
-
-                View child = getChildAt(index);
-                if (child != null) {
-                    int firstPosition = getPosition(child);
-                    int firstOffset = layouter.getDecoratedLeft(child);
-                    layouter.saveState(firstPosition, firstOffset);
-                }
-
-                if (consumed != dx) {
-                    stop();
-                    return;
-                }
-                mLastFlingX = x;
-                postOnAnimation();
-
-            }
-        }
-
-        private void postOnAnimation() {
-            mRecycler.getRecyclerView().removeCallbacks(this);
-            ViewCompat.postOnAnimation(mRecycler.getRecyclerView(), this);
-        }
-
-        public void fling(float velocityX, float velocityY) {
-            if (scrollMultiData == null) {
-                return;
-            }
-            this.mLastFlingX = 0;
-            this.mScroller.fling(0, 0, (int) velocityX, (int) velocityY,
-                    Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE);
-            this.postOnAnimation();
-        }
-
-        public void stop() {
-            mRecycler.getRecyclerView().removeCallbacks(this);
-            this.mScroller.abortAnimation();
-        }
-
-    }
+//    private class HorizontalFlinger implements Runnable {
+//
+//        private int mLastFlingX;
+//        private final OverScroller mScroller;
+//        private MultiData<?> scrollMultiData;
+//
+//        public HorizontalFlinger(Context context, MultiData<?> scrollMultiData) {
+//            this.scrollMultiData = scrollMultiData;
+//            this.mScroller = new OverScroller(context, new Interpolator() {
+//                @Override
+//                public float getInterpolation(float t) {
+//                    --t;
+//                    return t * t * t * t * t + 1f;
+//                }
+//            });
+//        }
+//
+//        @Override
+//        public void run() {
+//            if (scrollMultiData == null) {
+//                stop();
+//                return;
+//            }
+//            if (mScroller.computeScrollOffset()) {
+//                int x = mScroller.getCurrX();
+//                int dx = mLastFlingX - x;
+//                if (dx == 0 && !mScroller.isFinished()) {
+//                    postOnAnimation();
+//                    return;
+//                }
+//
+//                int consumed = scrollHorizontallyBy(dx, scrollMultiData);
+//
+//                if (consumed != dx) {
+//                    stop();
+//                    return;
+//                }
+//                mLastFlingX = x;
+//                postOnAnimation();
+//
+//            }
+//        }
+//
+//        private void postOnAnimation() {
+//            mRecycler.getRecyclerView().removeCallbacks(this);
+//            ViewCompat.postOnAnimation(mRecycler.getRecyclerView(), this);
+//        }
+//
+//        public void fling(float velocityX, float velocityY) {
+//            if (scrollMultiData == null) {
+//                return;
+//            }
+//            this.mLastFlingX = 0;
+//            this.mScroller.fling(0, 0, (int) velocityX, (int) velocityY,
+//                    Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE);
+//            this.postOnAnimation();
+//        }
+//
+//        public void startOverScroll() {
+//            if (scrollMultiData == null) {
+//                return;
+//            }
+//            this.mLastFlingX = 0;
+//            this.mScroller.startScroll(0, 0, 0, 0, 500);
+//            this.postOnAnimation();
+//        }
+//
+//        public void stop() {
+//            mRecycler.getRecyclerView().removeCallbacks(this);
+//            this.mScroller.abortAnimation();
+//        }
+//
+//    }
 
     public boolean isOverScrolling() {
         return isOverScrolling;
@@ -393,93 +322,6 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                         }
                     }
                 }
-            } else {
-                MultiData<?> tempMultiData = null;
-                if (overScrollDirection == OVER_SCROLL_LEFT) {
-                    for (int i = 0; i < getChildCount(); i++) {
-                        View view = getChildAt(i);
-                        if (view == null) {
-                            continue;
-                        }
-                        final MultiData<?> multiData = getMultiData(view);
-                        if (multiData == null || multiData == tempMultiData) {
-                            continue;
-                        }
-                        tempMultiData = multiData;
-                        final Layouter layouter = multiData.getLayouter();
-                        if (layouter.canScrollHorizontally() && mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
-                            final int firstLeft = getDecoratedLeft(view);
-                            final int index = i;
-                            if (firstLeft > 0) {
-                                mOverScrollAnimator = ValueAnimator.ofFloat(1f, 0f);
-                                mOverScrollAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                                    int lastLeft = firstLeft;
-
-                                    @Override
-                                    public void onAnimationUpdate(ValueAnimator animation) {
-                                        float percent = (float) animation.getAnimatedValue();
-                                        int left = (int) (percent * firstLeft);
-                                        for (int i = index; i < getChildCount(); i++) {
-                                            View child = getChildAt(i);
-                                            if (child == null) {
-                                                break;
-                                            }
-                                            MultiData<?> data = getMultiData(child);
-                                            if (data == null || data != multiData || multiData.getLayouter() != layouter) {
-                                                break;
-                                            }
-                                            child.offsetLeftAndRight(left - lastLeft);
-                                        }
-                                        lastLeft = left;
-                                    }
-                                });
-                            }
-                            break;
-                        }
-                    }
-                } else if (overScrollDirection == OVER_SCROLL_RIGHT) {
-                    for (int i = getChildCount() - 1; i >= 0; i--) {
-                        View view = getChildAt(i);
-                        if (view == null) {
-                            continue;
-                        }
-                        final MultiData<?> multiData = getMultiData(view);
-                        if (multiData == null || multiData == tempMultiData) {
-                            continue;
-                        }
-                        tempMultiData = multiData;
-                        final Layouter layouter = multiData.getLayouter();
-                        if (layouter.canScrollHorizontally() && mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
-                            final int right = getDecoratedRight(view);
-                            final int index = i;
-                            if (right < getWidth()) {
-                                mOverScrollAnimator = ValueAnimator.ofFloat(0f, 1f);
-                                mOverScrollAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                                    int lastRight = right;
-
-                                    @Override
-                                    public void onAnimationUpdate(ValueAnimator animation) {
-                                        float percent = (float) animation.getAnimatedValue();
-                                        int r = (int) (percent * (getWidth() - right) + right);
-                                        for (int i = index; i >= 0; i--) {
-                                            View child = getChildAt(i);
-                                            if (child == null) {
-                                                break;
-                                            }
-                                            MultiData<?> data = getMultiData(child);
-                                            if (data == null || data != multiData || multiData.getLayouter() != layouter) {
-                                                break;
-                                            }
-                                            child.offsetLeftAndRight(r - lastRight);
-                                        }
-                                        lastRight = r;
-                                    }
-                                });
-                            }
-                            break;
-                        }
-                    }
-                }
             }
 
             if (mOverScrollAnimator != null) {
@@ -499,10 +341,6 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
 
             isOverScrolling = false;
         }
-    }
-
-    private void onOverScroll() {
-
     }
 
     @Override
@@ -641,208 +479,22 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
 
     @Override
     public int scrollHorizontallyBy(int dx, RecyclerView.Recycler recycler, RecyclerView.State state) {
-        if (multiDataList == null) {
+        return scrollHorizontallyBy(dx, recycler, getTouchMultiData(mDownX, mDownY));
+    }
+
+    public int scrollHorizontallyBy(int dx) {
+        return scrollHorizontallyBy(dx, RecyclerViewHelper.getRecycler(mRecycler), getTouchMultiData(mDownX, mDownY));
+    }
+
+    public int scrollHorizontallyBy(int dx, MultiData<?> scrollMultiData) {
+        return scrollHorizontallyBy(dx, RecyclerViewHelper.getRecycler(mRecycler), scrollMultiData);
+    }
+
+    public int scrollHorizontallyBy(int dx, RecyclerView.Recycler recycler, MultiData<?> scrollMultiData) {
+        if (multiDataList == null || scrollMultiData == null) {
             return 0;
         }
-
-        if (isOverScrolling) {
-            overScrollDistance += dx;
-            if (overScrollDirection == OVER_SCROLL_LEFT) {
-                if (overScrollDistance > 0) {
-                    isOverScrolling = false;
-                }
-            } else if (overScrollDirection == OVER_SCROLL_RIGHT) {
-                if (overScrollDistance < 0) {
-                    isOverScrolling = false;
-                }
-            }
-
-            if (isOverScrolling) {
-
-                int maxWidth = getWidth() / 2;
-                float overScrollRadio = (float) Math.min(Math.abs(overScrollDistance), maxWidth) / maxWidth;
-                int overScroll = (int) ((0.68f - overScrollRadio / 2f) * dx);
-
-                Log.d(TAG, "scrollHorizontallyBy dx=" + dx + " overScrollRadio=" + overScrollRadio + " overScroll=" + overScroll);
-
-                MultiData<?> tempMultiData = null;
-                for (int i = 0; i < getChildCount(); i++) {
-                    View view = getChildAt(i);
-                    if (view == null) {
-                        continue;
-                    }
-                    final MultiData<?> multiData = getMultiData(view);
-                    if (multiData == null || multiData == tempMultiData) {
-                        continue;
-                    }
-                    tempMultiData = multiData;
-                    final Layouter layouter = multiData.getLayouter();
-                    if (layouter.canScrollHorizontally() && mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
-                        Log.d(TAG, "scrollHorizontallyBy mDownY=" + mDownY + " top=" + layouter.getTop() + " bottom=" + layouter.getBottom() + " b=" + getDecoratedBottom(view));
-                        for (int j = i; j < getChildCount(); j++) {
-                            View child = getChildAt(j);
-                            if (child == null) {
-                                break;
-                            }
-                            MultiData<?> data = getMultiData(child);
-                            if (data == null || data != multiData || multiData.getLayouter() != layouter) {
-                                break;
-                            }
-                            Log.d(TAG, "scrollHorizontallyBy i=" + i);
-                            child.offsetLeftAndRight(-overScroll);
-                        }
-                        break;
-                    }
-                }
-
-                if (overScrollRadio >= 1f) {
-                    return 0;
-                }
-
-                if (Math.abs(overScrollDistance) > maxWidth) {
-                    return 0;
-                }
-
-                return dx;
-
-            }
-        }
-
-        int consumed = 0;
-        View firstChild = getChildAt(0);
-        View lastChild = getChildAt(getChildCount() - 1);
-        if (firstChild == null || lastChild == null) {
-            return 0;
-        }
-
-        Log.d(TAG, "scrollHorizontallyBy dx=" + dx);
-        MultiData<?> tempMultiData = null;
-        MultiData<?> scrollMultiData = null;
-        int[] location = new int[2];
-        int index = 0;
-        if (dx > 0) {
-            // 从右往左滑动
-            for (int i = getChildCount() - 1; i >= 0; i--) {
-                View view = getChildAt(i);
-                if (view == null) {
-                    continue;
-                }
-                MultiData<?> multiData = ((MultiLayoutParams) view.getLayoutParams()).getMultiData();
-                if (multiData == null || multiData == tempMultiData) {
-                    continue;
-                }
-                tempMultiData = multiData;
-                Layouter layouter = multiData.getLayouter();
-                if (layouter.canScrollHorizontally() && mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
-                    scrollMultiData = multiData;
-                    index = i;
-
-//                    view.setTag(i);
-                    consumed += layouter.fillHorizontal(view, dx, recycler, multiData);
-                    break;
-                }
-            }
-        } else {
-            // 从左往右滑动
-            for (int i = 0; i < getChildCount(); i++) {
-                View view = getChildAt(i);
-                if (view == null) {
-                    continue;
-                }
-                MultiData<?> multiData = ((MultiLayoutParams) view.getLayoutParams()).getMultiData();
-                if (multiData == null || multiData == tempMultiData) {
-                    continue;
-                }
-                tempMultiData = multiData;
-                Layouter layouter = multiData.getLayouter();
-                if (layouter.canScrollHorizontally() && mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
-                    scrollMultiData = multiData;
-                    index = i;
-//                    view.setTag(i);
-                    consumed -= layouter.fillHorizontal(view, dx, recycler, multiData);
-                    break;
-                }
-            }
-        }
-
-        if (scrollMultiData == null) {
-            return 0;
-        }
-
-        Layouter layouter = scrollMultiData.getLayouter();
-        if (dx > 0) {
-            // 从右往左滑动
-            for (int i = getChildCount() - 1; i >= 0; i--) {
-                View view = getChildAt(i);
-                if (view == null) {
-                    continue;
-                }
-                MultiData<?> multiData = ((MultiLayoutParams) view.getLayoutParams()).getMultiData();
-                if (multiData != scrollMultiData) {
-                    continue;
-                }
-
-                if (view.getRight() - consumed + getRightDecorationWidth(view) < 0
-                        || view.getLeft() - consumed - getLeftDecorationWidth(view) > getWidth()) {
-                    recycleViews.add(view);
-                } else {
-                    view.offsetLeftAndRight(-consumed);
-                    index = i;
-                }
-            }
-        } else {
-            // 从左往右滑动
-            for (int i = index; i < getChildCount(); i++) {
-                View view = getChildAt(i);
-                if (view == null) {
-                    continue;
-                }
-                MultiData<?> multiData = ((MultiLayoutParams) view.getLayoutParams()).getMultiData();
-                if (multiData != scrollMultiData) {
-                    break;
-                }
-
-                if (view.getRight() - consumed + getRightDecorationWidth(view) < 0
-                        || view.getLeft() - consumed - getLeftDecorationWidth(view) > getWidth()) {
-                    recycleViews.add(view);
-                } else {
-                    view.offsetLeftAndRight(-consumed);
-                }
-            }
-        }
-
-        recycleViews(recycler);
-
-
-        if (dx != consumed) {
-            isOverScrolling = true;
-            overScrollDirection = dx < 0 ? OVER_SCROLL_LEFT : OVER_SCROLL_RIGHT;
-            overScrollDistance = dx - consumed;
-            int overScroll = (int) (overScrollDistance * 0.1f);
-            for (int i = index; i < getChildCount(); i++) {
-                View view = getChildAt(i);
-                if (view == null) {
-                    break;
-                }
-                MultiData<?> multiData = getMultiData(view);
-                if (multiData.getLayouter() != layouter) {
-                    break;
-                }
-                view.offsetLeftAndRight(-overScroll);
-            }
-            consumed = dx;
-        }
-
-        View child = getChildAt(index);
-        if (child != null) {
-            int firstPosition = getPosition(child);
-            int firstOffset = layouter.getDecoratedLeft(child);
-            layouter.saveState(firstPosition, firstOffset);
-        }
-
-        Log.d(TAG, "scrollHorizontallyBy dx=" + dx + " consumed=" + consumed + " isOverScrolling=" + isOverScrolling);
-
-        return consumed;
+        return ((AbsLayouter) scrollMultiData.getLayouter()).scrollHorizontallyBy(dx, recycler, scrollMultiData);
     }
 
     @Override
@@ -926,7 +578,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                     continue;
                 }
 //                view.setTag(i);
-                multiData = ((MultiLayoutParams) view.getLayoutParams()).getMultiData();
+                multiData = getMultiData(view);
                 i++;
             } while (multiData == null);
             Layouter layouter = multiData.getLayouter();
@@ -938,6 +590,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                 multiData = multiDataList.get(--i);
                 layouter = multiData.getLayouter();
                 layouter.setBottom(top);
+                Log.d(TAG, "scrollVerticallyBy layouter=" + layouter);
                 consumed -= layouter.fillVertical(null, dy - consumed, recycler, multiData);
             }
         } else {
@@ -956,7 +609,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                     continue;
                 }
 //                view.setTag(i);
-                multiData = ((MultiLayoutParams) view.getLayoutParams()).getMultiData();
+                multiData = getMultiData(view);
                 i--;
             } while (multiData == null);
             Layouter layouter = multiData.getLayouter();
@@ -984,7 +637,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
             if (view == null) {
                 continue;
             }
-            MultiData<?> data = ((MultiLayoutParams) view.getLayoutParams()).getMultiData();
+            MultiData<?> data = getMultiData(view);
             if (data == null) {
                 Log.d(TAG, "scrollVerticallyBy i=" + i + " position=" + getPosition(view));
                 continue;
@@ -1270,6 +923,30 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
 
     }
 
+    public MultiRecycler getRecycler() {
+        return mRecycler;
+    }
+
+    private MultiData<?> getTouchMultiData(float downX, float downY) {
+        MultiData<?> tempMultiData = null;
+        for (int i = getChildCount() - 1; i >= 0; i--) {
+            View view = getChildAt(i);
+            if (view == null) {
+                continue;
+            }
+            MultiData<?> multiData = getMultiData(view);
+            if (multiData == null || multiData == tempMultiData) {
+                continue;
+            }
+            tempMultiData = multiData;
+            Layouter layouter = multiData.getLayouter();
+            if (layouter.canScrollHorizontally() && downY >= layouter.getTop() && downY <= layouter.getBottom()) {
+                return multiData;
+            }
+        }
+        return null;
+    }
+
     public MultiData<?> getMultiData(View child) {
         if (child == null) {
             return null;
@@ -1285,11 +962,19 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
         return multiData.getLayouter();
     }
 
+    public View getFirstChild() {
+        return getChildAt(0);
+    }
+
+    public View getLastChild() {
+        return getChildAt(stickyInfo == null ? getChildCount() - 1 : getChildCount() - 2);
+    }
+
     public int indexOfChild(View child) {
         return mRecycler.getRecyclerView().indexOfChild(child);
     }
 
-    private void recycleViews(RecyclerView.Recycler recycler) {
+    public void recycleViews(RecyclerView.Recycler recycler) {
         for (View view : recycleViews) {
             Log.d(TAG, "recycleViews pos=" + getPosition(view));
             detachAndScrapView(view, recycler);
@@ -1306,22 +991,14 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
 
     private void saveState() {
         View firstView = getChildAt(0);
-        if (firstView == null) {
+        MultiData<?> data = getMultiData(firstView);
+
+        if (data == null) {
             mTopMultiDataIndex = 0;
             mTopPosition = 0;
             mTopOffset = 0;
         } else {
-            MultiData<?> data = ((MultiLayoutParams) firstView.getLayoutParams()).getMultiData();
-            if (data == null) {
-                mTopMultiDataIndex = 0;
-                mTopPosition = 0;
-                mTopOffset = 0;
-                return;
-            }
             Layouter layouter = data.getLayouter();
-//            if (layouter instanceof StaggeredGridLayouter) {
-//                ((StaggeredGridLayouter) layouter).saveState();
-//            }
             mTopMultiDataIndex = multiDataList.indexOf(data);
             mTopPosition = getPosition(firstView) - layouter.getPositionOffset();
             mTopOffset = layouter.getDecoratedTop(firstView);

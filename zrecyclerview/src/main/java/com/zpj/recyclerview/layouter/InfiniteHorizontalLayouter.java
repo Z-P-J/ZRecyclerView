@@ -114,7 +114,7 @@ public class InfiniteHorizontalLayouter extends AbsLayouter {
 
         int availableSpace = getWidth() - getPaddingRight() - left;
 
-        while (availableSpace > 0 && currentPosition < multiData.getCount() + mPositionOffset) {
+        while (availableSpace > 0) {
             if (currentPosition >= mPositionOffset + multiData.getCount()) {
                 currentPosition = mPositionOffset;
             }
@@ -207,4 +207,10 @@ public class InfiniteHorizontalLayouter extends AbsLayouter {
         }
     }
 
+    @Override
+    public void onTouchUp(MultiData<?> multiData, float velocityX, float velocityY) {
+        if (mFlinger != null) {
+            mFlinger.fling(velocityX, velocityY);
+        }
+    }
 }

@@ -85,8 +85,13 @@ public class HorizontalLayouter extends AbsLayouter {
 
     @Override
     protected int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
-
-        int left = Math.min(0, mFirstOffset);
+        int left;
+        if (mFlinger != null && !mFlinger.isStop()) {
+            left = mFirstOffset;
+        } else {
+            left = Math.min(0, mFirstOffset);
+        }
+        Log.d(TAG, "fillVerticalTop currentPosition=" + currentPosition + " left=" + left + " anchorTop=" + anchorTop);
         int top = anchorTop;
         int right = 0;
         int bottom = anchorTop;
@@ -116,7 +121,12 @@ public class HorizontalLayouter extends AbsLayouter {
     @Override
     protected int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorBottom) {
 
-        int left = Math.min(0, mFirstOffset);
+        int left;
+        if (mFlinger != null && !mFlinger.isStop()) {
+            left = mFirstOffset;
+        } else {
+            left = Math.min(0, mFirstOffset);
+        }
         int top = anchorBottom;
         int right = 0;
         int bottom = anchorBottom;
@@ -154,78 +164,72 @@ public class HorizontalLayouter extends AbsLayouter {
             // 从右往左滑动，从右边填充view
 
             int anchorRight = getDecoratedRight(anchorView);
-            if (anchorRight > getWidth()) {
-                if (anchorRight - dx > getWidth()) {
-                    return dx;
-                } else {
+            if (anchorRight - dx > getWidth()) {
+                return dx;
+            } else {
 
 
-                    if (anchorPosition == mPositionOffset + multiData.getCount() - 1) {
-                        return anchorRight - getWidth();
-                    }
-
-                    int availableSpace = dx;
-                    int currentPosition = anchorPosition + 1;
-                    int left = anchorRight;
-                    int top = getDecoratedTop(anchorView);
-                    int right = 0;
-                    int bottom = getDecoratedBottom(anchorView);
-
-                    int i = index + 1;
-                    while (availableSpace > 0 && currentPosition < mPositionOffset + multiData.getCount()) {
-                        View view = getViewForPosition(currentPosition++, recycler, multiData);
-                        addView(view, i++);
-
-                        measureChild(view, 0, bottom - top);
-                        int measuredWidth = getDecoratedMeasuredWidth(view);
-                        availableSpace -= measuredWidth;
-
-                        right = left + measuredWidth;
-                        layoutDecorated(view, left, top, right, bottom);
-                        left = right;
-                    }
-                    return Math.min(dx, dx - availableSpace + (anchorRight - getWidth()));
+                if (anchorPosition == mPositionOffset + multiData.getCount() - 1) {
+                    return anchorRight - getWidth();
                 }
+
+                int availableSpace = dx;
+                int currentPosition = anchorPosition + 1;
+                int left = anchorRight;
+                int top = getDecoratedTop(anchorView);
+                int right = 0;
+                int bottom = getDecoratedBottom(anchorView);
+
+                int i = index + 1;
+                while (availableSpace > 0 && currentPosition < mPositionOffset + multiData.getCount()) {
+                    View view = getViewForPosition(currentPosition++, recycler, multiData);
+                    addView(view, i++);
+
+                    measureChild(view, 0, bottom - top);
+                    int measuredWidth = getDecoratedMeasuredWidth(view);
+                    availableSpace -= measuredWidth;
+
+                    right = left + measuredWidth;
+                    layoutDecorated(view, left, top, right, bottom);
+                    left = right;
+                }
+                return Math.min(dx, dx - availableSpace + (anchorRight - getWidth()));
             }
         } else {
             // 从左往右滑动，从左边填充view
 
             int anchorLeft = getDecoratedLeft(anchorView);
-            if (anchorLeft < 0) {
-                if (anchorLeft - dx < 0) {
-                    return -dx;
-                } else {
+            if (anchorLeft - dx < 0) {
+                return -dx;
+            } else {
 
 
-                    if (anchorPosition == mPositionOffset) {
-                        return -anchorLeft;
-                    }
-
-                    int availableSpace = -dx;
-                    int currentPosition = anchorPosition - 1;
-                    int left = 0;
-                    int top = getDecoratedTop(anchorView);
-                    int right = anchorLeft;
-                    int bottom = getDecoratedBottom(anchorView);
-
-                    while (availableSpace > 0 && currentPosition >= mPositionOffset) {
-                        View view = getViewForPosition(currentPosition--, recycler, multiData);
-                        addView(view, index);
-
-                        measureChild(view, 0, bottom - top);
-                        int measuredWidth = getDecoratedMeasuredWidth(view);
-                        availableSpace -= measuredWidth;
-
-                        left = right - measuredWidth;
-                        layoutDecorated(view, left, top, right, bottom);
-                        right = left;
-                    }
-                    return Math.min(-dx, -dx - availableSpace - anchorLeft);
+                if (anchorPosition == mPositionOffset) {
+                    return -anchorLeft;
                 }
+
+                int availableSpace = -dx;
+                int currentPosition = anchorPosition - 1;
+                int left = 0;
+                int top = getDecoratedTop(anchorView);
+                int right = anchorLeft;
+                int bottom = getDecoratedBottom(anchorView);
+
+                while (availableSpace > 0 && currentPosition >= mPositionOffset) {
+                    View view = getViewForPosition(currentPosition--, recycler, multiData);
+                    addView(view, index);
+
+                    measureChild(view, 0, bottom - top);
+                    int measuredWidth = getDecoratedMeasuredWidth(view);
+                    availableSpace -= measuredWidth;
+
+                    left = right - measuredWidth;
+                    layoutDecorated(view, left, top, right, bottom);
+                    right = left;
+                }
+                return Math.min(-dx, -dx - availableSpace - anchorLeft);
             }
         }
-
-        return 0;
     }
 
 }

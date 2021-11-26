@@ -1,13 +1,25 @@
 package com.zpj.recyclerview.layouter;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.Px;
+import android.support.v4.view.ViewCompat;
+import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.RecyclerViewHelper;
+import android.support.v7.widget.SnapHelper;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewConfiguration;
+import android.view.animation.Interpolator;
+import android.widget.OverScroller;
 
 import com.zpj.recyclerview.MultiData;
+import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.manager.MultiLayoutManager;
 import com.zpj.recyclerview.manager.MultiLayoutParams;
 
@@ -320,6 +332,374 @@ public abstract class AbsLayouter implements Layouter {
 
     public int indexOfChild(View child) {
         return getLayoutManager().indexOfChild(child);
+    }
+
+    public MultiRecycler getRecycler() {
+        return getLayoutManager().getRecycler();
+    }
+
+
+    protected HorizontalFlinger mFlinger;
+
+    @Override
+    public void onTouchDown(MultiData<?> multiData, float downX, float downY) {
+        if (canScrollHorizontally()) {
+//            getRecycler().getRecyclerView().stopScroll();
+            if (mFlinger != null) {
+                mFlinger.stop();
+            } else {
+                mFlinger = new HorizontalFlinger(getRecycler().getContext(), multiData);
+            }
+        }
+    }
+
+    @Override
+    public void onTouchUp(MultiData<?> multiData, float velocityX, float velocityY) {
+        //  && velocityY < ViewConfiguration.get(getRecycler().getContext()).getScaledMinimumFlingVelocity()
+        if (canScrollHorizontally()) {
+//            getRecycler().getRecyclerView().stopScroll();
+            if (isOverScrolling) {
+                onStopOverScroll(multiData);
+            } else if (mFlinger != null) {
+                mFlinger.fling(velocityX, velocityY);
+            }
+        }
+    }
+
+
+
+
+
+    private static final int OVER_SCROLL_DOWN = 1;
+    private static final int OVER_SCROLL_UP = 2;
+    private static final int OVER_SCROLL_LEFT = 3;
+    private static final int OVER_SCROLL_RIGHT = 4;
+
+    private boolean isOverScrolling;
+    private int overScrollDirection;
+    private int overScrollDistance;
+
+    public int scrollHorizontallyBy(int dx, RecyclerView.Recycler recycler, MultiData<?> scrollMultiData) {
+        if (scrollMultiData == null) {
+            return 0;
+        }
+
+        if (isOverScrolling) {
+            overScrollDistance += dx;
+            if (overScrollDirection == OVER_SCROLL_LEFT) {
+                if (overScrollDistance > 0) {
+                    isOverScrolling = false;
+                }
+            } else if (overScrollDirection == OVER_SCROLL_RIGHT) {
+                if (overScrollDistance < 0) {
+                    isOverScrolling = false;
+                }
+            }
+
+            if (isOverScrolling) {
+
+                float maxWidth = getWidth() / 1.5f;
+                float overScrollRadio = Math.min(Math.abs(overScrollDistance), maxWidth) / maxWidth;
+                int overScroll = (int) ((0.68f - overScrollRadio / 2f) * dx);
+
+                Log.d(TAG, "scrollHorizontallyBy dx=" + dx + " overScrollRadio=" + overScrollRadio + " overScroll=" + overScroll);
+
+
+                for (int i = 0; i < getChildCount(); i++) {
+                    View view = getChildAt(i);
+                    final MultiData<?> multiData = getMultiData(view);
+                    if (multiData == scrollMultiData) {
+                        for (int j = i; j < getChildCount(); j++) {
+                            View child = getChildAt(j);
+                            if (getMultiData(child) != scrollMultiData) {
+                                break;
+                            }
+                            Log.d(TAG, "scrollHorizontallyBy i=" + i);
+                            child.offsetLeftAndRight(-overScroll);
+                        }
+                        break;
+                    }
+                }
+
+                if (overScrollRadio >= 1f) {
+                    Log.d(TAG, "scrollHorizontallyBy dx=" + dx + " overScrollRadio=" + overScrollRadio + " overScroll=" + overScroll);
+                    return 0;
+                }
+
+                if (Math.abs(overScrollDistance) > maxWidth) {
+                    return 0;
+                }
+
+                return dx;
+
+            }
+        }
+
+        int consumed = 0;
+        View firstChild = getChildAt(0);
+        View lastChild = getChildAt(getChildCount() - 1);
+        if (firstChild == null || lastChild == null) {
+            return 0;
+        }
+
+        Log.d(TAG, "scrollHorizontallyBy dx=" + dx);
+        int index = 0;
+        if (dx > 0) {
+            // 从右往左滑动
+            for (int i = getChildCount() - 1; i >= 0; i--) {
+                View view = getChildAt(i);
+                if (getMultiData(view) == scrollMultiData) {
+                    index = i;
+                    consumed += fillHorizontal(view, dx, recycler, scrollMultiData);
+                    break;
+                }
+            }
+        } else {
+            // 从左往右滑动
+            for (int i = 0; i < getChildCount(); i++) {
+                View view = getChildAt(i);
+                if (getMultiData(view) == scrollMultiData) {
+                    index = i;
+                    consumed -= fillHorizontal(view, dx, recycler, scrollMultiData);
+                    break;
+                }
+            }
+        }
+
+        if (dx > 0) {
+            // 从右往左滑动
+            for (int i = getChildCount() - 1; i >= 0; i--) {
+                View view = getChildAt(i);
+                MultiData<?> multiData = getMultiData(view);
+                if (multiData != scrollMultiData) {
+                    continue;
+                }
+
+                if (view.getRight() - consumed + getLayoutManager().getRightDecorationWidth(view) < 0
+                        || view.getLeft() - consumed - getLayoutManager().getLeftDecorationWidth(view) > getWidth()) {
+                    getLayoutManager().recycleViews.add(view);
+                } else {
+                    view.offsetLeftAndRight(-consumed);
+                    index = i;
+                }
+            }
+        } else {
+            // 从左往右滑动
+            for (int i = index; i < getChildCount(); i++) {
+                View view = getChildAt(i);
+                MultiData<?> multiData = getMultiData(view);
+                if (multiData != scrollMultiData) {
+                    break;
+                }
+
+                if (view.getRight() - consumed + getLayoutManager().getRightDecorationWidth(view) < 0
+                        || view.getLeft() - consumed - getLayoutManager().getLeftDecorationWidth(view) > getWidth()) {
+                    getLayoutManager().recycleViews.add(view);
+                } else {
+                    view.offsetLeftAndRight(-consumed);
+                }
+            }
+        }
+
+        getLayoutManager().recycleViews(recycler);
+
+
+        if (dx != consumed) {
+            isOverScrolling = true;
+            overScrollDirection = dx < 0 ? OVER_SCROLL_LEFT : OVER_SCROLL_RIGHT;
+            overScrollDistance = dx - consumed;
+
+            int overScroll = (int) (overScrollDistance * 0.1f);
+
+            Log.d(TAG, "scrollHorizontallyBy dx=" + dx + " overScroll=" + overScroll);
+
+            for (int i = index; i < getChildCount(); i++) {
+                View view = getChildAt(i);
+                if (getMultiData(view) != scrollMultiData) {
+                    break;
+                }
+                view.offsetLeftAndRight(-overScroll);
+            }
+            consumed = dx;
+        }
+
+        View child = getChildAt(index);
+        if (child != null) {
+            int firstPosition = getPosition(child);
+            int firstOffset = getDecoratedLeft(child);
+            saveState(firstPosition, firstOffset);
+            Log.e(TAG, "scrollHorizontallyBy firstPosition=" + firstPosition + " firstOffset=" + firstOffset);
+        }
+
+        Log.d(TAG, "scrollHorizontallyBy dx=" + dx + " consumed=" + consumed + " isOverScrolling=" + isOverScrolling);
+
+        return consumed;
+    }
+
+
+
+
+
+
+    protected void onStopOverScroll(final MultiData<?> scrollMultiData) {
+        if (scrollMultiData == null) {
+            return;
+        }
+        if (isOverScrolling) {
+            isOverScrolling = false;
+            mFlinger.stop();
+            if (overScrollDirection <= OVER_SCROLL_UP) {
+                if (overScrollDirection == OVER_SCROLL_DOWN) {
+                    final View firstChild = getLayoutManager().getFirstChild();
+                    if (firstChild != null) {
+                        final int firstTop = getDecoratedTop(firstChild);
+                        if (firstTop > 0) {
+                            // TODO
+                        }
+
+                    }
+                } else if (overScrollDirection == OVER_SCROLL_UP) {
+                    View lastChild = getLayoutManager().getLastChild();
+                    if (lastChild != null) {
+                        final int bottom = getDecoratedBottom(lastChild);
+                        if (bottom < getHeight()) {
+                            // TODO
+                        }
+                    }
+                }
+            } else {
+                if (overScrollDirection == OVER_SCROLL_LEFT) {
+                    for (int i = 0; i < getChildCount(); i++) {
+                        View view = getChildAt(i);
+                        if (getMultiData(view) == scrollMultiData) {
+                            final int firstLeft = getDecoratedLeft(view);
+                            Log.d(TAG, "onStopOverScroll firstLeft=" + firstLeft);
+                            if (firstLeft > 0 && getPosition(view) == scrollMultiData.getLayouter().getPositionOffset()) {
+                                mFlinger.startScroll(-firstLeft, 0, 500);
+                            }
+                            break;
+                        }
+                    }
+                } else if (overScrollDirection == OVER_SCROLL_RIGHT) {
+                    for (int i = getChildCount() - 1; i >= 0; i--) {
+                        View view = getChildAt(i);
+                        if (getMultiData(view) == scrollMultiData) {
+                            final int right = getDecoratedRight(view);
+                            Log.d(TAG, "onStopOverScroll right=" + right);
+                            if (right < getWidth() && getPosition(view) == scrollMultiData.getLayouter().getPositionOffset() + scrollMultiData.getCount() - 1) {
+                                mFlinger.startScroll(getWidth() - right, 0, 500);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+
+
+        }
+    }
+
+
+
+
+    private static final Interpolator sScrollInterpolator = new FastOutSlowInInterpolator();
+
+    protected class HorizontalFlinger implements Runnable, Interpolator {
+
+
+
+        protected int mLastFlingX;
+        protected final OverScroller mScroller;
+        protected final MultiData<?> scrollMultiData;
+
+        protected Interpolator mInterpolator;
+
+        public HorizontalFlinger(Context context, MultiData<?> scrollMultiData) {
+            this.scrollMultiData = scrollMultiData;
+            this.mScroller = new OverScroller(context, this);
+        }
+
+        @Override
+        public void run() {
+            if (scrollMultiData == null) {
+                stop();
+                return;
+            }
+            if (mScroller.computeScrollOffset()) {
+                int x = mScroller.getCurrX();
+                int dx = mLastFlingX - x;
+                if (dx == 0 && !mScroller.isFinished()) {
+                    postOnAnimation();
+                    return;
+                }
+
+                int consumed = scrollHorizontallyBy(dx, RecyclerViewHelper.getRecycler(getLayoutManager().getRecycler()), scrollMultiData);
+
+                Log.d(TAG, "HorizontalFlinger run dx=" + dx + " consumed=" + consumed);
+
+                if (consumed != dx) {
+                    stop();
+                    onStopOverScroll(scrollMultiData);
+                    return;
+                }
+                mLastFlingX = x;
+                postOnAnimation();
+
+            }
+        }
+
+        protected void postOnAnimation() {
+            getLayoutManager().getRecycler().getRecyclerView().removeCallbacks(this);
+            ViewCompat.postOnAnimation(getLayoutManager().getRecycler().getRecyclerView(), this);
+        }
+
+
+
+        public void fling(float velocityX, float velocityY) {
+            if (scrollMultiData == null) {
+                return;
+            }
+            Log.d(TAG, "=======================================================HorizontalFlinger fling velocityX=" + velocityX + " velocityY=" + velocityY);
+            stop();
+            mInterpolator = null;
+            this.mScroller.fling(0, 0, (int) velocityX, (int) velocityY,
+                    Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE);
+            this.postOnAnimation();
+        }
+
+        public void startScroll(int dx, int dy, int duration) {
+            if (scrollMultiData == null) {
+                return;
+            }
+            Log.d(TAG, "-------------------------------------------------------HorizontalFlinger startScroll dx=" + dx + " dy=" + dy);
+            stop();
+            mInterpolator = null;
+            mInterpolator = sScrollInterpolator;
+            this.mScroller.startScroll(0, 0, dx, dy, duration);
+            this.postOnAnimation();
+        }
+
+        public boolean isStop() {
+            return this.mScroller.isFinished();
+        }
+
+        public void stop() {
+            getLayoutManager().getRecycler().getRecyclerView().removeCallbacks(this);
+            this.mScroller.forceFinished(true);
+            this.mLastFlingX = 0;
+        }
+
+        public void setInterpolator(Interpolator mInterpolator) {
+            this.mInterpolator = mInterpolator;
+        }
+
+        @Override
+        public float getInterpolation(float input) {
+            if (mInterpolator == null) {
+                return RecyclerViewHelper.getInterpolator().getInterpolation(input);
+            }
+            return mInterpolator.getInterpolation(input);
+        }
     }
 
 }
