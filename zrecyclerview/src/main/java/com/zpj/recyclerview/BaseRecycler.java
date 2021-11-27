@@ -678,6 +678,10 @@ public class BaseRecycler<T, R extends BaseRecycler<T, R>> extends EasyStateConf
         recyclerView.postDelayed(runnable, delayMillis);
     }
 
+    public void removeCallbacks(Runnable runnable) {
+        recyclerView.removeCallbacks(runnable);
+    }
+
     public List<T> getDataSet() {
         return this.mDataSet;
     }

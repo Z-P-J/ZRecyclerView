@@ -96,6 +96,16 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
         }
     }
 
+    @Override
+    public void onMeasure(@NonNull RecyclerView.Recycler recycler, @NonNull RecyclerView.State state, int widthSpec, int heightSpec) {
+        super.onMeasure(recycler, state, widthSpec, heightSpec);
+    }
+
+    @Override
+    public boolean isAutoMeasureEnabled() {
+        return true;
+    }
+
     public void attachRecycler(MultiRecycler recycler) {
         this.mRecycler = recycler;
         this.multiDataList = recycler.getDataSet();
@@ -103,6 +113,8 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
             this.multiDataList.add(0, new RefresherMultiData(recycler.getRefresher()));
         }
         recycler.getRecyclerView().setOverScrollMode(View.OVER_SCROLL_NEVER);
+        final int touchSlop = ViewConfiguration.get(mRecycler.getContext()).getScaledTouchSlop();
+        final int maxVelocity = ViewConfiguration.get(mRecycler.getContext()).getScaledMaximumFlingVelocity();
         recycler.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
 
             private VelocityTracker mTracker;
@@ -124,9 +136,13 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                         mOverScrollAnimator = null;
                     }
                     for (int i = 0; i < multiDataList.size(); i++) {
+                        if (i < mTopMultiDataIndex) {
+                            continue;
+                        }
                         MultiData<?> multiData = multiDataList.get(i);
                         Layouter layouter = multiData.getLayouter();
                         if (mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
+                            Log.d(TAG, "onInterceptTouchEvent mDownX=" + mDownX + " mDownY=" + mDownY + " layouter=" + layouter);
                             layouter.onTouchDown(multiData, mDownX, mDownY);
                         }
                     }
@@ -134,6 +150,11 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                     if (mScrollDirection == DIRECTION_NONE) {
                         float deltaX = event.getX() - mDownX;
                         float deltaY = event.getY() - mDownY;
+
+//                        if (deltaX < touchSlop && deltaY < touchSlop) {
+//                            return false;
+//                        }
+
                         float radio = Math.abs(deltaX / deltaY);
                         Log.d(TAG, "onInterceptTouchEvent deltaX=" + deltaX + " deltaY=" + deltaY + " radio=" + radio);
                         if (radio == 1f) {
@@ -146,29 +167,34 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                         }
                     }
                 } else if (MotionEvent.ACTION_UP == action || MotionEvent.ACTION_CANCEL == action) {
-                    mTracker.computeCurrentVelocity(1000);
-//                    new HorizontalFlinger(mRecycler.getContext(), getTouchMultiData(mDownX, mDownY))
-//                            .fling(mTracker.getXVelocity(), mTracker.getYVelocity());
-//                    if (mTracker.getYVelocity() < ViewConfiguration.get(mRecycler.getContext()).getScaledMinimumFlingVelocity()) {
-//                        onStopOverScroll();
-//                    }
+                    mTracker.computeCurrentVelocity(1000, maxVelocity);
+                    float velocityX = mTracker.getXVelocity();
+                    float velocityY = mTracker.getYVelocity();
+                    mTracker.recycle();
+                    mTracker = null;
 
                     if (isOverScrolling) {
                         onStopOverScroll();
                     }
 
+                    int tempDirection = mScrollDirection;
                     if (mScrollDirection == DIRECTION_HORIZONTAL) {
                         mScrollDirection = DIRECTION_NONE;
                     }
                     for (int i = 0; i < multiDataList.size(); i++) {
+                        if (i < mTopMultiDataIndex) {
+                            continue;
+                        }
                         MultiData<?> multiData = multiDataList.get(i);
                         Layouter layouter = multiData.getLayouter();
                         if (mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
-                            layouter.onTouchUp(multiData, mTracker.getXVelocity(), mTracker.getYVelocity());
+                            Log.d(TAG, "onInterceptTouchEvent mDownX=" + mDownX + " mDownY=" + mDownY + " velocityX=" + velocityX + " velocityY=" + velocityY + " i=" + i);
+                            layouter.onTouchUp(multiData, velocityX, velocityY);
                         }
                     }
-                    mTracker.recycle();
-                    mTracker = null;
+                    if (tempDirection == DIRECTION_HORIZONTAL) {
+                        return true;
+                    }
                 }
                 return false;
             }
@@ -367,14 +393,22 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
     public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
         Log.d(TAG, "onLayoutChildren mTopMultiDataIndex=" + mTopMultiDataIndex
                 + " mTopPosition=" + mTopPosition + " mTopOffset=" + mTopOffset + " isPreLayout=" + state.isPreLayout());
+        Log.d(TAG, "onLayoutChildren state=" + state);
 
         if (multiDataList == null) {
             return;
         }
 
+
+
         if (getChildCount() == 0 && state.isPreLayout()) {
             return;
         }
+
+        // TODO 在适当时机onLayoutChildren
+//        if (getChildCount() > 0) {
+//            return;
+//        }
 
         detachAndScrapAttachedViews(recycler);
 

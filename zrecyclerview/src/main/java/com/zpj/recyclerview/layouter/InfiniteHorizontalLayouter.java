@@ -11,13 +11,13 @@ public class InfiniteHorizontalLayouter extends AbsLayouter {
 
     private static final String TAG = "HorizontalLayouter";
 
-    private int mFirstPosition = 0;
-    private int mFirstOffset;
+    protected int mFirstPosition = 0;
+    protected int mFirstOffset;
 
     @Override
     public void saveState(int firstPosition, int firstOffset) {
         this.mFirstPosition = Math.max(0, firstPosition - mPositionOffset);
-        this.mFirstOffset = firstOffset;
+        this.mFirstOffset = Math.min(0, firstOffset);
     }
 
     @Override
@@ -74,7 +74,8 @@ public class InfiniteHorizontalLayouter extends AbsLayouter {
     @Override
     protected int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
 
-        int left = Math.min(0, mFirstOffset);
+        int left = mFirstOffset;
+//        int left = Math.min(0, mFirstOffset);
         int top = anchorTop;
         int right = 0;
         int bottom = anchorTop;
@@ -107,7 +108,8 @@ public class InfiniteHorizontalLayouter extends AbsLayouter {
     @Override
     protected int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorBottom) {
 
-        int left = Math.min(0, mFirstOffset);
+        int left = mFirstOffset;
+//        int left = Math.min(0, mFirstOffset);
         int top = anchorBottom;
         int right = 0;
         int bottom = anchorBottom;
@@ -208,9 +210,10 @@ public class InfiniteHorizontalLayouter extends AbsLayouter {
     }
 
     @Override
-    public void onTouchUp(MultiData<?> multiData, float velocityX, float velocityY) {
+    public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY) {
         if (mFlinger != null) {
             mFlinger.fling(velocityX, velocityY);
         }
+        return false;
     }
 }

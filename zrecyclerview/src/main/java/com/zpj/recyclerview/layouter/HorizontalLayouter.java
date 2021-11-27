@@ -5,7 +5,6 @@ import android.util.Log;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.manager.MultiLayoutParams;
 
 public class HorizontalLayouter extends AbsLayouter {
 
@@ -37,6 +36,7 @@ public class HorizontalLayouter extends AbsLayouter {
 
     @Override
     public int fillVertical(View anchorView, int dy, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+        Log.d(TAG, "onFillVertical mFirstOffset=" + mFirstOffset);
         if (dy > 0) {
             // 从下往上滑动
             if (anchorView == null) {
@@ -85,13 +85,13 @@ public class HorizontalLayouter extends AbsLayouter {
 
     @Override
     protected int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
-        int left;
-        if (mFlinger != null && !mFlinger.isStop()) {
-            left = mFirstOffset;
-        } else {
-            left = Math.min(0, mFirstOffset);
-        }
-        Log.d(TAG, "fillVerticalTop currentPosition=" + currentPosition + " left=" + left + " anchorTop=" + anchorTop);
+        int left = mFirstOffset;
+//        if (mFlinger != null && !mFlinger.isStop()) {
+//            left = mFirstOffset;
+//        } else {
+//            left = Math.min(0, mFirstOffset);
+//        }
+        Log.d(TAG, "fillVerticalTop currentPosition=" + currentPosition + " left=" + left + " anchorTop=" + anchorTop + " mPositionOffset=" + mPositionOffset + " count=" + multiData.getCount());
         int top = anchorTop;
         int right = 0;
         int bottom = anchorTop;
@@ -121,12 +121,12 @@ public class HorizontalLayouter extends AbsLayouter {
     @Override
     protected int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorBottom) {
 
-        int left;
-        if (mFlinger != null && !mFlinger.isStop()) {
-            left = mFirstOffset;
-        } else {
-            left = Math.min(0, mFirstOffset);
-        }
+        int left = mFirstOffset;
+//        if (mFlinger != null && !mFlinger.isStop()) {
+//            left = mFirstOffset;
+//        } else {
+//            left = Math.min(0, mFirstOffset);
+//        }
         int top = anchorBottom;
         int right = 0;
         int bottom = anchorBottom;
