@@ -10,15 +10,6 @@ public class HorizontalLayouter extends AbsLayouter {
 
     private static final String TAG = "HorizontalLayouter";
 
-    private int mFirstPosition = 0;
-    private int mFirstOffset;
-
-    @Override
-    public void saveState(int firstPosition, int firstOffset) {
-        this.mFirstPosition = Math.max(0, firstPosition - mPositionOffset);
-        this.mFirstOffset = firstOffset;
-    }
-
     @Override
     public void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition) {
         super.layoutChildren(multiData, recycler, mFirstPosition + mPositionOffset);
@@ -86,11 +77,6 @@ public class HorizontalLayouter extends AbsLayouter {
     @Override
     protected int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
         int left = mFirstOffset;
-//        if (mFlinger != null && !mFlinger.isStop()) {
-//            left = mFirstOffset;
-//        } else {
-//            left = Math.min(0, mFirstOffset);
-//        }
         Log.d(TAG, "fillVerticalTop currentPosition=" + currentPosition + " left=" + left + " anchorTop=" + anchorTop + " mPositionOffset=" + mPositionOffset + " count=" + multiData.getCount());
         int top = anchorTop;
         int right = 0;
@@ -122,11 +108,6 @@ public class HorizontalLayouter extends AbsLayouter {
     protected int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorBottom) {
 
         int left = mFirstOffset;
-//        if (mFlinger != null && !mFlinger.isStop()) {
-//            left = mFirstOffset;
-//        } else {
-//            left = Math.min(0, mFirstOffset);
-//        }
         int top = anchorBottom;
         int right = 0;
         int bottom = anchorBottom;

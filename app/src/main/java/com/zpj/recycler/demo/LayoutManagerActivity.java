@@ -23,13 +23,13 @@ import com.zpj.recyclerview.layouter.InfiniteHorizontalLayouter;
 import com.zpj.recyclerview.layouter.Layouter;
 import com.zpj.recyclerview.layouter.StaggeredGridLayouter;
 import com.zpj.recyclerview.layouter.VerticalLayouter;
+import com.zpj.recyclerview.layouter.ViewPagerLayouter;
 import com.zpj.recyclerview.manager.MultiLayoutManager;
 import com.zpj.recyclerview.refresh.IRefresher;
 import com.zpj.recyclerview.refresh.SimpleRefresher;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class LayoutManagerActivity extends AppCompatActivity {
@@ -71,6 +71,13 @@ public class LayoutManagerActivity extends AppCompatActivity {
             @Override
             public int getLayoutId() {
                 return R.layout.item_text_grid;
+            }
+        });
+
+        multiDataList.add(new LayouterMultiData(list, new ViewPagerLayouter()) {
+            @Override
+            public int getLayoutId() {
+                return R.layout.item_banner;
             }
         });
 

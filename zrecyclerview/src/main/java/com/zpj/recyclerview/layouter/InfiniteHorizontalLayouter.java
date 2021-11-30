@@ -11,13 +11,17 @@ public class InfiniteHorizontalLayouter extends AbsLayouter {
 
     private static final String TAG = "HorizontalLayouter";
 
-    protected int mFirstPosition = 0;
-    protected int mFirstOffset;
-
     @Override
     public void saveState(int firstPosition, int firstOffset) {
         this.mFirstPosition = Math.max(0, firstPosition - mPositionOffset);
         this.mFirstOffset = Math.min(0, firstOffset);
+    }
+
+    @Override
+    protected void onDetached() {
+        if (mFlinger != null) {
+            mFlinger.stop();
+        }
     }
 
     @Override

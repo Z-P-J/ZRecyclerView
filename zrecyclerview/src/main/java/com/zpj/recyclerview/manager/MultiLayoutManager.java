@@ -117,7 +117,10 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
         final int maxVelocity = ViewConfiguration.get(mRecycler.getContext()).getScaledMaximumFlingVelocity();
         recycler.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
 
+            private static final String TAG = "OnItemTouchListener";
+
             private VelocityTracker mTracker;
+            private MultiData<?> mMultiData = null;
 
             @Override
             public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent event) {
@@ -143,17 +146,21 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                         Layouter layouter = multiData.getLayouter();
                         if (mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
                             Log.d(TAG, "onInterceptTouchEvent mDownX=" + mDownX + " mDownY=" + mDownY + " layouter=" + layouter);
-                            layouter.onTouchDown(multiData, mDownX, mDownY);
+                            if (layouter.onTouchDown(multiData, mDownX, mDownY)) {
+                                mMultiData = multiData;
+                                break;
+                            }
                         }
                     }
                 } else if (MotionEvent.ACTION_MOVE == action) {
                     if (mScrollDirection == DIRECTION_NONE) {
-                        float deltaX = event.getX() - mDownX;
-                        float deltaY = event.getY() - mDownY;
+                        float deltaX = Math.abs(event.getX() - mDownX);
+                        float deltaY = Math.abs(event.getY() - mDownY);
 
-//                        if (deltaX < touchSlop && deltaY < touchSlop) {
-//                            return false;
-//                        }
+                        Log.d(TAG, "onInterceptTouchEvent deltaX=" + deltaX + " deltaY=" + deltaY + " touchSlop=" + touchSlop);
+                        if (deltaX < touchSlop && deltaY < touchSlop) {
+                            return false;
+                        }
 
                         float radio = Math.abs(deltaX / deltaY);
                         Log.d(TAG, "onInterceptTouchEvent deltaX=" + deltaX + " deltaY=" + deltaY + " radio=" + radio);
@@ -167,6 +174,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                         }
                     }
                 } else if (MotionEvent.ACTION_UP == action || MotionEvent.ACTION_CANCEL == action) {
+
                     mTracker.computeCurrentVelocity(1000, maxVelocity);
                     float velocityX = mTracker.getXVelocity();
                     float velocityY = mTracker.getYVelocity();
@@ -177,31 +185,26 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                         onStopOverScroll();
                     }
 
-                    int tempDirection = mScrollDirection;
+//                    int tempDirection = mScrollDirection;
                     if (mScrollDirection == DIRECTION_HORIZONTAL) {
                         mScrollDirection = DIRECTION_NONE;
                     }
-                    for (int i = 0; i < multiDataList.size(); i++) {
-                        if (i < mTopMultiDataIndex) {
-                            continue;
-                        }
-                        MultiData<?> multiData = multiDataList.get(i);
-                        Layouter layouter = multiData.getLayouter();
-                        if (mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
-                            Log.d(TAG, "onInterceptTouchEvent mDownX=" + mDownX + " mDownY=" + mDownY + " velocityX=" + velocityX + " velocityY=" + velocityY + " i=" + i);
-                            layouter.onTouchUp(multiData, velocityX, velocityY);
-                        }
+                    if (mMultiData != null) {
+                        mMultiData.getLayouter().onTouchUp(mMultiData, velocityX, velocityY);
+                        mMultiData = null;
                     }
-                    if (tempDirection == DIRECTION_HORIZONTAL) {
-                        return true;
-                    }
+//                    if (tempDirection == DIRECTION_HORIZONTAL) {
+////                        event.setAction(MotionEvent.ACTION_CANCEL);
+//                        return true;
+//                    }
                 }
                 return false;
             }
 
             @Override
-            public void onTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
-
+            public void onTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent event) {
+                int action = event.getAction();
+                Log.d(TAG, "onTouchEvent event=" + MotionEvent.actionToString(action) + " mScrollDirection=" + mScrollDirection);
             }
 
             @Override
@@ -221,80 +224,6 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
         });
 
     }
-
-//    private class HorizontalFlinger implements Runnable {
-//
-//        private int mLastFlingX;
-//        private final OverScroller mScroller;
-//        private MultiData<?> scrollMultiData;
-//
-//        public HorizontalFlinger(Context context, MultiData<?> scrollMultiData) {
-//            this.scrollMultiData = scrollMultiData;
-//            this.mScroller = new OverScroller(context, new Interpolator() {
-//                @Override
-//                public float getInterpolation(float t) {
-//                    --t;
-//                    return t * t * t * t * t + 1f;
-//                }
-//            });
-//        }
-//
-//        @Override
-//        public void run() {
-//            if (scrollMultiData == null) {
-//                stop();
-//                return;
-//            }
-//            if (mScroller.computeScrollOffset()) {
-//                int x = mScroller.getCurrX();
-//                int dx = mLastFlingX - x;
-//                if (dx == 0 && !mScroller.isFinished()) {
-//                    postOnAnimation();
-//                    return;
-//                }
-//
-//                int consumed = scrollHorizontallyBy(dx, scrollMultiData);
-//
-//                if (consumed != dx) {
-//                    stop();
-//                    return;
-//                }
-//                mLastFlingX = x;
-//                postOnAnimation();
-//
-//            }
-//        }
-//
-//        private void postOnAnimation() {
-//            mRecycler.getRecyclerView().removeCallbacks(this);
-//            ViewCompat.postOnAnimation(mRecycler.getRecyclerView(), this);
-//        }
-//
-//        public void fling(float velocityX, float velocityY) {
-//            if (scrollMultiData == null) {
-//                return;
-//            }
-//            this.mLastFlingX = 0;
-//            this.mScroller.fling(0, 0, (int) velocityX, (int) velocityY,
-//                    Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE);
-//            this.postOnAnimation();
-//        }
-//
-//        public void startOverScroll() {
-//            if (scrollMultiData == null) {
-//                return;
-//            }
-//            this.mLastFlingX = 0;
-//            this.mScroller.startScroll(0, 0, 0, 0, 500);
-//            this.postOnAnimation();
-//        }
-//
-//        public void stop() {
-//            mRecycler.getRecyclerView().removeCallbacks(this);
-//            this.mScroller.abortAnimation();
-//        }
-//
-//    }
 
     public boolean isOverScrolling() {
         return isOverScrolling;

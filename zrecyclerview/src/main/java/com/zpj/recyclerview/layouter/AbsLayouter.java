@@ -38,6 +38,8 @@ public abstract class AbsLayouter implements Layouter {
     protected int mPositionOffset;
     protected int mChildOffset;
 
+    private boolean mAttached = false;
+
     @Override
     public void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition) {
         if (getLayoutManager() == null || multiData.getCount() == 0 || mTop > getHeight()) {
@@ -181,6 +183,30 @@ public abstract class AbsLayouter implements Layouter {
     public void offsetTopAndBottom(int offset) {
         this.mTop += offset;
         this.mBottom += offset;
+        if (mBottom < 0 || mTop > getHeight()) {
+            if (mAttached) {
+                mAttached = false;
+                onDetached();
+            }
+        } else {
+            if (!mAttached) {
+                mAttached = true;
+                onAttached();
+            }
+        }
+    }
+
+    protected void onAttached() {
+
+    }
+
+    protected void onDetached() {
+        this.mFirstOffset = this.mOverScrollOffset;
+        this.mFirstPosition = this.mOverScrollPosition;
+
+        if (mFlinger != null) {
+            mFlinger.stop();
+        }
     }
 
     @Override
@@ -217,7 +243,8 @@ public abstract class AbsLayouter implements Layouter {
 
     @Override
     public void saveState(int firstPosition, int firstOffset) {
-
+        this.mFirstPosition = Math.max(0, firstPosition - mPositionOffset);
+        this.mFirstOffset = firstOffset;
     }
 
     protected abstract int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop);
@@ -382,6 +409,12 @@ public abstract class AbsLayouter implements Layouter {
     private int overScrollDirection;
     private int overScrollDistance;
 
+    protected int mOverScrollPosition = 0;
+    protected int mOverScrollOffset;
+
+    protected int mFirstPosition = 0;
+    protected int mFirstOffset;
+
     public int scrollHorizontallyBy(int dx, RecyclerView.Recycler recycler, MultiData<?> scrollMultiData) {
         if (scrollMultiData == null) {
             return 0;
@@ -390,11 +423,11 @@ public abstract class AbsLayouter implements Layouter {
         if (isOverScrolling) {
             overScrollDistance += dx;
             if (overScrollDirection == OVER_SCROLL_LEFT) {
-                if (overScrollDistance > 0) {
+                if (overScrollDistance >= 0) {
                     isOverScrolling = false;
                 }
             } else if (overScrollDirection == OVER_SCROLL_RIGHT) {
-                if (overScrollDistance < 0) {
+                if (overScrollDistance <= 0) {
                     isOverScrolling = false;
                 }
             }
@@ -442,6 +475,8 @@ public abstract class AbsLayouter implements Layouter {
             }
         }
 
+        overScrollDistance = 0;
+
         int consumed = 0;
         View firstChild = getChildAt(0);
         View lastChild = getChildAt(getChildCount() - 1);
@@ -483,6 +518,7 @@ public abstract class AbsLayouter implements Layouter {
         }
 
         if (index < 0) {
+            onDetached();
             return 0;
         }
 
@@ -524,7 +560,27 @@ public abstract class AbsLayouter implements Layouter {
         getLayoutManager().recycleViews(recycler);
 
 
+        for (int i = 0; i < getChildCount(); i++) {
+            View view = getChildAt(i);
+            if (getMultiData(view) == scrollMultiData) {
+                index = i;
+                break;
+            }
+        }
+
+        firstChild = getChildAt(index);
+
         if (dx != consumed) {
+
+
+            if (firstChild != null) {
+                int firstPosition = getPosition(firstChild);
+                int firstOffset = getDecoratedLeft(firstChild);
+                this.mOverScrollPosition = Math.max(0, firstPosition - mPositionOffset);
+                this.mOverScrollOffset = firstOffset;
+            }
+
+
             isOverScrolling = true;
             overScrollDirection = dx < 0 ? OVER_SCROLL_LEFT : OVER_SCROLL_RIGHT;
             overScrollDistance = dx - consumed;
@@ -542,24 +598,24 @@ public abstract class AbsLayouter implements Layouter {
             consumed = dx;
         }
 
-//        View child = getChildAt(index);
-//        if (child != null) {
-//            int firstPosition = getPosition(child);
-//            int firstOffset = getDecoratedLeft(child);
-//            saveState(firstPosition, firstOffset);
-//            Log.e(TAG, "scrollHorizontallyBy firstPosition=" + firstPosition + " firstOffset=" + firstOffset);
-//        }
 
-        for (int i = 0; i < getChildCount(); i++) {
-            View view = getChildAt(i);
-            if (getMultiData(view) == scrollMultiData) {
-                int firstPosition = getPosition(view);
-                int firstOffset = getDecoratedLeft(view);
-                saveState(firstPosition, firstOffset);
-                Log.e(TAG, "scrollHorizontallyBy firstPosition=" + firstPosition + " firstOffset=" + firstOffset);
-                break;
-            }
+        if (firstChild != null) {
+            int firstPosition = getPosition(firstChild);
+            int firstOffset = getDecoratedLeft(firstChild);
+            saveState(firstPosition, firstOffset);
+            Log.e(TAG, "scrollHorizontallyBy firstPosition=" + firstPosition + " firstOffset=" + firstOffset);
         }
+
+//        for (int i = 0; i < getChildCount(); i++) {
+//            View view = getChildAt(i);
+//            if (getMultiData(view) == scrollMultiData) {
+//                int firstPosition = getPosition(view);
+//                int firstOffset = getDecoratedLeft(view);
+//                saveState(firstPosition, firstOffset);
+//                Log.e(TAG, "scrollHorizontallyBy firstPosition=" + firstPosition + " firstOffset=" + firstOffset);
+//                break;
+//            }
+//        }
 
         Log.d(TAG, "scrollHorizontallyBy dx=" + dx + " consumed=" + consumed + " isOverScrolling=" + isOverScrolling);
 
