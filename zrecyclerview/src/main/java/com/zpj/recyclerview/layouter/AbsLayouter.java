@@ -1,29 +1,21 @@
 package com.zpj.recyclerview.layouter;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.Px;
-import android.support.v4.view.ViewCompat;
-import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerViewHelper;
-import android.support.v7.widget.SnapHelper;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewConfiguration;
-import android.view.animation.Interpolator;
-import android.widget.OverScroller;
 
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
+import com.zpj.recyclerview.flinger.Flinger;
+import com.zpj.recyclerview.flinger.HorizontalFlinger;
 import com.zpj.recyclerview.manager.MultiLayoutManager;
 import com.zpj.recyclerview.manager.MultiLayoutParams;
 
-public abstract class AbsLayouter implements Layouter {
+public abstract class AbsLayouter implements com.zpj.recyclerview.layouter.Layouter {
 
     private static final String TAG = "AbsLayouter";
 
@@ -32,8 +24,6 @@ public abstract class AbsLayouter implements Layouter {
     protected int mTop;
     protected int mRight;
     protected int mBottom;
-
-    protected int mChildCount;
 
     protected int mPositionOffset;
     protected int mChildOffset;
@@ -353,7 +343,7 @@ public abstract class AbsLayouter implements Layouter {
         return getLayoutManager().getMultiData(child);
     }
 
-    public Layouter getLayouter(View child) {
+    public com.zpj.recyclerview.layouter.Layouter getLayouter(View child) {
         return getLayoutManager().getLayouter(child);
     }
 
@@ -365,8 +355,12 @@ public abstract class AbsLayouter implements Layouter {
         return getLayoutManager().getRecycler();
     }
 
+    public Context getContext() {
+        return getRecycler().getContext();
+    }
 
-    protected HorizontalFlinger mFlinger;
+
+    protected Flinger mFlinger;
 
     @Override
     public boolean onTouchDown(MultiData<?> multiData, float downX, float downY) {
@@ -375,11 +369,15 @@ public abstract class AbsLayouter implements Layouter {
             if (mFlinger != null) {
                 mFlinger.stop();
             } else {
-                mFlinger = new HorizontalFlinger(getRecycler().getContext(), multiData);
+                mFlinger = createFlinger(multiData);
             }
             return true;
         }
         return false;
+    }
+
+    protected Flinger createFlinger(MultiData<?> multiData) {
+        return new HorizontalFlinger(this, multiData);
     }
 
     @Override
@@ -483,15 +481,6 @@ public abstract class AbsLayouter implements Layouter {
         if (firstChild == null || lastChild == null) {
             return 0;
         }
-
-//        Layouter layouter = scrollMultiData.getLayouter();
-//        if (getPosition(firstChild) >= scrollMultiData.getCount() + layouter.getPositionOffset()) {
-//            return 0;
-//        }
-//
-//        if (getPosition(lastChild) < layouter.getPositionOffset()) {
-//            return 0;
-//        }
 
         Log.d(TAG, "scrollHorizontallyBy dx=" + dx);
         int index = -1;
@@ -606,17 +595,6 @@ public abstract class AbsLayouter implements Layouter {
             Log.e(TAG, "scrollHorizontallyBy firstPosition=" + firstPosition + " firstOffset=" + firstOffset);
         }
 
-//        for (int i = 0; i < getChildCount(); i++) {
-//            View view = getChildAt(i);
-//            if (getMultiData(view) == scrollMultiData) {
-//                int firstPosition = getPosition(view);
-//                int firstOffset = getDecoratedLeft(view);
-//                saveState(firstPosition, firstOffset);
-//                Log.e(TAG, "scrollHorizontallyBy firstPosition=" + firstPosition + " firstOffset=" + firstOffset);
-//                break;
-//            }
-//        }
-
         Log.d(TAG, "scrollHorizontallyBy dx=" + dx + " consumed=" + consumed + " isOverScrolling=" + isOverScrolling);
 
         return consumed;
@@ -627,7 +605,7 @@ public abstract class AbsLayouter implements Layouter {
 
 
 
-    protected void onStopOverScroll(final MultiData<?> scrollMultiData) {
+    public void onStopOverScroll(final MultiData<?> scrollMultiData) {
         if (scrollMultiData == null) {
             return;
         }
@@ -661,7 +639,7 @@ public abstract class AbsLayouter implements Layouter {
                             final int firstLeft = getDecoratedLeft(view);
                             Log.d(TAG, "onStopOverScroll firstLeft=" + firstLeft);
                             if (firstLeft > 0 && getPosition(view) == scrollMultiData.getLayouter().getPositionOffset()) {
-                                mFlinger.startScroll(-firstLeft, 0, 500);
+                                mFlinger.scroll(-firstLeft, 0, 500);
                             }
                             break;
                         }
@@ -673,7 +651,7 @@ public abstract class AbsLayouter implements Layouter {
                             final int right = getDecoratedRight(view);
                             Log.d(TAG, "onStopOverScroll right=" + right);
                             if (right < getWidth() && getPosition(view) == scrollMultiData.getLayouter().getPositionOffset() + scrollMultiData.getCount() - 1) {
-                                mFlinger.startScroll(getWidth() - right, 0, 500);
+                                mFlinger.scroll(getWidth() - right, 0, 500);
                             }
                             break;
                         }
@@ -682,109 +660,6 @@ public abstract class AbsLayouter implements Layouter {
             }
 
 
-        }
-    }
-
-
-
-
-    private static final Interpolator sScrollInterpolator = new FastOutSlowInInterpolator();
-
-    protected class HorizontalFlinger implements Runnable, Interpolator {
-
-
-
-        protected int mLastFlingX;
-        protected final OverScroller mScroller;
-        protected final MultiData<?> scrollMultiData;
-
-        protected Interpolator mInterpolator;
-
-        public HorizontalFlinger(Context context, MultiData<?> scrollMultiData) {
-            this.scrollMultiData = scrollMultiData;
-            this.mScroller = new OverScroller(context, this);
-        }
-
-        @Override
-        public void run() {
-            if (scrollMultiData == null) {
-                stop();
-                return;
-            }
-            if (mScroller.computeScrollOffset()) {
-                int x = mScroller.getCurrX();
-                int dx = mLastFlingX - x;
-                if (dx == 0 && !mScroller.isFinished()) {
-                    postOnAnimation();
-                    return;
-                }
-
-                int consumed = scrollHorizontallyBy(dx, RecyclerViewHelper.getRecycler(getLayoutManager().getRecycler()), scrollMultiData);
-
-                Log.d(TAG, "HorizontalFlinger run dx=" + dx + " consumed=" + consumed);
-
-                if (consumed != dx) {
-                    stop();
-                    onStopOverScroll(scrollMultiData);
-                    return;
-                }
-                mLastFlingX = x;
-                postOnAnimation();
-
-            }
-        }
-
-        protected void postOnAnimation() {
-            getLayoutManager().getRecycler().getRecyclerView().removeCallbacks(this);
-            ViewCompat.postOnAnimation(getLayoutManager().getRecycler().getRecyclerView(), this);
-        }
-
-
-
-        public void fling(float velocityX, float velocityY) {
-            if (scrollMultiData == null) {
-                return;
-            }
-            Log.d(TAG, "=======================================================HorizontalFlinger fling velocityX=" + velocityX + " velocityY=" + velocityY);
-            stop();
-            mInterpolator = null;
-            this.mScroller.fling(0, 0, (int) velocityX, (int) velocityY,
-                    Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE);
-            this.postOnAnimation();
-        }
-
-        public void startScroll(int dx, int dy, int duration) {
-            if (scrollMultiData == null) {
-                return;
-            }
-            Log.d(TAG, "-------------------------------------------------------HorizontalFlinger startScroll dx=" + dx + " dy=" + dy);
-            stop();
-            mInterpolator = null;
-            mInterpolator = sScrollInterpolator;
-            this.mScroller.startScroll(0, 0, dx, dy, duration);
-            this.postOnAnimation();
-        }
-
-        public boolean isStop() {
-            return this.mScroller.isFinished();
-        }
-
-        public void stop() {
-            getLayoutManager().getRecycler().getRecyclerView().removeCallbacks(this);
-            this.mScroller.forceFinished(true);
-            this.mLastFlingX = 0;
-        }
-
-        public void setInterpolator(Interpolator mInterpolator) {
-            this.mInterpolator = mInterpolator;
-        }
-
-        @Override
-        public float getInterpolation(float input) {
-            if (mInterpolator == null) {
-                return RecyclerViewHelper.getInterpolator().getInterpolation(input);
-            }
-            return mInterpolator.getInterpolation(input);
         }
     }
 

@@ -1,15 +1,13 @@
 package com.zpj.recyclerview.layouter;
 
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.manager.MultiLayoutParams;
 
 public class InfiniteHorizontalLayouter extends AbsLayouter {
 
-    private static final String TAG = "HorizontalLayouter";
+    private static final String TAG = "InfiniteHorizontalLayouter";
 
     @Override
     public void saveState(int firstPosition, int firstOffset) {

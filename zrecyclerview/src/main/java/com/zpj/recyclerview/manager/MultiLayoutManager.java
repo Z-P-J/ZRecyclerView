@@ -7,7 +7,6 @@ import android.content.Context;
 import android.graphics.PointF;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.view.ViewCompat;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.widget.LinearSmoothScroller;
 import android.support.v7.widget.RecyclerView;
@@ -20,14 +19,11 @@ import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
-import android.view.animation.Interpolator;
-import android.widget.OverScroller;
 
 import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.layouter.AbsLayouter;
-import com.zpj.recyclerview.layouter.Layouter;
 import com.zpj.recyclerview.layouter.StaggeredGridLayouter;
 import com.zpj.recyclerview.layouter.VerticalLayouter;
 import com.zpj.recyclerview.refresh.IRefresher;
@@ -143,7 +139,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                             continue;
                         }
                         MultiData<?> multiData = multiDataList.get(i);
-                        Layouter layouter = multiData.getLayouter();
+                        com.zpj.recyclerview.layouter.Layouter layouter = multiData.getLayouter();
                         if (mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
                             Log.d(TAG, "onInterceptTouchEvent mDownX=" + mDownX + " mDownY=" + mDownY + " layouter=" + layouter);
                             if (layouter.onTouchDown(multiData, mDownX, mDownY)) {
@@ -347,10 +343,10 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
         int positionOffset = 0;
         int topPosition = mTopPosition;
 
-        Layouter last = null;
+        com.zpj.recyclerview.layouter.Layouter last = null;
         for (int i = 0; i < multiDataList.size(); i++) {
             MultiData<?> multiData = multiDataList.get(i);
-            Layouter layouter = multiData.getLayouter();
+            com.zpj.recyclerview.layouter.Layouter layouter = multiData.getLayouter();
             layouter.setPositionOffset(positionOffset);
             layouter.setLayoutManager(this);
             if (i >= mTopMultiDataIndex) {
@@ -410,7 +406,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
             measureChild(child, 0, 0);
             layoutDecorated(child, 0, currentStickyOffset, getWidth(), currentStickyOffset + getDecoratedMeasuredHeight(child));
 
-            Layouter layouter = stickyInfo.multiData.getLayouter();
+            com.zpj.recyclerview.layouter.Layouter layouter = stickyInfo.multiData.getLayouter();
             stickyInfo.multiData.onItemSticky(new EasyViewHolder(child), stickyInfo.position - layouter.getPositionOffset(), true);
         }
 
@@ -544,7 +540,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                 multiData = getMultiData(view);
                 i++;
             } while (multiData == null);
-            Layouter layouter = multiData.getLayouter();
+            com.zpj.recyclerview.layouter.Layouter layouter = multiData.getLayouter();
             Log.d(TAG, "scrollVerticallyBy firstChildPosition=" + getPosition(view));
             consumed -= layouter.fillVertical(view, dy - consumed, recycler, multiData);
             i = multiDataList.indexOf(multiData);
@@ -575,7 +571,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                 multiData = getMultiData(view);
                 i--;
             } while (multiData == null);
-            Layouter layouter = multiData.getLayouter();
+            com.zpj.recyclerview.layouter.Layouter layouter = multiData.getLayouter();
             Log.w(TAG, "scrollVerticallyBy layouter=" + layouter);
             consumed += layouter.fillVertical(view, dy - consumed, recycler, multiData);
             i = multiDataList.indexOf(multiData);
@@ -594,7 +590,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
 
         MultiData<?> last = null;
         handleSticky = true;
-        List<Layouter> layouters = new ArrayList<>();
+        List<com.zpj.recyclerview.layouter.Layouter> layouters = new ArrayList<>();
         for (int i = 0; i < getChildCount(); i++) {
             View view = getChildAt(i);
             if (view == null) {
@@ -605,7 +601,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                 Log.d(TAG, "scrollVerticallyBy i=" + i + " position=" + getPosition(view));
                 continue;
             }
-            Layouter layouter = data.getLayouter();
+            com.zpj.recyclerview.layouter.Layouter layouter = data.getLayouter();
             if (data != last) {
                 layouters.add(layouter);
                 layouter.offsetTopAndBottom(-consumed);
@@ -625,7 +621,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
         }
         recycleViews(recycler);
 
-        for (Layouter layouter : layouters) {
+        for (com.zpj.recyclerview.layouter.Layouter layouter : layouters) {
             if (layouter instanceof StaggeredGridLayouter) {
                 ((StaggeredGridLayouter) layouter).saveState();
             }
@@ -654,7 +650,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
             Log.e(TAG, "scrollVerticallyBy currentStickyOffset=" + currentStickyOffset);
             layoutDecorated(child, 0, currentStickyOffset, getWidth(), currentStickyOffset + getDecoratedMeasuredHeight(child));
 
-            Layouter layouter = stickyInfo.multiData.getLayouter();
+            com.zpj.recyclerview.layouter.Layouter layouter = stickyInfo.multiData.getLayouter();
             stickyInfo.multiData.onItemSticky(new EasyViewHolder(child), stickyInfo.position - layouter.getPositionOffset(), true);
         }
 
@@ -665,7 +661,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
     private boolean handleSticky;
 
     private boolean handleSticky(RecyclerView.Recycler recycler, MultiData<?> data, View view, int i, int consumed) {
-        Layouter layouter = data.getLayouter();
+        com.zpj.recyclerview.layouter.Layouter layouter = data.getLayouter();
         int position = getPosition(view);
 
         boolean isStickyPosition = data.isStickyPosition(position - layouter.getPositionOffset());
@@ -902,7 +898,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                 continue;
             }
             tempMultiData = multiData;
-            Layouter layouter = multiData.getLayouter();
+            com.zpj.recyclerview.layouter.Layouter layouter = multiData.getLayouter();
             if (layouter.canScrollHorizontally() && downY >= layouter.getTop() && downY <= layouter.getBottom()) {
                 return multiData;
             }
@@ -917,7 +913,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
         return ((MultiLayoutParams) child.getLayoutParams()).getMultiData();
     }
 
-    public Layouter getLayouter(View child) {
+    public com.zpj.recyclerview.layouter.Layouter getLayouter(View child) {
         MultiData<?> multiData = getMultiData(child);
         if (multiData == null) {
             return null;
@@ -961,7 +957,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
             mTopPosition = 0;
             mTopOffset = 0;
         } else {
-            Layouter layouter = data.getLayouter();
+            com.zpj.recyclerview.layouter.Layouter layouter = data.getLayouter();
             mTopMultiDataIndex = multiDataList.indexOf(data);
             mTopPosition = getPosition(firstView) - layouter.getPositionOffset();
             mTopOffset = layouter.getDecoratedTop(firstView);

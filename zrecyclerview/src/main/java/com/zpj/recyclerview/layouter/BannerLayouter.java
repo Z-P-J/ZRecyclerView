@@ -1,11 +1,7 @@
 package com.zpj.recyclerview.layouter;
 
-import android.content.Context;
-import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerViewHelper;
 import android.util.Log;
-import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
 
@@ -15,60 +11,85 @@ public class BannerLayouter extends ViewPagerLayouter {
 
     private boolean mStart;
 
+    private boolean mAutoPlay = true;
+    private int mAutoPlayDuration = 3000;
+
     private final Runnable mAutoRunnable = new Runnable() {
         @Override
         public void run() {
-            if (mFlinger != null) {
-                int dx = -getWidth() - mFirstOffset;
-                if (dx == 0) {
-                    dx = -getWidth();
+            if (mAutoPlay) {
+                if (mFlinger != null) {
+                    int dx = -getWidth() - mFirstOffset;
+                    if (dx == 0) {
+                        dx = -getWidth();
+                    }
+                    Log.d(TAG, "mAutoRunnable mFirstOffset=" + mFirstOffset + " dx=" + dx + " mTop=" + mTop + " mBottom=" + mBottom);
+                    mFlinger.scroll(dx, 0, 500);
                 }
-                Log.d(TAG, "mAutoRunnable mFirstOffset=" + mFirstOffset + " dx=" + dx + " mTop=" + mTop + " mBottom=" + mBottom);
-                mFlinger.startScroll(dx, 0, 500);
+                startAutoPlay();
+            } else {
+                stopAutoPlay();
             }
-            startAutoPlay();
         }
     };
 
+    public void setAutoPlayDuration(int mAutoPlayDuration) {
+        this.mAutoPlayDuration = mAutoPlayDuration;
+    }
+
+    public boolean isAutoPlay() {
+        return mAutoPlay;
+    }
+
+    public void setAutoPlay(boolean autoPlay) {
+        this.mAutoPlay = autoPlay;
+        if (autoPlay && !mStart) {
+            startAutoPlay();
+        }
+    }
+
+    public void toggleAutoPlay() {
+        setAutoPlay(!this.mAutoPlay);
+    }
+
     public void startAutoPlay() {
-        mStart = true;
-        getRecycler().postDelayed(mAutoRunnable, 3000);
+        if (mAutoPlay) {
+            mStart = true;
+            getRecycler().postDelayed(mAutoRunnable, mAutoPlayDuration);
+        }
     }
 
     public void stopAutoPlay() {
-        mStart = false;
         getRecycler().removeCallbacks(mAutoRunnable);
-    }
-
-    @Override
-    public void offsetTopAndBottom(int offset) {
-        super.offsetTopAndBottom(offset);
-        if (mBottom < 0 || mTop > getHeight()) {
-            if (mStart) {
-                stopAutoPlay();
-            }
-        } else {
-            if (!mStart) {
-                startAutoPlay();
-            }
-        }
+        mStart = false;
     }
 
     @Override
     public void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition) {
         super.layoutChildren(multiData, recycler, currentPosition);
+        if (mAutoPlay) {
+            if (mStart) {
+                return;
+            }
+            mStart = true;
+            startAutoPlay();
+        }
+    }
 
+    @Override
+    protected void onAttached() {
+        super.onAttached();
+        if (!mStart) {
+            startAutoPlay();
+        }
+    }
 
+    @Override
+    protected void onDetached() {
+        super.onDetached();
         if (mStart) {
-            return;
+            stopAutoPlay();
         }
-        mStart = true;
-
-        if (mFlinger == null) {
-            mFlinger = new ViewPagerFlinger(getRecycler().getContext(), multiData);
-        }
-        startAutoPlay();
-
     }
 
     @Override

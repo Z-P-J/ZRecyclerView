@@ -7,7 +7,6 @@ import android.util.SparseArray;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.manager.MultiLayoutParams;
 
 public class FlowLayouter extends AbsLayouter {
 

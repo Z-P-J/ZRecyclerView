@@ -6,8 +6,6 @@ import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.StateMultiData;
-import com.zpj.recyclerview.manager.MultiLayoutParams;
-import com.zpj.statemanager.State;
 
 public class GridLayouter extends AbsLayouter {
 

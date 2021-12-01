@@ -1,16 +1,45 @@
 package com.zpj.recyclerview.layouter;
 
-import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerViewHelper;
+import android.support.v4.view.ViewPager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
+import com.zpj.recyclerview.flinger.Flinger;
+import com.zpj.recyclerview.flinger.ViewPagerFlinger;
 
 public class ViewPagerLayouter extends InfiniteHorizontalLayouter {
 
     private static final String TAG = "ViewPagerLayouter";
+
+    private int mCurrentPosition;
+
+    @Override
+    public void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition) {
+        super.layoutChildren(multiData, recycler, currentPosition);
+        if (mFlinger == null) {
+            mFlinger = createFlinger(multiData);
+        }
+    }
+
+    @Override
+    protected Flinger createFlinger(final MultiData<?> multiData) {
+        return new ViewPagerFlinger(this, multiData) {
+            @Override
+            public void onFinished() {
+                mCurrentPosition = mFirstOffset < 0 ? mFirstPosition + 1 : mFirstPosition;
+                if (mCurrentPosition >= multiData.getCount()) {
+                    mCurrentPosition = 0;
+                }
+                Log.d(TAG, "onFinishedScroll mCurrentPosition=" + mCurrentPosition + " mFirstPosition=" + mFirstPosition + " mFirstOffset=" + mFirstOffset);
+                if (listener != null) {
+                    listener.onPageSelected(mCurrentPosition);
+                }
+            }
+        };
+    }
 
     @Override
     public int getDecoratedMeasuredWidth(@NonNull View child) {
@@ -18,116 +47,52 @@ public class ViewPagerLayouter extends InfiniteHorizontalLayouter {
     }
 
     @Override
-    public boolean onTouchDown(MultiData<?> multiData, float downX, float downY) {
-        Log.d(TAG, "onTouchDown downX=" + downX + " downY=" + downY);
-        if (mFlinger != null) {
-            mFlinger.stop();
-        } else {
-            mFlinger = new ViewPagerFlinger(getRecycler().getContext(), multiData);
-        }
-        return true;
-    }
-
-    @Override
-    public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY) {
-        Log.d(TAG, "onTouchUp velocityX=" + velocityX + " velocityY=" + velocityY);
-        if (mFlinger != null) {
-            mFlinger.fling(velocityX, velocityY);
-        }
-        return false;
-    }
-
-    @Override
     protected void onDetached() {
+        super.onDetached();
         if (mFirstOffset < 0) {
             mFirstOffset = 0;
             mFirstPosition++;
         }
-        super.onDetached();
     }
 
-    protected class ViewPagerFlinger extends HorizontalFlinger {
+    public void setOffscreenPageLimit(int limit) {
+        // TODO
+    }
 
+    public void setCurrentItem(int item) {
+        setCurrentItem(item, true);
+    }
 
-        public ViewPagerFlinger(Context context, MultiData<?> scrollMultiData) {
-            super(context, scrollMultiData);
-        }
-
-        @Override
-        public void run() {
-            if (scrollMultiData == null) {
-                stop();
+    public void setCurrentItem(int item, boolean smoothScroll) {
+        if (smoothScroll) {
+            if (mFlinger == null) {
                 return;
             }
-            if (mScroller.computeScrollOffset()) {
-                int x = mScroller.getCurrX();
-                int dx = mLastFlingX - x;
-                Log.d(TAG, "run dx=" + dx);
-                if (dx == 0 && !mScroller.isFinished()) {
-                    postOnAnimation();
-                    return;
-                }
-
-                int consumed = scrollHorizontallyBy(dx, RecyclerViewHelper.getRecycler(getLayoutManager().getRecycler()), scrollMultiData);
-
-                Log.d(TAG, "run dx=" + dx + " consumed=" + consumed);
-                if (consumed != dx) {
-                    stop();
-                    onStopOverScroll(scrollMultiData);
-                    return;
-                }
-                mLastFlingX = x;
-                postOnAnimation();
-
+            int delta = mFirstPosition - item;
+            int dx = delta * getWidth() - mFirstOffset;
+            mFlinger.scroll(dx, 0);
+        } else {
+            if (mFlinger != null) {
+                mFlinger.stop();
             }
+            mCurrentPosition = item;
+            mFirstPosition = item;
+            mFirstOffset = 0;
+            getLayoutManager().requestLayout();
         }
+    }
 
-        @Override
-        public void fling(float velocityX, float velocityY) {
-            if (scrollMultiData == null) {
-                return;
-            }
-            this.mScroller.fling(0, 0, (int) velocityX, 0,
-                    Integer.MIN_VALUE, Integer.MAX_VALUE, 0, 0);
+    public int getCurrentItem() {
+        return mCurrentPosition;
+    }
 
-            int finalX = this.mScroller.getFinalX();
+    public void setPageTransformer(ViewPager.PageTransformer transformer) {
+        // TODO
+    }
 
-            int dx = 0;
-            for (int i = 0; i < getChildCount(); i++) {
-                View view = getChildAt(i);
-                if (getMultiData(view) == scrollMultiData) {
-                    int left = getDecoratedLeft(view);
-                    int right = getDecoratedRight(view);
-                    Log.d(TAG, "fling left=" + left + " right=" + right);
-                    if (velocityX > 0) {
-                        if (left + finalX > 0) {
-                            dx = -left;
-                        } else {
-                            if (right < getWidth() / 2) {
-                                dx = -right;
-                            } else {
-                                dx = -left;
-                            }
-                        }
-                    } else {
-                        if (right + finalX < 0) {
-                            dx = -right;
-                        } else if (right > getWidth() / 2) {
-                            dx = getWidth() - right;
-                        } else {
-                            dx = -right;
-                        }
-                    }
-                    Log.d(TAG, "fling velocityX=" + velocityX + " finalX=" + finalX);
-
-                    break;
-                }
-            }
-
-            Log.d(TAG, "fling dx=" + dx);
-            startScroll(dx, 0, 500);
-        }
-
+    private ViewPager.OnPageChangeListener listener;
+    public void addOnPageChangeListener(ViewPager.OnPageChangeListener listener) {
+        this.listener = listener;
     }
 
 }
