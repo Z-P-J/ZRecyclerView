@@ -73,4 +73,6 @@ public interface Layouter {
 
     boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY);
 
+    void scrapOrRecycleView(MultiLayoutManager manager, int index, View view);
+
 }

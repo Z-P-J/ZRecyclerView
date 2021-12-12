@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.Px;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.RecyclerViewHelper;
 import android.util.Log;
 import android.view.View;
 
@@ -15,11 +16,13 @@ import com.zpj.recyclerview.flinger.HorizontalFlinger;
 import com.zpj.recyclerview.manager.MultiLayoutManager;
 import com.zpj.recyclerview.manager.MultiLayoutParams;
 
-public abstract class AbsLayouter implements com.zpj.recyclerview.layouter.Layouter {
+public abstract class AbsLayouter implements Layouter {
 
     private static final String TAG = "AbsLayouter";
 
     private MultiLayoutManager mManager;
+    protected Flinger mFlinger;
+
     protected int mLeft;
     protected int mTop;
     protected int mRight;
@@ -186,6 +189,17 @@ public abstract class AbsLayouter implements com.zpj.recyclerview.layouter.Layou
         }
     }
 
+    @Override
+    public void scrapOrRecycleView(MultiLayoutManager manager, int index, View view) {
+        RecyclerViewHelper.scrapOrRecycleView(manager, index, view);
+    }
+
+    public void offsetChildLeftAndRight(@NonNull View child, int offset) {
+        if (offset != 0) {
+            child.offsetLeftAndRight(offset);
+        }
+    }
+
     protected void onAttached() {
 
     }
@@ -343,7 +357,7 @@ public abstract class AbsLayouter implements com.zpj.recyclerview.layouter.Layou
         return getLayoutManager().getMultiData(child);
     }
 
-    public com.zpj.recyclerview.layouter.Layouter getLayouter(View child) {
+    public Layouter getLayouter(View child) {
         return getLayoutManager().getLayouter(child);
     }
 
@@ -358,9 +372,6 @@ public abstract class AbsLayouter implements com.zpj.recyclerview.layouter.Layou
     public Context getContext() {
         return getRecycler().getContext();
     }
-
-
-    protected Flinger mFlinger;
 
     @Override
     public boolean onTouchDown(MultiData<?> multiData, float downX, float downY) {
@@ -448,7 +459,7 @@ public abstract class AbsLayouter implements com.zpj.recyclerview.layouter.Layou
                                 break;
                             }
                             Log.d(TAG, "scrollHorizontallyBy i=" + i);
-                            child.offsetLeftAndRight(-overScroll);
+                            offsetChildLeftAndRight(child, -overScroll);
                         }
 
                         int firstPosition = getPosition(view);
@@ -522,9 +533,10 @@ public abstract class AbsLayouter implements com.zpj.recyclerview.layouter.Layou
 
                 if (view.getRight() - consumed + getLayoutManager().getRightDecorationWidth(view) < 0
                         || view.getLeft() - consumed - getLayoutManager().getLeftDecorationWidth(view) > getWidth()) {
+                    offsetChildLeftAndRight(view, 0);
                     getLayoutManager().recycleViews.add(view);
                 } else {
-                    view.offsetLeftAndRight(-consumed);
+                    offsetChildLeftAndRight(view, -consumed);
                     index = i;
                 }
             }
@@ -539,9 +551,10 @@ public abstract class AbsLayouter implements com.zpj.recyclerview.layouter.Layou
 
                 if (view.getRight() - consumed + getLayoutManager().getRightDecorationWidth(view) < 0
                         || view.getLeft() - consumed - getLayoutManager().getLeftDecorationWidth(view) > getWidth()) {
+                    offsetChildLeftAndRight(view, 0);
                     getLayoutManager().recycleViews.add(view);
                 } else {
-                    view.offsetLeftAndRight(-consumed);
+                    offsetChildLeftAndRight(view, -consumed);
                 }
             }
         }
@@ -581,7 +594,7 @@ public abstract class AbsLayouter implements com.zpj.recyclerview.layouter.Layou
             for (int i = 0; i < getChildCount(); i++) {
                 View view = getChildAt(i);
                 if (getMultiData(view) == scrollMultiData) {
-                    view.offsetLeftAndRight(-overScroll);
+                    offsetChildLeftAndRight(view, -overScroll);
                 }
             }
             consumed = dx;
