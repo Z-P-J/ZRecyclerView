@@ -392,6 +392,11 @@ public abstract class AbsLayouter implements Layouter {
     }
 
     @Override
+    public boolean onTouchMove(MultiData<?> multiData, float x, float y, float downX, float downY) {
+        return false;
+    }
+
+    @Override
     public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY) {
         //  && velocityY < ViewConfiguration.get(getRecycler().getContext()).getScaledMinimumFlingVelocity()
         if (canScrollHorizontally()) {

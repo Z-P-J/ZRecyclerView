@@ -115,6 +115,22 @@ public class LayoutManagerActivity extends AppCompatActivity {
                 }
             }
         });
+        viewPagerLayouter.addOnPageChangeListener(new ViewPagerLayouter.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float offset, int offsetPixels) {
+                Log.d(TAG, "onPageScrolled position=" + position + " offset=" + offset + " offsetPixels=" + offsetPixels);
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                Log.d(TAG, "onPageSelected position=" + position);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                Log.d(TAG, "onPageScrollStateChanged state=" + state);
+            }
+        });
         multiDataList.add(new LayouterMultiData(list, viewPagerLayouter) {
             @Override
             public int getLayoutId() {

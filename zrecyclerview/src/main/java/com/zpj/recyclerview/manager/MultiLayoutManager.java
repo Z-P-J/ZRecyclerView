@@ -170,6 +170,11 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                             mScrollDirection = DIRECTION_VERTICAL;
                         }
                     }
+                    if (mScrollDirection == DIRECTION_HORIZONTAL) {
+                        if (mMultiData != null) {
+                            mMultiData.getLayouter().onTouchMove(mMultiData, event.getX(), event.getY(), mDownX, mDownY);
+                        }
+                    }
                 } else if (MotionEvent.ACTION_UP == action || MotionEvent.ACTION_CANCEL == action) {
 
                     mTracker.computeCurrentVelocity(1000, maxVelocity);

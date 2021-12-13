@@ -12,6 +12,9 @@ import com.zpj.recyclerview.flinger.Flinger;
 import com.zpj.recyclerview.flinger.ViewPagerFlinger;
 import com.zpj.recyclerview.manager.MultiLayoutManager;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ViewPagerLayouter extends InfiniteHorizontalLayouter {
 
     private static final String TAG = "ViewPagerLayouter";
@@ -24,16 +27,41 @@ public class ViewPagerLayouter extends InfiniteHorizontalLayouter {
 
     private PageTransformer transformer;
 
+    private int mScrollState = SCROLL_STATE_IDLE;
+    private List<OnPageChangeListener> mOnPageChangeListeners;
+
+    @Override
+    public int getDecoratedMeasuredWidth(@NonNull View child) {
+        return getWidth();
+    }
+
     @Override
     public void offsetChildLeftAndRight(@NonNull View child, int offset) {
         super.offsetChildLeftAndRight(child, offset);
+
+        if (mOnPageChangeListeners != null && offset != 0 && getPosition(child) - mPositionOffset == mCurrentPosition) {
+            float left = getDecoratedLeft(child);
+            float childOffset = left / getWidth();
+            if (left < 0) {
+                childOffset = Math.abs(childOffset);
+            } else {
+                childOffset = 1 - childOffset;
+            }
+            int childOffsetPixels = (int) (childOffset * getWidth());
+            for(int i = 0; i < mOnPageChangeListeners.size(); ++i) {
+                OnPageChangeListener listener = mOnPageChangeListeners.get(i);
+                if (listener != null) {
+                    listener.onPageScrolled(mCurrentPosition, childOffset, childOffsetPixels);
+                }
+            }
+        }
+
         if (transformer != null) {
             if (offset == 0) {
                 transformer.transformPage(child, 0);
             } else {
                 float left = getDecoratedLeft(child);
                 float position = left / getWidth();
-                Log.d(TAG, "offsetChildLeftAndRight pos=" + (getPosition(child) - mPositionOffset) + " offset=" + offset + " position=" + position);
                 transformer.transformPage(child, position);
             }
         }
@@ -72,16 +100,40 @@ public class ViewPagerLayouter extends InfiniteHorizontalLayouter {
                     mCurrentPosition = 0;
                 }
                 Log.d(TAG, "onFinishedScroll mCurrentPosition=" + mCurrentPosition + " mFirstPosition=" + mFirstPosition + " mFirstOffset=" + mFirstOffset);
-                if (listener != null) {
-                    listener.onPageSelected(mCurrentPosition);
+                setScrollState(SCROLL_STATE_IDLE);
+                if (mOnPageChangeListeners != null) {
+                    for(int i = 0; i < mOnPageChangeListeners.size(); ++i) {
+                        OnPageChangeListener listener = mOnPageChangeListeners.get(i);
+                        if (listener != null) {
+                            listener.onPageSelected(mCurrentPosition);
+                        }
+                    }
                 }
             }
         };
     }
 
     @Override
-    public int getDecoratedMeasuredWidth(@NonNull View child) {
-        return getWidth();
+    public boolean onTouchDown(MultiData<?> multiData, float downX, float downY) {
+        boolean result = super.onTouchDown(multiData, downX, downY);
+        if (result && mScrollState == SCROLL_STATE_SETTLING) {
+            setScrollState(SCROLL_STATE_DRAGGING);
+        }
+        return result;
+    }
+
+    @Override
+    public boolean onTouchMove(MultiData<?> multiData, float x, float y, float downX, float downY) {
+        if (this.mScrollState != SCROLL_STATE_DRAGGING) {
+            setScrollState(SCROLL_STATE_DRAGGING);
+        }
+        return super.onTouchMove(multiData, x, y, downX, downY);
+    }
+
+    @Override
+    public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY) {
+        setScrollState(SCROLL_STATE_SETTLING);
+        return super.onTouchUp(multiData, velocityX, velocityY);
     }
 
     @Override
@@ -90,6 +142,27 @@ public class ViewPagerLayouter extends InfiniteHorizontalLayouter {
         if (mFirstOffset < 0) {
             mFirstOffset = 0;
             mFirstPosition++;
+        }
+    }
+
+    private void setScrollState(int newState) {
+        if (this.mScrollState != newState) {
+            this.mScrollState = newState;
+//            if (this.mPageTransformer != null) {
+//                this.enableLayers(newState != 0);
+//            }
+            this.dispatchOnScrollStateChanged(newState);
+        }
+    }
+
+    private void dispatchOnScrollStateChanged(int state) {
+        if (this.mOnPageChangeListeners != null) {
+            for(int i = 0; i < this.mOnPageChangeListeners.size(); ++i) {
+                OnPageChangeListener listener = this.mOnPageChangeListeners.get(i);
+                if (listener != null) {
+                    listener.onPageScrollStateChanged(state);
+                }
+            }
         }
     }
 
@@ -128,9 +201,27 @@ public class ViewPagerLayouter extends InfiniteHorizontalLayouter {
         this.transformer = transformer;
     }
 
-    private OnPageChangeListener listener;
-    public void addOnPageChangeListener(OnPageChangeListener listener) {
-        this.listener = listener;
+    public void addOnPageChangeListener(@NonNull OnPageChangeListener listener) {
+        if (this.mOnPageChangeListeners == null) {
+            this.mOnPageChangeListeners = new ArrayList<>();
+        }
+
+        this.mOnPageChangeListeners.add(listener);
+    }
+
+    public void removeOnPageChangeListener(@NonNull OnPageChangeListener listener) {
+        if (this.mOnPageChangeListeners != null) {
+            this.mOnPageChangeListeners.remove(listener);
+        }
+
+    }
+
+    public void clearOnPageChangeListeners() {
+        if (this.mOnPageChangeListeners != null) {
+            this.mOnPageChangeListeners.clear();
+            this.mOnPageChangeListeners = null;
+        }
+
     }
 
     public interface PageTransformer {
