@@ -9,6 +9,16 @@ public class InfiniteHorizontalLayouter extends AbsLayouter {
 
     private static final String TAG = "InfiniteHorizontalLayouter";
 
+    protected boolean mIsInfinite = true;
+
+    public void setIsInfinite(boolean isInfinite) {
+        this.mIsInfinite = isInfinite;
+    }
+
+    public boolean isInfinite() {
+        return mIsInfinite;
+    }
+
     @Override
     public void saveState(int firstPosition, int firstOffset) {
         this.mFirstPosition = Math.max(0, firstPosition - mPositionOffset);
@@ -87,8 +97,13 @@ public class InfiniteHorizontalLayouter extends AbsLayouter {
         int i = 0;
         while (availableSpace > 0) {
             if (currentPosition >= mPositionOffset + multiData.getCount()) {
-                currentPosition = mPositionOffset;
+                if (isInfinite()) {
+                    currentPosition = mPositionOffset;
+                } else {
+                    break;
+                }
             }
+
             View view = addViewAndMeasure(currentPosition++, i++, recycler, multiData);
 
             int measuredWidth = getDecoratedMeasuredWidth(view);
@@ -120,7 +135,11 @@ public class InfiniteHorizontalLayouter extends AbsLayouter {
 
         while (availableSpace > 0) {
             if (currentPosition >= mPositionOffset + multiData.getCount()) {
-                currentPosition = mPositionOffset;
+                if (isInfinite()) {
+                    currentPosition = mPositionOffset;
+                } else {
+                    break;
+                }
             }
             View view = addViewAndMeasure(currentPosition++, recycler, multiData);
             int measuredWidth = getDecoratedMeasuredWidth(view);
@@ -149,6 +168,10 @@ public class InfiniteHorizontalLayouter extends AbsLayouter {
         if (dx > 0) {
             // 从右往左滑动，从右边填充view
 
+            if (!isInfinite() && anchorPosition == mPositionOffset + multiData.getCount() - 1) {
+                return 0;
+            }
+
             int anchorRight = getDecoratedRight(anchorView);
             if (anchorRight - dx > getWidth()) {
                 return dx;
@@ -164,7 +187,11 @@ public class InfiniteHorizontalLayouter extends AbsLayouter {
                 int i = index + 1;
                 while (availableSpace > 0) {
                     if (currentPosition >= mPositionOffset + multiData.getCount()) {
-                        currentPosition = mPositionOffset;
+                        if (isInfinite()) {
+                            currentPosition = mPositionOffset;
+                        } else {
+                            break;
+                        }
                     }
 
                     View view = addViewAndMeasure(currentPosition++, i++, recycler, multiData);
@@ -181,6 +208,10 @@ public class InfiniteHorizontalLayouter extends AbsLayouter {
         } else {
             // 从左往右滑动，从左边填充view
 
+            if (!isInfinite() && anchorPosition == mPositionOffset) {
+                return 0;
+            }
+
             int anchorLeft = getDecoratedLeft(anchorView);
             if (anchorLeft - dx < 0) {
                 return -dx;
@@ -195,7 +226,11 @@ public class InfiniteHorizontalLayouter extends AbsLayouter {
 
                 while (availableSpace > 0) {
                     if (currentPosition < mPositionOffset) {
-                        currentPosition = mPositionOffset + multiData.getCount() - 1;
+                        if (isInfinite()) {
+                            currentPosition = mPositionOffset + multiData.getCount() - 1;
+                        } else {
+                            break;
+                        }
                     }
                     View view = addViewAndMeasure(currentPosition--, index, recycler, multiData);
 
@@ -213,7 +248,7 @@ public class InfiniteHorizontalLayouter extends AbsLayouter {
 
     @Override
     public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY) {
-        if (mFlinger != null) {
+        if (canScrollHorizontally() && mFlinger != null) {
             mFlinger.fling(velocityX, velocityY);
         }
         return false;

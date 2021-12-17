@@ -187,18 +187,16 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                         onStopOverScroll();
                     }
 
-//                    int tempDirection = mScrollDirection;
                     if (mScrollDirection == DIRECTION_HORIZONTAL) {
                         mScrollDirection = DIRECTION_NONE;
+                        velocityY = 0f;
+                    } else if (mScrollDirection == DIRECTION_VERTICAL) {
+                        velocityX = 0f;
                     }
                     if (mMultiData != null) {
                         mMultiData.getLayouter().onTouchUp(mMultiData, velocityX, velocityY);
                         mMultiData = null;
                     }
-//                    if (tempDirection == DIRECTION_HORIZONTAL) {
-////                        event.setAction(MotionEvent.ACTION_CANCEL);
-//                        return true;
-//                    }
                 }
                 return false;
             }
@@ -623,9 +621,8 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                 if (handleSticky(recycler, data, view, i, consumed)) {
                     continue;
                 }
-                if (layouter.getDecoratedBottom(view) - consumed < 0
-                        || layouter.getDecoratedTop(view) - consumed > getHeight()) {
-                    recycleViews.add(view);
+                if (layouter.shouldRecycleChildViewVertically(view, consumed)) {
+                    layouter.addViewToRecycler(view);
                 } else {
                     view.offsetTopAndBottom(-consumed);
                 }
@@ -755,7 +752,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                             + " pos=" + position + " stickyPos=" + stickyInfo.position);
                     if (decoratedTop - consumed <= 0) {
                         stickyInfoStack.push(stickyInfo);
-                        recycleViews.add(child);
+                        layouter.addViewToRecycler(child);
                         if (stickyInfo != null) {
                             stickyInfo.multiData.onItemSticky(new EasyViewHolder(child), stickyInfo.position - stickyInfo.multiData.getLayouter().getPositionOffset(), false);
                         }

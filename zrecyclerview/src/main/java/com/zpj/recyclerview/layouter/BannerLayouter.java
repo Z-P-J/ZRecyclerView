@@ -2,6 +2,7 @@ package com.zpj.recyclerview.layouter;
 
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
 
@@ -19,12 +20,11 @@ public class BannerLayouter extends ViewPagerLayouter {
         public void run() {
             if (mAutoPlay) {
                 if (mFlinger != null) {
-                    int dx = -getWidth() - mFirstOffset;
-                    if (dx == 0) {
-                        dx = -getWidth();
-                    }
+                    View current = findViewByPosition(getCurrentPosition());
+
+                    int dx = getDecoratedLeft(current) - getWidth();
                     Log.d(TAG, "mAutoRunnable mFirstOffset=" + mFirstOffset + " dx=" + dx + " mTop=" + mTop + " mBottom=" + mBottom);
-                    mFlinger.scroll(dx, 0, 500);
+                    mFlinger.fling(dx * 10, 0);
                 }
                 startAutoPlay();
             } else {
@@ -32,6 +32,11 @@ public class BannerLayouter extends ViewPagerLayouter {
             }
         }
     };
+
+
+    public BannerLayouter() {
+        mIsInfinite = true;
+    }
 
     public void setAutoPlayDuration(int mAutoPlayDuration) {
         this.mAutoPlayDuration = mAutoPlayDuration;

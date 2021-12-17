@@ -127,6 +127,11 @@ public class LayoutManagerActivity extends AppCompatActivity {
             }
 
             @Override
+            public void onPageEnterEnd(int position) {
+                Log.d(TAG, "onPageEnterEnd position=" + position);
+            }
+
+            @Override
             public void onPageScrollStateChanged(int state) {
                 Log.d(TAG, "onPageScrollStateChanged state=" + state);
             }

@@ -219,6 +219,11 @@ public abstract class AbsLayouter implements Layouter {
     }
 
     @Override
+    public View findViewByPosition(int position) {
+        return getLayoutManager().findViewByPosition(position);
+    }
+
+    @Override
     public int getDecoratedLeft(@NonNull View child) {
         return getLayoutManager().getDecoratedLeft(child);
     }
@@ -410,9 +415,21 @@ public abstract class AbsLayouter implements Layouter {
         return false;
     }
 
+    @Override
+    public boolean shouldRecycleChildViewHorizontally(View view, int consumed) {
+        return getDecoratedRight(view) - consumed < 0 || getDecoratedLeft(view) - consumed > getWidth();
+    }
 
+    @Override
+    public boolean shouldRecycleChildViewVertically(View view, int consumed) {
+        return getDecoratedBottom(view) - consumed < 0 || getDecoratedTop(view) - consumed > getHeight();
+    }
 
-
+    @Override
+    public void addViewToRecycler(View view) {
+        offsetChildLeftAndRight(view, 0);
+        getLayoutManager().recycleViews.add(view);
+    }
 
     private static final int OVER_SCROLL_DOWN = 1;
     private static final int OVER_SCROLL_UP = 2;
@@ -536,10 +553,8 @@ public abstract class AbsLayouter implements Layouter {
                     continue;
                 }
 
-                if (view.getRight() - consumed + getLayoutManager().getRightDecorationWidth(view) < 0
-                        || view.getLeft() - consumed - getLayoutManager().getLeftDecorationWidth(view) > getWidth()) {
-                    offsetChildLeftAndRight(view, 0);
-                    getLayoutManager().recycleViews.add(view);
+                if (shouldRecycleChildViewHorizontally(view, consumed)) {
+                    addViewToRecycler(view);
                 } else {
                     offsetChildLeftAndRight(view, -consumed);
                     index = i;
@@ -554,10 +569,8 @@ public abstract class AbsLayouter implements Layouter {
                     continue;
                 }
 
-                if (view.getRight() - consumed + getLayoutManager().getRightDecorationWidth(view) < 0
-                        || view.getLeft() - consumed - getLayoutManager().getLeftDecorationWidth(view) > getWidth()) {
-                    offsetChildLeftAndRight(view, 0);
-                    getLayoutManager().recycleViews.add(view);
+                if (shouldRecycleChildViewHorizontally(view, consumed)) {
+                    addViewToRecycler(view);
                 } else {
                     offsetChildLeftAndRight(view, -consumed);
                 }

@@ -2,7 +2,6 @@ package com.zpj.recyclerview.layouter;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Px;
-import android.support.v4.view.ViewPager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
@@ -15,7 +14,7 @@ import com.zpj.recyclerview.manager.MultiLayoutManager;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ViewPagerLayouter extends InfiniteHorizontalLayouter {
+public class ViewPagerLayouter extends AbsLayouter {
 
     private static final String TAG = "ViewPagerLayouter";
 
@@ -23,12 +22,318 @@ public class ViewPagerLayouter extends InfiniteHorizontalLayouter {
     public static final int SCROLL_STATE_DRAGGING = 1;
     public static final int SCROLL_STATE_SETTLING = 2;
 
-    private int mCurrentPosition;
+    private int mCurrentItem;
 
     private PageTransformer transformer;
 
     private int mScrollState = SCROLL_STATE_IDLE;
     private List<OnPageChangeListener> mOnPageChangeListeners;
+
+    private int mOffscreenPageLimit = 1;
+
+    protected boolean mIsInfinite = false;
+
+    public void setIsInfinite(boolean isInfinite) {
+        this.mIsInfinite = isInfinite;
+    }
+
+    public boolean isInfinite() {
+        return mIsInfinite;
+    }
+
+    @Override
+    public void saveState(int firstPosition, int firstOffset) {
+        View current = findViewByPosition(getCurrentPosition());
+        this.mFirstOffset = getDecoratedLeft(current);
+    }
+
+    @Override
+    public boolean canScrollHorizontally() {
+        return true;
+    }
+
+    @Override
+    public boolean canScrollVertically() {
+        return true;
+    }
+
+    @Override
+    public int fillVertical(View anchorView, int dy, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+        if (dy > 0) {
+            // 从下往上滑动
+            if (anchorView == null) {
+                return fillVerticalBottom(recycler, multiData, getCurrentPosition(), dy, getTop());
+            } else {
+                // 如果占用两行则需要以下代码
+                int anchorBottom = getDecoratedTop(anchorView);
+                if (anchorBottom > getHeight()) {
+                    if (anchorBottom - dy > getHeight()) {
+                        return dy;
+                    } else {
+                        return anchorBottom - getHeight();
+                    }
+                }
+            }
+        } else {
+            // 从上往下滑动
+            if (anchorView == null) {
+                return fillVerticalTop(recycler, multiData, getCurrentPosition(), dy, getBottom());
+            } else {
+                // 如果占用两行则需要以下代码
+                int anchorTop = getDecoratedTop(anchorView);
+                if (anchorTop < 0) {
+                    if (anchorTop - dy < 0) {
+                        return -dy;
+                    } else {
+                        return -anchorTop;
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+
+    @Override
+    protected int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
+
+        int left = 0;
+        int top = anchorTop;
+        int right = 0;
+        int bottom = anchorTop;
+
+        int min = currentPosition - mOffscreenPageLimit;
+        int max = currentPosition + mOffscreenPageLimit;
+        int first = mPositionOffset;
+        int last = first + multiData.getCount() - 1;
+        int index = 0;
+
+        for (int i = min; i <= max; i++) {
+            int position = i;
+            if (position < first) {
+                if (isInfinite()) {
+                    position = last + position - first + 1;
+                } else {
+                    continue;
+                }
+            } else if (position > last) {
+                if (isInfinite()) {
+                    position = first + position - last - 1;
+                } else {
+                    continue;
+                }
+            }
+            View view = addViewAndMeasure(position, index++, recycler, multiData);
+
+            left = mFirstOffset + (position - currentPosition) * getWidth();
+            right = left + getWidth();
+            top = bottom - getDecoratedMeasuredHeight(view);
+
+            layoutDecorated(view, left, top, right, bottom);
+        }
+        mTop = top;
+        // TODO 如果有多行，需要减去anchorTop
+        return Math.min(-dy, - mTop);
+    }
+
+    @Override
+    protected int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorBottom) {
+
+        int left = 0;
+        int top = anchorBottom;
+        int right = 0;
+        int bottom = anchorBottom;
+
+        int min = currentPosition - mOffscreenPageLimit;
+        int max = currentPosition + mOffscreenPageLimit;
+        int first = mPositionOffset;
+        int last = first + multiData.getCount() - 1;
+
+        for (int i = min; i <= max; i++) {
+            int position = i;
+            if (position < first) {
+                if (isInfinite()) {
+                    position = last + position - first + 1;
+                } else {
+                    continue;
+                }
+            } else if (position > last) {
+                if (isInfinite()) {
+                    position = first + position - last - 1;
+                } else {
+                    continue;
+                }
+            }
+            Log.d(TAG, "fillVerticalBottom position=" + position);
+            View view = addViewAndMeasure(position, recycler, multiData);
+
+            left = mFirstOffset + (position - currentPosition) * getWidth();
+            right = left + getWidth();
+            bottom = top + getDecoratedMeasuredHeight(view);
+
+            layoutDecorated(view, left, top, right, bottom);
+        }
+        mBottom = bottom;
+        return Math.min(dy, - anchorBottom);
+    }
+
+    @Override
+    public int fillHorizontal(View anchorView, int dx, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+        if (anchorView == null) {
+            return 0;
+        }
+        int centerPosition = getCurrentPosition();
+
+        int min = centerPosition - mOffscreenPageLimit;
+        int max = centerPosition + mOffscreenPageLimit;
+        int first = mPositionOffset;
+        int last = first + multiData.getCount() - 1;
+
+        int anchorPosition = getPosition(anchorView);
+
+        if (anchorPosition < first || anchorPosition > last) {
+            return 0;
+        }
+        int index = indexOfChild(anchorView);
+        if (dx > 0) {
+            // 从右往左滑动，从右边填充view
+
+            int anchorRight = getDecoratedRight(anchorView);
+
+            int availableSpace = dx;
+            int currentPosition = anchorPosition + 1;
+            int left = anchorRight;
+            int top = getDecoratedTop(anchorView);
+            int right = 0;
+            int bottom = getDecoratedBottom(anchorView);
+
+            int i = index + 1;
+            while (availableSpace > 0) {
+                int position = currentPosition++;
+
+                if (isInfinite()) {
+                    if (position > last) {
+                        position = first + position - last - 1;
+
+                        if (last - centerPosition + (position - first + 1) > mOffscreenPageLimit) {
+                            break;
+                        }
+                    } else if (position - centerPosition  > mOffscreenPageLimit) {
+                        break;
+                    }
+                } else {
+                    if (position < first || position > last) {
+                        break;
+                    }
+                    if (Math.abs(position - centerPosition) > mOffscreenPageLimit) {
+                        break;
+                    }
+                }
+
+//                if (position < first) {
+//                    if (isInfinite()) {
+//                        position = last + position - first + 1;
+//                    } else {
+//                        break;
+//                    }
+//                } else if (position > last) {
+//                    if (isInfinite()) {
+//                        position = first + position - last - 1;
+//                    } else {
+//                        break;
+//                    }
+//                }
+
+                View view = addViewAndMeasure(position, i++, recycler, multiData);
+
+                availableSpace -= getWidth();
+
+                right = left + getWidth();
+                layoutDecorated(view, left, top, right, bottom);
+                left = right;
+            }
+            return Math.min(dx, dx - availableSpace + (anchorRight - getWidth()));
+        } else {
+            // 从左往右滑动，从左边填充view
+
+            int anchorLeft = getDecoratedLeft(anchorView);
+
+            int availableSpace = -dx;
+            int currentPosition = anchorPosition - 1;
+            int left = 0;
+            int top = getDecoratedTop(anchorView);
+            int right = anchorLeft;
+            int bottom = getDecoratedBottom(anchorView);
+
+            Log.d(TAG, "fillHorizontal anchorPosition=" + anchorPosition + " currentPosition=" + currentPosition);
+            while (availableSpace > 0) {
+                int position = currentPosition--;
+
+                if (isInfinite()) {
+
+                    if (anchorPosition > centerPosition) {
+                        if (centerPosition - first + (last - position + 1) > mOffscreenPageLimit) {
+                            break;
+                        }
+                    } else {
+                        if (position < first) {
+                            position = last + position - first + 1;
+                            if (centerPosition - first + (last - position + 1) > mOffscreenPageLimit) {
+                                break;
+                            }
+                        } else if (centerPosition - position > mOffscreenPageLimit) {
+                            break;
+                        }
+                    }
+
+//                    if (position > centerPosition) {
+//                        position = last + position - first + 1;
+//                        if (centerPosition - first + (last - position + 1) > mOffscreenPageLimit) {
+//                            break;
+//                        }
+//                    } else if (centerPosition - position > mOffscreenPageLimit) {
+//                        break;
+//                    }
+                } else {
+                    if (position < first || position > last) {
+                        break;
+                    }
+                    if (Math.abs(position - centerPosition) > mOffscreenPageLimit) {
+                        break;
+                    }
+                }
+
+//                if (position < first) {
+//                    if (isInfinite()) {
+//                        position = last + position - first + 1;
+//                    } else {
+//                        break;
+//                    }
+//                } else if (position > last) {
+//                    if (isInfinite()) {
+//                        position = first + position - last - 1;
+//                    } else {
+//                        break;
+//                    }
+//                }
+                Log.d(TAG, "fillHorizontal min=" + min + " currentPosition=" + currentPosition + " position=" + position);
+
+                View view = addViewAndMeasure(position, index, recycler, multiData);
+
+                availableSpace -= getWidth();
+
+                left = right - getWidth();
+                layoutDecorated(view, left, top, right, bottom);
+                right = left;
+            }
+            return Math.min(-dx, -dx - availableSpace - anchorLeft);
+        }
+    }
+
+
+
+
+
+
 
     @Override
     public int getDecoratedMeasuredWidth(@NonNull View child) {
@@ -39,7 +344,7 @@ public class ViewPagerLayouter extends InfiniteHorizontalLayouter {
     public void offsetChildLeftAndRight(@NonNull View child, int offset) {
         super.offsetChildLeftAndRight(child, offset);
 
-        if (mOnPageChangeListeners != null && offset != 0 && getPosition(child) - mPositionOffset == mCurrentPosition) {
+        if (mOnPageChangeListeners != null && offset != 0 && getPosition(child) - mPositionOffset == mCurrentItem) {
             float left = getDecoratedLeft(child);
             float childOffset = left / getWidth();
             if (left < 0) {
@@ -51,7 +356,7 @@ public class ViewPagerLayouter extends InfiniteHorizontalLayouter {
             for(int i = 0; i < mOnPageChangeListeners.size(); ++i) {
                 OnPageChangeListener listener = mOnPageChangeListeners.get(i);
                 if (listener != null) {
-                    listener.onPageScrolled(mCurrentPosition, childOffset, childOffsetPixels);
+                    listener.onPageScrolled(mCurrentItem, childOffset, childOffsetPixels);
                 }
             }
         }
@@ -84,7 +389,7 @@ public class ViewPagerLayouter extends InfiniteHorizontalLayouter {
 
     @Override
     public void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition) {
-        super.layoutChildren(multiData, recycler, currentPosition);
+        super.layoutChildren(multiData, recycler, getCurrentPosition());
         if (mFlinger == null) {
             mFlinger = createFlinger(multiData);
         }
@@ -94,23 +399,60 @@ public class ViewPagerLayouter extends InfiniteHorizontalLayouter {
     protected Flinger createFlinger(final MultiData<?> multiData) {
         return new ViewPagerFlinger(this, multiData) {
             @Override
-            public void onFinished() {
-                mCurrentPosition = mFirstOffset < 0 ? mFirstPosition + 1 : mFirstPosition;
-                if (mCurrentPosition >= multiData.getCount()) {
-                    mCurrentPosition = 0;
+            protected void onItemSelected(int item) {
+                mCurrentItem = item;
+                if (mOnPageChangeListeners != null) {
+                    for(int i = 0; i < mOnPageChangeListeners.size(); ++i) {
+                        OnPageChangeListener listener = mOnPageChangeListeners.get(i);
+                        if (listener != null) {
+                            listener.onPageSelected(mCurrentItem);
+                        }
+                    }
                 }
-                Log.d(TAG, "onFinishedScroll mCurrentPosition=" + mCurrentPosition + " mFirstPosition=" + mFirstPosition + " mFirstOffset=" + mFirstOffset);
+            }
+
+            @Override
+            public void onFinished() {
+//                Log.d(TAG, "onFinishedScroll mCurrentPosition=" + mCurrentItem + " mFirstPosition=" + mFirstPosition + " mFirstOffset=" + mFirstOffset);
                 setScrollState(SCROLL_STATE_IDLE);
                 if (mOnPageChangeListeners != null) {
                     for(int i = 0; i < mOnPageChangeListeners.size(); ++i) {
                         OnPageChangeListener listener = mOnPageChangeListeners.get(i);
                         if (listener != null) {
-                            listener.onPageSelected(mCurrentPosition);
+                            listener.onPageEnterEnd(mCurrentItem);
                         }
                     }
                 }
             }
         };
+    }
+
+    @Override
+    public boolean shouldRecycleChildViewHorizontally(View view, int consumed) {
+        if (isInfinite()) {
+//            int position = getPosition(view);
+//            int currentPosition = getCurrentPosition();
+//            int min = currentPosition - mOffscreenPageLimit;
+//            int max = currentPosition + mOffscreenPageLimit;
+//            if (min < 0) {
+//                if (position >= min + mPositionOffset + ) {
+//
+//                }
+//            }
+
+            if (getCurrentPosition() == getPosition(view)) {
+                return false;
+            }
+            View current = findViewByPosition(getCurrentPosition());
+            int index = indexOfChild(view);
+            int center = indexOfChild(current);
+            boolean result = Math.abs(index - center) > mOffscreenPageLimit;
+            Log.d(TAG, "shouldRecycleChildViewHorizontally position=" + getPosition(view) + " recycle=" + result);
+            return result;
+//            return super.shouldRecycleChildViewHorizontally(view, consumed);
+        } else {
+            return Math.abs(getCurrentPosition() - getPosition(view)) > mOffscreenPageLimit;
+        }
     }
 
     @Override
@@ -133,15 +475,19 @@ public class ViewPagerLayouter extends InfiniteHorizontalLayouter {
     @Override
     public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY) {
         setScrollState(SCROLL_STATE_SETTLING);
-        return super.onTouchUp(multiData, velocityX, velocityY);
+        if (canScrollHorizontally() && mFlinger != null) {
+            mFlinger.fling(velocityX, velocityY);
+        }
+        return false;
     }
 
     @Override
     protected void onDetached() {
-        super.onDetached();
-        if (mFirstOffset < 0) {
+        if (mFlinger != null) {
+            mFlinger.stop();
+        }
+        if (mFirstOffset != 0) {
             mFirstOffset = 0;
-            mFirstPosition++;
         }
     }
 
@@ -167,7 +513,13 @@ public class ViewPagerLayouter extends InfiniteHorizontalLayouter {
     }
 
     public void setOffscreenPageLimit(int limit) {
-        // TODO
+        if (limit < 1) {
+            limit = 1;
+        }
+        if (mOffscreenPageLimit != limit) {
+            mOffscreenPageLimit = limit;
+            getLayoutManager().requestLayout();
+        }
     }
 
     public void setCurrentItem(int item) {
@@ -179,14 +531,14 @@ public class ViewPagerLayouter extends InfiniteHorizontalLayouter {
             if (mFlinger == null) {
                 return;
             }
-            int delta = mFirstPosition - item;
+            int delta = mCurrentItem - item;
             int dx = delta * getWidth() - mFirstOffset;
             mFlinger.scroll(dx, 0);
         } else {
             if (mFlinger != null) {
                 mFlinger.stop();
             }
-            mCurrentPosition = item;
+            mCurrentItem = item;
             mFirstPosition = item;
             mFirstOffset = 0;
             getLayoutManager().requestLayout();
@@ -194,7 +546,11 @@ public class ViewPagerLayouter extends InfiniteHorizontalLayouter {
     }
 
     public int getCurrentItem() {
-        return mCurrentPosition;
+        return mCurrentItem;
+    }
+
+    public int getCurrentPosition() {
+        return mCurrentItem + mPositionOffset;
     }
 
     public void setPageTransformer(PageTransformer transformer) {
@@ -232,6 +588,8 @@ public class ViewPagerLayouter extends InfiniteHorizontalLayouter {
         void onPageScrolled(int position, float offset, @Px int offsetPixels);
 
         void onPageSelected(int position);
+
+        void onPageEnterEnd(int position);
 
         void onPageScrollStateChanged(int state);
     }

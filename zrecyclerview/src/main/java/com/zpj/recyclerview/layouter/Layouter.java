@@ -43,6 +43,8 @@ public interface Layouter {
 
     int getPosition(@NonNull View child);
 
+    View findViewByPosition(int position);
+
     int getDecoratedLeft(@NonNull View child);
 
     int getDecoratedTop(@NonNull View child);
@@ -76,5 +78,11 @@ public interface Layouter {
     boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY);
 
     void scrapOrRecycleView(MultiLayoutManager manager, int index, View view);
+
+    boolean shouldRecycleChildViewVertically(View view, int consumed);
+
+    boolean shouldRecycleChildViewHorizontally(View view, int consumed);
+
+    void addViewToRecycler(View view);
 
 }
