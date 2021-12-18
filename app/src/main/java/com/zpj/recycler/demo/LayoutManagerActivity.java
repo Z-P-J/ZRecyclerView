@@ -21,7 +21,6 @@ import com.zpj.recyclerview.layouter.BannerLayouter;
 import com.zpj.recyclerview.layouter.FlowLayouter;
 import com.zpj.recyclerview.layouter.GridLayouter;
 import com.zpj.recyclerview.layouter.HorizontalLayouter;
-import com.zpj.recyclerview.layouter.InfiniteHorizontalLayouter;
 import com.zpj.recyclerview.layouter.StaggeredGridLayouter;
 import com.zpj.recyclerview.layouter.VerticalLayouter;
 import com.zpj.recyclerview.layouter.ViewPagerLayouter;
@@ -65,7 +64,7 @@ public class LayoutManagerActivity extends AppCompatActivity {
             }
         });
 
-        multiDataList.add(new LayouterMultiData(list, new InfiniteHorizontalLayouter()) {
+        multiDataList.add(new LayouterMultiData(list, new HorizontalLayouter(true)) {
             @Override
             public int getLayoutId() {
                 return R.layout.item_text_grid;

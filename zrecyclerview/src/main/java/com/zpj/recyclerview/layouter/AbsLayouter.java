@@ -403,13 +403,11 @@ public abstract class AbsLayouter implements Layouter {
 
     @Override
     public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY) {
-        //  && velocityY < ViewConfiguration.get(getRecycler().getContext()).getScaledMinimumFlingVelocity()
         if (canScrollHorizontally()) {
-//            getRecycler().getRecyclerView().stopScroll();
             if (isOverScrolling) {
                 onStopOverScroll(multiData);
             } else if (mFlinger != null) {
-                mFlinger.fling(velocityX, 0); // velocityY
+                mFlinger.fling(velocityX, velocityY);
             }
         }
         return false;
@@ -427,7 +425,7 @@ public abstract class AbsLayouter implements Layouter {
 
     @Override
     public void addViewToRecycler(View view) {
-        offsetChildLeftAndRight(view, 0);
+        offsetChildLeftAndRight(view, Integer.MAX_VALUE);
         getLayoutManager().recycleViews.add(view);
     }
 
