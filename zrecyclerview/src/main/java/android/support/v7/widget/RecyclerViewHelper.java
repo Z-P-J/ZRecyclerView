@@ -1,9 +1,11 @@
 package android.support.v7.widget;
 
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Interpolator;
 
 import com.zpj.recyclerview.MultiRecycler;
+import com.zpj.recyclerview.layouter.ContainerLayouter;
 
 public class RecyclerViewHelper {
 
@@ -20,7 +22,7 @@ public class RecyclerViewHelper {
     }
 
     public static void scrapOrRecycleView(RecyclerView.LayoutManager manager, int index, View view) {
-        RecyclerView.ViewHolder viewHolder = RecyclerView.getChildViewHolderInt(view);
+        RecyclerView.ViewHolder viewHolder = getChildViewHolderInt(view);
         if (!viewHolder.shouldIgnore()) {
             if (viewHolder.isInvalid() && !viewHolder.isRemoved() && !manager.mRecyclerView.mAdapter.hasStableIds()) {
                 manager.removeViewAt(index);
@@ -30,7 +32,55 @@ public class RecyclerViewHelper {
                 manager.mRecyclerView.mRecycler.scrapView(view);
                 manager.mRecyclerView.mViewInfoStore.onViewDetached(viewHolder);
             }
+        }
+    }
 
+    public static RecyclerView.ViewHolder getChildViewHolderInt(View child) {
+        return RecyclerView.getChildViewHolderInt(child);
+    }
+
+    public static void attachViewToParent(RecyclerView.LayoutManager manager,
+                                          ContainerLayouter.ContainerLayout container,
+                                          View child, int index, ViewGroup.LayoutParams layoutParams) {
+        RecyclerView.ViewHolder vh = getChildViewHolderInt(child);
+        if (vh != null) {
+            if (!vh.isTmpDetached() && !vh.shouldIgnore()) {
+                throw new IllegalArgumentException("Called attach on a child which is not detached: " + vh + manager.mRecyclerView.exceptionLabel());
+            }
+
+            vh.clearTmpDetachFlag();
+        }
+        container.attachViewToParent(child, index, layoutParams);
+    }
+
+    public static void detachViewFromParent(RecyclerView.LayoutManager manager,
+                                            ContainerLayouter.ContainerLayout container,
+                                            int offset) {
+        View child = container.getChildAt(offset);
+        if (child != null) {
+            RecyclerView.ViewHolder vh = getChildViewHolderInt(child);
+            if (vh != null) {
+                if (vh.isTmpDetached() && !vh.shouldIgnore()) {
+                    throw new IllegalArgumentException("called detach on an already detached child " + vh + manager.mRecyclerView.exceptionLabel());
+                }
+
+                vh.addFlags(256);
+            }
+        }
+        container.detachViewFromParent(offset);
+    }
+
+    public static void onEnteredHiddenState(RecyclerView.LayoutManager manager, View child) {
+        RecyclerView.ViewHolder vh = getChildViewHolderInt(child);
+        if (vh != null) {
+            vh.onEnteredHiddenState(manager.mRecyclerView);
+        }
+    }
+
+    public static void onLeftHiddenState(RecyclerView.LayoutManager manager, View child) {
+        RecyclerView.ViewHolder vh = getChildViewHolderInt(child);
+        if (vh != null) {
+            vh.onLeftHiddenState(manager.mRecyclerView);
         }
     }
 

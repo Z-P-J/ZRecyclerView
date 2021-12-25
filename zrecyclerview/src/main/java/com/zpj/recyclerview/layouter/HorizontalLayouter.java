@@ -1,13 +1,17 @@
+
+
+
 package com.zpj.recyclerview.layouter;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
 
 public class HorizontalLayouter extends AbsLayouter {
 
-    private static final String TAG = "InfiniteHorizontalLayouter";
+    private static final String TAG = "HorizontalLayouter";
 
     protected boolean mIsInfinite = true;
 
@@ -28,11 +32,25 @@ public class HorizontalLayouter extends AbsLayouter {
     }
 
     @Override
+    public void addViewToRecycler(View view) {
+        Log.d(TAG, "addViewToRecycler pos=" + getPosition(view));
+        super.addViewToRecycler(view);
+    }
+
+    @Override
+    public boolean shouldRecycleChildViewHorizontally(View view, int consumed) {
+        boolean result = super.shouldRecycleChildViewHorizontally(view, consumed);
+        Log.d(TAG, "shouldRecycleChildViewHorizontally result=" + result + " pos=" + getPosition(view));
+        return result;
+    }
+
+    @Override
     public void saveState(int firstPosition, int firstOffset) {
         if (isInfinite()) {
             this.mFirstPosition = Math.max(0, firstPosition - mPositionOffset);
             this.mFirstOffset = Math.min(0, firstOffset);
         } else {
+            Log.d(TAG, "saveState firstPosition=" + firstPosition + " firstOffset=" + firstOffset);
             super.saveState(firstPosition, firstOffset);
         }
     }
@@ -111,7 +129,7 @@ public class HorizontalLayouter extends AbsLayouter {
 
         int i = 0;
         while (availableSpace > 0) {
-            if (currentPosition >= mPositionOffset + multiData.getCount()) {
+            if (currentPosition >= mPositionOffset + getCount(multiData)) {
                 if (isInfinite()) {
                     currentPosition = mPositionOffset;
                 } else {
@@ -148,7 +166,7 @@ public class HorizontalLayouter extends AbsLayouter {
         int availableSpace = getWidth() - getPaddingRight() - left;
 
         while (availableSpace > 0) {
-            if (currentPosition >= mPositionOffset + multiData.getCount()) {
+            if (currentPosition >= mPositionOffset + getCount(multiData)) {
                 if (isInfinite()) {
                     currentPosition = mPositionOffset;
                 } else {
@@ -175,10 +193,11 @@ public class HorizontalLayouter extends AbsLayouter {
             return 0;
         }
         int anchorPosition = getPosition(anchorView);
-        if (anchorPosition < mPositionOffset || anchorPosition >= mPositionOffset + multiData.getCount()) {
+        if (anchorPosition < mPositionOffset || anchorPosition >= mPositionOffset + getCount(multiData)) {
             return 0;
         }
         int index = indexOfChild(anchorView);
+        Log.d(TAG, "fillHorizontal anchorPosition=" + anchorPosition + " index=" + index);
         if (dx > 0) {
             // 从右往左滑动，从右边填充view
 
@@ -187,7 +206,7 @@ public class HorizontalLayouter extends AbsLayouter {
                 return dx;
             } else {
 
-                if (!isInfinite() && anchorPosition == mPositionOffset + multiData.getCount() - 1) {
+                if (!isInfinite() && anchorPosition == mPositionOffset + getCount(multiData) - 1) {
                     return anchorRight - getWidth();
                 }
 
@@ -200,7 +219,7 @@ public class HorizontalLayouter extends AbsLayouter {
 
                 int i = index + 1;
                 while (availableSpace > 0) {
-                    if (currentPosition >= mPositionOffset + multiData.getCount()) {
+                    if (currentPosition >= mPositionOffset + getCount(multiData)) {
                         if (isInfinite()) {
                             currentPosition = mPositionOffset;
                         } else {
@@ -241,7 +260,7 @@ public class HorizontalLayouter extends AbsLayouter {
                 while (availableSpace > 0) {
                     if (currentPosition < mPositionOffset) {
                         if (isInfinite()) {
-                            currentPosition = mPositionOffset + multiData.getCount() - 1;
+                            currentPosition = mPositionOffset + getCount(multiData) - 1;
                         } else {
                             break;
                         }

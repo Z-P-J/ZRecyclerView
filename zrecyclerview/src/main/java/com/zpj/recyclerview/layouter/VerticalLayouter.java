@@ -52,7 +52,7 @@ public class VerticalLayouter extends AbsLayouter {
         int bottom = anchorBottom;
         Log.e(TAG, "fillVerticalBottom anchorBottom=" + anchorBottom + " height=" + getHeight());
 
-        while (availableSpace > 0 && currentPosition < mPositionOffset + multiData.getCount()) {
+        while (availableSpace > 0 && currentPosition < mPositionOffset + getCount(multiData)) {
             Log.e(TAG, "fillVerticalBottom currentPosition=" + currentPosition + " availableSpace=" + availableSpace);
             View view = addViewAndMeasure(currentPosition++, recycler, multiData);
             int measuredHeight= getDecoratedMeasuredHeight(view);

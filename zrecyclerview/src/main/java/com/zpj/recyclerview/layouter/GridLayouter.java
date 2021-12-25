@@ -90,7 +90,7 @@ public class GridLayouter extends AbsLayouter {
         } else {
             int childWidth = (getWidth() - getPaddingLeft() - getPaddingRight()) / mSpanCount;
             int childHeight = 0;
-            while (availableSpace > 0 && currentPosition < multiData.getCount() + mPositionOffset) {
+            while (availableSpace > 0 && currentPosition < getCount(multiData) + mPositionOffset) {
 
                 int posInLine = (currentPosition - mPositionOffset) % mSpanCount;
                 left = posInLine * childWidth;
@@ -107,7 +107,7 @@ public class GridLayouter extends AbsLayouter {
                 Log.d(TAG, "Grid onFillVertical2 currentPosition=" + currentPosition + " left=" + left + " right=" + right + " top=" + top + " bottom=" + bottom + " posInLine=" + posInLine);
                 layoutDecorated(view, left, top, right, bottom);
 
-                if (posInLine == mSpanCount - 1 || currentPosition == multiData.getCount() + mPositionOffset) {
+                if (posInLine == mSpanCount - 1 || currentPosition == getCount(multiData) + mPositionOffset) {
                     top = bottom;
                     availableSpace -= childHeight;
                     childHeight = 0;

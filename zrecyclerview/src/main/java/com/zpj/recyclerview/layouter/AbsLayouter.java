@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.Px;
+import android.support.v7.widget.BaseMultiLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerViewHelper;
 import android.util.Log;
@@ -13,14 +14,13 @@ import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.flinger.Flinger;
 import com.zpj.recyclerview.flinger.HorizontalFlinger;
-import com.zpj.recyclerview.manager.MultiLayoutManager;
 import com.zpj.recyclerview.manager.MultiLayoutParams;
 
 public abstract class AbsLayouter implements Layouter {
 
     private static final String TAG = "AbsLayouter";
 
-    private MultiLayoutManager mManager;
+    private BaseMultiLayoutManager mManager;
     protected Flinger mFlinger;
 
     protected int mLeft;
@@ -35,7 +35,7 @@ public abstract class AbsLayouter implements Layouter {
 
     @Override
     public void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition) {
-        if (getLayoutManager() == null || multiData.getCount() == 0 || mTop > getHeight()) {
+        if (getLayoutManager() == null || getCount(multiData) == 0 || mTop > getHeight()) {
             mBottom = mTop;
             return;
         }
@@ -59,7 +59,7 @@ public abstract class AbsLayouter implements Layouter {
                     return dy;
                 } else {
                     int anchorPosition = getPosition(anchorView);
-                    if (anchorPosition == mPositionOffset + multiData.getCount() - 1) {
+                    if (anchorPosition == mPositionOffset + getCount(multiData) - 1) {
                         return Math.max(0, anchorBottom - getHeight());
                     }
                     int availableSpace = dy + getHeight() - anchorBottom;
@@ -71,7 +71,7 @@ public abstract class AbsLayouter implements Layouter {
         } else {
             // 从上往下滑动
             if (anchorView == null) {
-                int result = fillVerticalTop(recycler, multiData, mPositionOffset + multiData.getCount() - 1,
+                int result = fillVerticalTop(recycler, multiData, mPositionOffset + getCount(multiData) - 1,
                         -dy, getBottom());
                 Log.e(TAG, "fillVertical111 result=" + result + " return=" + Math.min(-dy, -dy - result));
                 return Math.min(-dy, -dy - result);
@@ -116,12 +116,12 @@ public abstract class AbsLayouter implements Layouter {
     }
 
     @Override
-    public void setLayoutManager(MultiLayoutManager manager) {
+    public void setLayoutManager(BaseMultiLayoutManager manager) {
         this.mManager = manager;
     }
 
     @Override
-    public MultiLayoutManager getLayoutManager() {
+    public BaseMultiLayoutManager getLayoutManager() {
         return mManager;
     }
 
@@ -190,7 +190,7 @@ public abstract class AbsLayouter implements Layouter {
     }
 
     @Override
-    public void scrapOrRecycleView(MultiLayoutManager manager, int index, View view) {
+    public void scrapOrRecycleView(BaseMultiLayoutManager manager, int index, View view) {
         RecyclerViewHelper.scrapOrRecycleView(manager, index, view);
     }
 
@@ -376,6 +376,10 @@ public abstract class AbsLayouter implements Layouter {
 
     public Context getContext() {
         return getRecycler().getContext();
+    }
+
+    public int getCount(MultiData<?> multiData) {
+        return getLayoutManager().getCount(multiData);
     }
 
     @Override
@@ -667,7 +671,7 @@ public abstract class AbsLayouter implements Layouter {
                         if (getMultiData(view) == scrollMultiData) {
                             final int firstLeft = getDecoratedLeft(view);
                             Log.d(TAG, "onStopOverScroll firstLeft=" + firstLeft);
-                            if (firstLeft > 0 && getPosition(view) == scrollMultiData.getLayouter().getPositionOffset()) {
+                            if (firstLeft > 0) { //  && getPosition(view) == scrollMultiData.getLayouter().getPositionOffset()
                                 mFlinger.scroll(-firstLeft, 0, 500);
                             }
                             break;
@@ -679,7 +683,7 @@ public abstract class AbsLayouter implements Layouter {
                         if (getMultiData(view) == scrollMultiData) {
                             final int right = getDecoratedRight(view);
                             Log.d(TAG, "onStopOverScroll right=" + right);
-                            if (right < getWidth() && getPosition(view) == scrollMultiData.getLayouter().getPositionOffset() + scrollMultiData.getCount() - 1) {
+                            if (right < getWidth()) { //  && getPosition(view) == scrollMultiData.getLayouter().getPositionOffset() + scrollgetCount(multiData) - 1
                                 mFlinger.scroll(getWidth() - right, 0, 500);
                             }
                             break;

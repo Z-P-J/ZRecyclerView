@@ -1,17 +1,17 @@
 package com.zpj.recyclerview.layouter;
 
 import android.support.annotation.NonNull;
+import android.support.v7.widget.BaseMultiLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.manager.MultiLayoutManager;
 
 public interface Layouter {
 
-    void setLayoutManager(MultiLayoutManager manager);
+    void setLayoutManager(BaseMultiLayoutManager manager);
 
-    MultiLayoutManager getLayoutManager();
+    BaseMultiLayoutManager getLayoutManager();
 
     void setLeft(int left);
 
@@ -77,7 +77,7 @@ public interface Layouter {
 
     boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY);
 
-    void scrapOrRecycleView(MultiLayoutManager manager, int index, View view);
+    void scrapOrRecycleView(BaseMultiLayoutManager manager, int index, View view);
 
     boolean shouldRecycleChildViewVertically(View view, int consumed);
 

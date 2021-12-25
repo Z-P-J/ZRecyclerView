@@ -2,6 +2,7 @@ package com.zpj.recyclerview.layouter;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Px;
+import android.support.v7.widget.BaseMultiLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
@@ -9,7 +10,6 @@ import android.view.View;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.flinger.Flinger;
 import com.zpj.recyclerview.flinger.ViewPagerFlinger;
-import com.zpj.recyclerview.manager.MultiLayoutManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +63,7 @@ public class ViewPagerLayouter extends AbsLayouter {
     }
 
     @Override
-    public void scrapOrRecycleView(MultiLayoutManager manager, int index, View view) {
+    public void scrapOrRecycleView(BaseMultiLayoutManager manager, int index, View view) {
         offsetChildLeftAndRight(view, Integer.MAX_VALUE);
         super.scrapOrRecycleView(manager, index, view);
     }
@@ -164,7 +164,7 @@ public class ViewPagerLayouter extends AbsLayouter {
         int min = currentPosition - mOffscreenPageLimit;
         int max = currentPosition + mOffscreenPageLimit;
         int first = mPositionOffset;
-        int last = first + multiData.getCount() - 1;
+        int last = first + getCount(multiData) - 1;
         int index = 0;
 
         for (int i = min; i <= max; i++) {
@@ -206,7 +206,7 @@ public class ViewPagerLayouter extends AbsLayouter {
         int min = currentPosition - mOffscreenPageLimit;
         int max = currentPosition + mOffscreenPageLimit;
         int first = mPositionOffset;
-        int last = first + multiData.getCount() - 1;
+        int last = first + getCount(multiData) - 1;
 
         for (int i = min; i <= max; i++) {
             int position = i;
@@ -246,7 +246,7 @@ public class ViewPagerLayouter extends AbsLayouter {
         int min = centerPosition - mOffscreenPageLimit;
         int max = centerPosition + mOffscreenPageLimit;
         int first = mPositionOffset;
-        int last = first + multiData.getCount() - 1;
+        int last = first + getCount(multiData) - 1;
 
         int anchorPosition = getPosition(anchorView);
 

@@ -8,6 +8,7 @@ import android.graphics.PointF;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
+import android.support.v7.widget.BaseMultiLayoutManager;
 import android.support.v7.widget.LinearSmoothScroller;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerViewHelper;
@@ -32,11 +33,9 @@ import com.zpj.recyclerview.refresh.IRefresher;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
-public class MultiLayoutManager extends RecyclerView.LayoutManager
+public class MultiLayoutManager extends BaseMultiLayoutManager
         implements ItemTouchHelper.ViewDropHandler,
         RecyclerView.SmoothScroller.ScrollVectorProvider {
 
@@ -51,10 +50,8 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
     private static final int OVER_SCROLL_LEFT = 3;
     private static final int OVER_SCROLL_RIGHT = 4;
 
-    public final Set<View> recycleViews = new LinkedHashSet<>();
     private final Deque<StickyInfo> stickyInfoStack = new ArrayDeque<>();
 
-    private MultiRecycler mRecycler;
     private List<MultiData<?>> multiDataList;
 
     private int mScrollDirection = DIRECTION_NONE;
@@ -104,7 +101,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
     }
 
     public void attachRecycler(MultiRecycler recycler) {
-        this.mRecycler = recycler;
+        super.attachRecycler(recycler);
         this.multiDataList = recycler.getDataSet();
         if (recycler.getRefresher() != null) {
             this.multiDataList.add(0, new RefresherMultiData(recycler.getRefresher()));
@@ -344,6 +341,7 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
         for(int i = getChildCount() - 1; i >= 0; --i) {
             View v = this.getChildAt(i);
             Layouter layouter = getLayouter(v);
+            Log.d(TAG, "onLayoutChildren scrapOrRecycleView layouter=" + layouter);
             layouter.scrapOrRecycleView(this, i, v);
         }
 
@@ -365,7 +363,8 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
                     layouter.setTop(last.getBottom());
                     layouter.layoutChildren(multiData, recycler, positionOffset);
                 } else {
-                    layouter.setTop(mTopOffset);
+                    layouter.setTop(layouter.getTop() + mTopOffset);
+                    mTopOffset = 0;
                     layouter.layoutChildren(multiData, recycler, mTopPosition + positionOffset);
                     topPosition = mTopPosition + positionOffset;
                 }
@@ -891,10 +890,6 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
 
     }
 
-    public MultiRecycler getRecycler() {
-        return mRecycler;
-    }
-
     private MultiData<?> getTouchMultiData(float downX, float downY) {
         MultiData<?> tempMultiData = null;
         for (int i = getChildCount() - 1; i >= 0; i--) {
@@ -915,45 +910,8 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
         return null;
     }
 
-    public MultiData<?> getMultiData(View child) {
-        if (child == null) {
-            return null;
-        }
-        return ((MultiLayoutParams) child.getLayoutParams()).getMultiData();
-    }
-
-    public Layouter getLayouter(View child) {
-        MultiData<?> multiData = getMultiData(child);
-        if (multiData == null) {
-            return null;
-        }
-        return multiData.getLayouter();
-    }
-
-    public View getFirstChild() {
-        return getChildAt(0);
-    }
-
-    public View getLastChild() {
-        return getChildAt(stickyInfo == null ? getChildCount() - 1 : getChildCount() - 2);
-    }
-
-    public int indexOfChild(View child) {
-        return mRecycler.getRecyclerView().indexOfChild(child);
-    }
-
     public void recycleViews(RecyclerView.Recycler recycler) {
-        for (View view : recycleViews) {
-            Log.d(TAG, "recycleViews pos=" + getPosition(view));
-            detachAndScrapView(view, recycler);
-        }
-        recycleViews.clear();
-
-        List<RecyclerView.ViewHolder> scrapList = recycler.getScrapList();
-        for (int i = 0; i < scrapList.size(); i++) {
-            removeAndRecycleView(scrapList.get(i).itemView, recycler);
-        }
-
+        super.recycleViews(recycler);
         saveState();
     }
 
@@ -969,10 +927,11 @@ public class MultiLayoutManager extends RecyclerView.LayoutManager
             Layouter layouter = data.getLayouter();
             mTopMultiDataIndex = multiDataList.indexOf(data);
             mTopPosition = getPosition(firstView) - layouter.getPositionOffset();
-            mTopOffset = layouter.getDecoratedTop(firstView);
+//            mTopOffset = layouter.getDecoratedTop(firstView);
+            mTopOffset = 0;
 
-            Log.d(TAG, "onLayoutChildren mTopMultiDataIndex=" + mTopMultiDataIndex
-                    + " mTopPosition=" + mTopPosition + " mTopOffset=" + mTopOffset + " getPosition=" + getPosition(firstView));
+//            Log.d(TAG, "onLayoutChildren mTopMultiDataIndex=" + mTopMultiDataIndex
+//                    + " mTopPosition=" + mTopPosition + " mTopOffset=" + mTopOffset + " getPosition=" + getPosition(firstView));
         }
     }
 

@@ -122,13 +122,13 @@ public class FlowLayouter extends AbsLayouter {
     }
 
     private void initStates(MultiData<?> multiData, RecyclerView.Recycler recycler) {
-        if (states.size() == multiData.getCount()) {
+        if (states.size() == getCount(multiData)) {
             return;
         }
         int row = 0;
         int offsetX = mSpaceLeft;
         int offsetY = 0;
-        for (int i = 0; i < multiData.getCount(); i++) {
+        for (int i = 0; i < getCount(multiData); i++) {
             View view = recycler.getViewForPosition(i + mPositionOffset);
             measureChild(view, mSpaceLeft + mSpaceRight, 0);
             int childWidth = getDecoratedMeasuredWidth(view);
@@ -213,7 +213,7 @@ public class FlowLayouter extends AbsLayouter {
         ItemState itemState = states.get(key);
         int row = -1;
 //        Log.d(TAG, "availableSpace1=" + availableSpace);
-        while (itemState != null && availableSpace > 0 && currentPosition < multiData.getCount() + mPositionOffset) {
+        while (itemState != null && availableSpace > 0 && currentPosition < getCount(multiData) + mPositionOffset) {
 
             if (row < 0) {
                 row = itemState.row;

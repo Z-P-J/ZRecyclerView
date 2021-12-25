@@ -134,7 +134,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
 
     @Override
     public void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition) {
-        if (getLayoutManager() == null || multiData.getCount() == 0 || mTop > getHeight()) {
+        if (getLayoutManager() == null || getCount(multiData) == 0 || mTop > getHeight()) {
             mBottom = mTop;
             return;
         }
@@ -432,7 +432,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
     }
 
     private void initColumns(MultiData<?> multiData, RecyclerView.Recycler recycler) {
-        if (columns == null || array.size() != multiData.getCount()) {
+        if (columns == null || array.size() != getCount(multiData)) {
 
             columns = new Column[mSpanCount];
             array.clear();
@@ -448,7 +448,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
             int maxBottom = 0;
 
 
-            for (int i = mPositionOffset; i < mPositionOffset + multiData.getCount(); i++) {
+            for (int i = mPositionOffset; i < mPositionOffset + getCount(multiData); i++) {
                 View view = getViewForPosition(i, recycler, multiData);
                 measureChild(view, childWidthUsed, 0);
 
