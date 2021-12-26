@@ -113,12 +113,12 @@ public abstract class AbsFlinger implements Flinger, Runnable, Interpolator {
 
     @Override
     public void onFinished() {
-
+        mLayouter.onFlingFinished();
     }
 
     @Override
     public void onStopped() {
-
+        mLayouter.onFlingStopped();
     }
 
     public void setInterpolator(Interpolator mInterpolator) {

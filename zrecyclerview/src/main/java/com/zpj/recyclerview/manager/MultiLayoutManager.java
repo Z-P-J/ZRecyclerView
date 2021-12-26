@@ -370,7 +370,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                 }
                 last = layouter;
             }
-            positionOffset += multiData.getCount();
+            positionOffset += getCount(multiData);
         }
 
 
@@ -426,7 +426,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
         int offset = 0;
         for (int i = 0; i < multiDataList.size(); i++) {
             MultiData<?> multiData = multiDataList.get(i);
-            int count = multiData.getCount();
+            int count = getCount(multiData);
             for (int pos = offset; pos < offset + count; pos++) {
                 if (multiData.isStickyPosition(pos - offset)) {
                     Log.d(TAG, "stickyInfo111 pos=" + pos);
@@ -840,7 +840,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
         for (int i = 0; i < multiDataList.size(); i++) {
             MultiData<?> multiData = multiDataList.get(i);
-            int count = multiData.getCount();
+            int count = getCount(multiData);
             if (position >= positionOffset && position < positionOffset + count) {
                 mTopMultiDataIndex = i;
                 mTopPosition = position - positionOffset;

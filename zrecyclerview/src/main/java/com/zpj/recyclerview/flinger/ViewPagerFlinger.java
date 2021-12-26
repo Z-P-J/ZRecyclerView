@@ -47,7 +47,7 @@ public abstract class ViewPagerFlinger extends HorizontalFlinger {
                 }
                 if (currentItem < 0) {
                     if (layouter.isInfinite()) {
-                        currentItem = mMultiData.getCount() - 1;
+                        currentItem = mLayouter.getCount(mMultiData) - 1;
                     } else {
                         dx = -left;
                         currentItem = 0;
@@ -64,12 +64,12 @@ public abstract class ViewPagerFlinger extends HorizontalFlinger {
                     dx = -right;
                     currentItem = item - 1;
                 }
-                if (currentItem >= mMultiData.getCount()) {
+                if (currentItem >= mLayouter.getCount(mMultiData)) {
                     if (layouter.isInfinite()) {
                         currentItem = 0;
                     } else {
                         dx = layouter.getWidth() - right;
-                        currentItem = mMultiData.getCount() - 1;
+                        currentItem = mLayouter.getCount(mMultiData) - 1;
                     }
                 }
             }

@@ -32,19 +32,6 @@ public class HorizontalLayouter extends AbsLayouter {
     }
 
     @Override
-    public void addViewToRecycler(View view) {
-        Log.d(TAG, "addViewToRecycler pos=" + getPosition(view));
-        super.addViewToRecycler(view);
-    }
-
-    @Override
-    public boolean shouldRecycleChildViewHorizontally(View view, int consumed) {
-        boolean result = super.shouldRecycleChildViewHorizontally(view, consumed);
-        Log.d(TAG, "shouldRecycleChildViewHorizontally result=" + result + " pos=" + getPosition(view));
-        return result;
-    }
-
-    @Override
     public void saveState(int firstPosition, int firstOffset) {
         if (isInfinite()) {
             this.mFirstPosition = Math.max(0, firstPosition - mPositionOffset);

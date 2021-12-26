@@ -17,6 +17,13 @@ public class GridLayouter extends AbsLayouter {
         this.mSpanCount = Math.max(spanCount, 1);
     }
 
+    public void setSpanCount(int spanCount) {
+        this.mSpanCount = spanCount;
+        if (getLayoutManager() != null) {
+            getLayoutManager().requestLayout();
+        }
+    }
+
     @Override
     public boolean canScrollHorizontally() {
         return false;
