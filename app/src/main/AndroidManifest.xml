@@ -44,6 +44,12 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".MultiExpandableActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+            </intent-filter>
+        </activity>
+
     </application>
 
 </manifest>

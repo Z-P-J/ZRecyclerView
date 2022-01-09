@@ -28,7 +28,7 @@ public abstract class HeaderMultiData<T> extends StateMultiData<T> {
     }
 
     @Override
-    public final int getCount() {
+    public int getCount() {
         if (state == STATE_CONTENT) {
             if (getChildCount() == 0 && hasMore) {
                 return 0;

@@ -24,6 +24,7 @@ public abstract class StateMultiData<T> extends MultiData<T> {
 
     public StateMultiData() {
         super();
+        state = STATE_LOADING;
     }
 
     public StateMultiData(List<T> list) {
@@ -32,6 +33,7 @@ public abstract class StateMultiData<T> extends MultiData<T> {
 
     public StateMultiData(Layouter layouter) {
         super(layouter);
+        state = STATE_LOADING;
     }
 
     public StateMultiData(List<T> list, Layouter layouter) {

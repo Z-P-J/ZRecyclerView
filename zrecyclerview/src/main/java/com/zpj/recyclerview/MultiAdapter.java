@@ -61,10 +61,13 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         }
         int count = 0;
         for (MultiData<?> data : list) {
+//            if (data.hasMore()) {
+//                data.load(this);
+//            }
             count += data.getCount();
-            if (data.hasMore()) {
-                break;
-            }
+//            if (data.hasMore()) {
+//                break;
+//            }
         }
         boolean isMultiManager = getRecyclerView().getLayoutManager() instanceof MultiLayoutManager;
         if (!isMultiManager && mRefreshHeader != null) {

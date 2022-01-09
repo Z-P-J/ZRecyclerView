@@ -4,6 +4,8 @@ import android.view.View;
 
 import java.util.List;
 
+import static com.zpj.statemanager.State.STATE_CONTENT;
+
 public abstract class ExpandableMultiData<T> extends HeaderMultiData<T> {
 
     private boolean isExpand = true;
@@ -37,6 +39,17 @@ public abstract class ExpandableMultiData<T> extends HeaderMultiData<T> {
     }
 
     @Override
+    public int getCount() {
+        if (state == STATE_CONTENT) {
+            if (getChildCount() == 0 && hasMore) {
+                return 0;
+            }
+            return getChildCount() + 1;
+        }
+        return isExpand ? 2 : 1;
+    }
+
+    @Override
     public final int getChildCount() {
         if (isExpand) {
             return super.getChildCount();
@@ -62,18 +75,16 @@ public abstract class ExpandableMultiData<T> extends HeaderMultiData<T> {
         int num = getStartCount();
         for (MultiData<?> data : adapter.getData()) {
             if (data == this) {
-                adapter.notifyItemRangeInserted(num + 1, mData.size());
+                adapter.notifyItemRangeInserted(num + 1, getCount() - mLastCount); // mData.size()
                 break;
             }
             num  += data.getCount();
         }
+        mLastCount = getCount();
     }
 
     public void collapse() {
         isExpand = false;
-//        tempData.clear();
-//        tempData.addAll(list);
-//        list.clear();
         MultiAdapter adapter = getAdapter();
         if (adapter == null) {
             return;
@@ -81,11 +92,12 @@ public abstract class ExpandableMultiData<T> extends HeaderMultiData<T> {
         int num = getStartCount();
         for (MultiData<?> data : adapter.getData()) {
             if (data == this) {
-                adapter.notifyItemRangeRemoved(num + 1, mData.size());
+                adapter.notifyItemRangeRemoved(num + 1, mLastCount - getCount()); // mData.size()
                 break;
             }
             num  += data.getCount();
         }
+        mLastCount = getCount();
     }
 
 //    protected abstract void onStateChange(EasyViewHolder headerHolder, boolean isExpand);

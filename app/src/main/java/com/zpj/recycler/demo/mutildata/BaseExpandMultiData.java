@@ -62,7 +62,7 @@ public abstract class BaseExpandMultiData<T> extends ExpandableMultiData<T> {
                     expand();
                 }
                 setIcon(ivArrow);
-                scrollToPosition(0);
+//                scrollToPosition(0);
             }
         });
     }
