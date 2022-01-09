@@ -277,6 +277,18 @@ public abstract class AbsLayouter implements Layouter {
         return view;
     }
 
+    public View addView(int position, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+        View view = getViewForPosition(position, recycler, multiData);
+        addView(view);
+        return view;
+    }
+
+    public View addView(int position, int index, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+        View view = getViewForPosition(position, recycler, multiData);
+        addView(view, index);
+        return view;
+    }
+
     public View addViewAndMeasure(int position, RecyclerView.Recycler recycler, MultiData<?> multiData) {
         View view = getViewForPosition(position, recycler, multiData);
         addView(view);

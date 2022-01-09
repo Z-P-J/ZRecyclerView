@@ -58,8 +58,8 @@ public class GridLayouter extends AbsLayouter {
                 right = (posInLine + 1) * childWidth;
                 left = right - childWidth;
 
-                View view = addViewAndMeasure(currentPosition--, 0, recycler, multiData);
-//                measureChild(view, childWidth, 0);
+                View view = addView(currentPosition--, 0, recycler, multiData);
+                measureChild(view, getWidth() - childWidth, 0);
 
                 if (childHeight <= 0) {
                     childHeight = getDecoratedMeasuredHeight(view);
@@ -103,8 +103,8 @@ public class GridLayouter extends AbsLayouter {
                 left = posInLine * childWidth;
                 right = left + childWidth;
 
-                View view = addViewAndMeasure(currentPosition++, recycler, multiData);
-//                measureChild(view, childWidth, 0);
+                View view = addView(currentPosition++, recycler, multiData);
+                measureChild(view, getWidth() - childWidth, 0);
 
                 if (childHeight <= 0) {
                     childHeight = getDecoratedMeasuredHeight(view);

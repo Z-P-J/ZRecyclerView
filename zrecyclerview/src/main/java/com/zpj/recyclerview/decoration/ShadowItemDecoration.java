@@ -17,7 +17,18 @@ public class ShadowItemDecoration extends RecyclerView.ItemDecoration {
     private LinearGradient mTopGradient;
     private LinearGradient mBottomGradient;
 
+    private int mShadowHeight;
+
     private int tempWidth;
+    private int tempHeight;
+
+    public ShadowItemDecoration() {
+        this.mShadowHeight = 0;
+    }
+
+    public ShadowItemDecoration(int shadowHeight) {
+        this.mShadowHeight = shadowHeight;
+    }
 
     @Override
     public void onDrawOver(@NonNull Canvas c, @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
@@ -28,41 +39,47 @@ public class ShadowItemDecoration extends RecyclerView.ItemDecoration {
             tempWidth = parent.getWidth();
         }
 
-        if (!parent.canScrollVertically(-1)) {
+        if (mShadowHeight <= 0) {
+            mShadowHeight = (int) (parent.getResources().getDisplayMetrics().density * 8);
+        }
+
+        if (parent.canScrollVertically(-1)) {
+            if (mTopGradient == null || isChanged) {
+                mTopGradient = new LinearGradient(
+                        parent.getWidth() / 2f, 0,
+                        parent.getWidth() / 2f, mShadowHeight,
+                        Color.parseColor("#10000000"), Color.TRANSPARENT,
+                        Shader.TileMode.MIRROR
+                );
+            }
+
+            mPaint.setShader(mTopGradient);
+
+            mRect.set(0, 0, parent.getWidth(), mShadowHeight);
+            c.drawRect(mRect, mPaint);
+        }
+
+
+
+        if (parent.canScrollVertically(1)) {
+            if (mBottomGradient == null || isChanged || tempHeight != parent.getHeight()) {
+                tempHeight = parent.getHeight();
+                mBottomGradient = new LinearGradient(
+                        parent.getWidth() / 2f, parent.getHeight() - mShadowHeight,
+                        parent.getWidth() / 2f, parent.getHeight(),
+                        Color.TRANSPARENT, Color.parseColor("#10000000"),
+                        Shader.TileMode.MIRROR
+                );
+            }
+
+            mPaint.setShader(mBottomGradient);
+
+            mRect.set(0, parent.getHeight() - mShadowHeight, parent.getWidth(), parent.getHeight());
+            c.drawRect(mRect, mPaint);
             return;
         }
 
-        if (mTopGradient == null || isChanged) {
-            mTopGradient = new LinearGradient(
-                    parent.getWidth() / 2f, 0,
-                    parent.getWidth() / 2f, 30,
-                    Color.parseColor("#10000000"), Color.TRANSPARENT,
-                    Shader.TileMode.MIRROR
-            );
-        }
 
-        mPaint.setShader(mTopGradient);
-
-        mRect.set(0, 0, parent.getWidth(), 30);
-        c.drawRect(mRect, mPaint);
-
-        if (!parent.canScrollVertically(1)) {
-            return;
-        }
-
-        if (mBottomGradient == null || isChanged) {
-            mBottomGradient = new LinearGradient(
-                    parent.getWidth() / 2f, 0,
-                    parent.getWidth() / 2f, 30,
-                    Color.TRANSPARENT, Color.parseColor("#10000000"),
-                    Shader.TileMode.MIRROR
-            );
-        }
-
-        mPaint.setShader(mBottomGradient);
-
-        mRect.set(0, parent.getHeight() - 30, parent.getWidth(), parent.getHeight());
-        c.drawRect(mRect, mPaint);
 
     }
 

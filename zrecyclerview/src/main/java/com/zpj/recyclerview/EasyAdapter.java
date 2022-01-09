@@ -239,7 +239,6 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         }
     }
 
-    @SuppressLint("ClickableViewAccessibility")
     @Override
     public void onAttachedToRecyclerView(@NonNull final RecyclerView recyclerView) {
         mRecyclerView = recyclerView;

@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.zpj.recyclerview.manager.MultiLayoutManager;
 import com.zpj.recyclerview.refresh.IRefresher;
 import com.zpj.statemanager.IViewHolder;
 import com.zpj.statemanager.State;
@@ -40,14 +41,12 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
                 view.setLayoutParams(layoutParams);
                 return new EasyViewHolder(view);
             }
-        }
-//        else if (viewType == TYPE_REFRESH) {
-//            View view = onCreateView(viewGroup.getContext(), viewGroup, viewType);
-//            if (view == null) {
-//                return new EasyViewHolder(mRefreshHeader.onCreateView(context, viewGroup));
-//            }
-//        }
-        else if (viewType == TYPE_HEADER) {
+        } else if (viewType == TYPE_REFRESH && !(getRecyclerView().getLayoutManager() instanceof MultiLayoutManager)) {
+            View view = onCreateView(viewGroup.getContext(), viewGroup, viewType);
+            if (view == null) {
+                return new EasyViewHolder(mRefreshHeader.onCreateView(context, viewGroup));
+            }
+        } else if (viewType == TYPE_HEADER) {
             return new EasyViewHolder(headerView);
         } else if (viewType == TYPE_FOOTER) {
             return footerViewHolder.onCreateViewHolder(viewGroup);
@@ -67,9 +66,10 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
                 break;
             }
         }
-//        if (mRefreshHeader != null) {
-//            count++;
-//        }
+        boolean isMultiManager = getRecyclerView().getLayoutManager() instanceof MultiLayoutManager;
+        if (!isMultiManager && mRefreshHeader != null) {
+            count++;
+        }
         if (headerView != null) {
             count++;
         }
@@ -81,20 +81,19 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
 
     @Override
     public int getItemViewType(int position) {
+        boolean isMultiManager = getRecyclerView().getLayoutManager() instanceof MultiLayoutManager;
         if (state != State.STATE_CONTENT) {
             return state.hashCode();
-        }
-//        else if (isRefreshPosition(position)) {
-//            return TYPE_REFRESH;
-//        }
-        else if (isHeaderPosition(position)) {
+        } else if (!isMultiManager && isRefreshPosition(position)) {
+            return TYPE_REFRESH;
+        } else if (isHeaderPosition(position)) {
             return TYPE_HEADER;
         } else if (isFooterPosition(position)) {
             return TYPE_FOOTER;
         } else {
-//            if (mRefreshHeader != null) {
-//                position--;
-//            }
+            if (!isMultiManager && mRefreshHeader != null) {
+                position--;
+            }
             if (headerView != null) {
                 position--;
             }
@@ -104,11 +103,14 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
 
     @Override
     protected int getRealPosition(RecyclerView.ViewHolder holder) {
-        int position = holder.getLayoutPosition();
-        if (headerView != null) {
-            position--;
+        if (getRecyclerView().getLayoutManager() instanceof MultiLayoutManager) {
+            int position = holder.getLayoutPosition();
+            if (headerView != null) {
+                position--;
+            }
+            return position;
         }
-        return position;
+        return super.getRealPosition(holder);
     }
 
     @Override
@@ -196,9 +198,9 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
                     if (isHeaderPosition(position) || isFooterPosition(position)) {
                         return gridManager.getSpanCount();
                     }
-//                    if (mRefreshHeader != null) {
-//                        position--;
-//                    }
+                    if (mRefreshHeader != null) {
+                        position--;
+                    }
                     if (headerView != null) {
                         position--;
                     }

@@ -107,6 +107,10 @@ public class SelectableRecycler<T> extends BaseRecycler<T, SelectableRecycler<T>
         } else {
             content = LayoutInflater.from(parent.getContext()).inflate(res, parent, false);
         }
+
+        ViewGroup.LayoutParams p = content.getLayoutParams();
+        container.setLayoutParams(p);
+
         container.setBackground(content.getBackground());
         content.setBackground(null);
 

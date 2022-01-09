@@ -1,6 +1,7 @@
 package com.zpj.recyclerview;
 
 import android.content.Context;
+import android.os.Looper;
 import android.support.annotation.IntRange;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
@@ -65,6 +66,7 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
 
     public void setAdapter(MultiAdapter mAdapter) {
         this.mAdapter = mAdapter;
+        mTempCount = getCount();
     }
 
     public MultiAdapter getAdapter() {
@@ -234,233 +236,301 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
     }
 
 
-    public void notifyItemMove(int from, int to) {
+    public void notifyItemMove(final int from, final int to) {
         if (mAdapter == null) {
+            mTempCount = getCount();
             return;
         }
-        int count = getStartCount();
-        for (MultiData<?> data : mAdapter.getData()) {
-            if (data == this) {
-                Log.d("notifyItemMove", "count=" + count + " getCount=" + getCount());
-                mAdapter.postNotifyItemMoved(from + count, to + count);
-                break;
+        if (isInMainThread()) {
+            int count = getStartCount();
+            for (MultiData<?> data : mAdapter.getData()) {
+                if (data == this) {
+                    Log.d("notifyItemMove", "count=" + count + " getCount=" + getCount());
+                    mAdapter.notifyItemMoved(from + count, to + count);
+                    break;
+                }
+                count  += data.getCount();
             }
-            count  += data.getCount();
+        } else {
+            mAdapter.post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyItemMove(from, to);
+                }
+            });
         }
     }
 
     public void notifyDataSetChange() {
         if (mAdapter == null) {
+            mTempCount = getCount();
             return;
         }
-        if (getCount() == mTempCount) {
-            notifyItemRangeChanged(0, getCount());
-        } else {
-            if (getCount() > mTempCount) {
-                int num = getStartCount();
-                for (MultiData<?> data : mAdapter.getData()) {
-                    if (data == this) {
-                        mAdapter.postNotifyItemRangeInserted(num + mTempCount, getCount() - mTempCount);
-                        break;
-                    }
-                    num  += data.getCount();
-                }
 
+        if (isInMainThread()) {
+            Log.d("MultiData", "getItemCount=" + mAdapter.getItemCount() + " count=" + getCount() + " tempCount=" + mTempCount);
+            if (getCount() == mTempCount) {
+                notifyItemRangeChanged(0, getCount());
             } else {
-                notifyItemRangeRemoved(getCount(), mTempCount - getCount());
+                if (getCount() > mTempCount) {
+                    int num = getStartCount();
+                    for (MultiData<?> data : mAdapter.getData()) {
+                        if (data == this) {
+                            mAdapter.notifyItemRangeInserted(num + mTempCount, getCount() - mTempCount);
+                            break;
+                        }
+                        num  += data.getCount();
+                    }
+
+                } else {
+                    notifyItemRangeRemoved(getCount(), mTempCount - getCount());
+                }
+                notifyItemRangeChanged(0, getCount());
             }
             mTempCount = getCount();
-            notifyItemRangeChanged(0, getCount());
-        }
-        mAdapter.post(new Runnable() {
-            @Override
-            public void run() {
-                if (mAdapter.footerViewHolder != null && mAdapter.footerViewHolder.getView() != null) {
-                    mAdapter.footerViewHolder.getView().performClick();
+            mAdapter.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (mAdapter.footerViewHolder != null && mAdapter.footerViewHolder.getView() != null) {
+                        mAdapter.footerViewHolder.getView().performClick();
+                    }
                 }
-            }
-        });
+            });
+        } else {
+            mAdapter.post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyDataSetChange();
+                }
+            });
+        }
     }
 
     public void notifyItemChanged(final int position) {
-//        if (adapter == null) {
-//            return;
-//        }
-//        int count = 0;
-//        for (MultiData<?> data : adapter.getData()) {
-//            if (data == this) {
-//                Log.d("postNotifyItemChanged", "count=" + count + " position=" + position + " getCount=" + getCount());
-//                adapter.postNotifyItemChanged(count + position);
-//                break;
-//            }
-//            count  += data.getCount();
-//        }
         notifyItemChanged(position, null);
     }
 
     public void notifyItemChanged(final int position, @Nullable final Object payload) {
         if (mAdapter == null) {
+            mTempCount = getCount();
             return;
         }
-        int count = getStartCount();
-        for (MultiData<?> data : mAdapter.getData()) {
-            if (data == this) {
-                Log.d("postNotifyItemChanged", "count=" + count + " position=" + position + " getCount=" + getCount());
-                mAdapter.postNotifyItemChanged(count + position, payload);
-                break;
+        if (isInMainThread()) {
+            int count = getStartCount();
+            for (MultiData<?> data : mAdapter.getData()) {
+                if (data == this) {
+                    Log.d("postNotifyItemChanged", "count=" + count + " position=" + position + " getCount=" + getCount());
+                    mAdapter.notifyItemChanged(count + position, payload);
+                    break;
+                }
+                count  += data.getCount();
             }
-            count  += data.getCount();
+        } else {
+            mAdapter.post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyItemChanged(position, payload);
+                }
+            });
         }
+
     }
 
     public void notifyItemRangeChanged(int positionStart, int count) {
-//        if (adapter == null) {
-//            return;
-//        }
-//        int num = 0;
-//        for (MultiData<?> data : adapter.getData()) {
-//            if (data == this) {
-//                if (positionStart >= getCount()) {
-//                    return;
-//                }
-//                if (positionStart + count > getCount()) {
-//                    adapter.postNotifyItemRangeChanged(num + positionStart, getCount() - positionStart);
-//                } else {
-//                    adapter.postNotifyItemRangeChanged(num + positionStart, count);
-//                }
-//            }
-//            num  += data.getCount();
-//        }
         notifyItemRangeChanged(positionStart, count, null);
     }
 
     public void notifyItemRangeChanged(final int positionStart, final int count, @Nullable final Object payload) {
         if (mAdapter == null) {
+            mTempCount = getCount();
             return;
         }
-        int num = getStartCount();
-        for (MultiData<?> data : mAdapter.getData()) {
-            if (data == this) {
-                if (positionStart >= getCount()) {
-                    return;
+        if (isInMainThread()) {
+            int num = getStartCount();
+            for (MultiData<?> data : mAdapter.getData()) {
+                if (data == this) {
+                    if (positionStart >= getCount()) {
+                        return;
+                    }
+                    mTempCount = getCount();
+                    if (positionStart + count > getCount()) {
+                        mAdapter.notifyItemRangeChanged(num + positionStart, getCount() - positionStart, payload);
+                    } else {
+                        mAdapter.notifyItemRangeChanged(num + positionStart, count, payload);
+                    }
+                    break;
                 }
-                mTempCount = getCount();
-                if (positionStart + count > getCount()) {
-                    mAdapter.postNotifyItemRangeChanged(num + positionStart, getCount() - positionStart, payload);
-                } else {
-                    mAdapter.postNotifyItemRangeChanged(num + positionStart, count, payload);
-                }
-                break;
+                num  += data.getCount();
             }
-            num  += data.getCount();
+        } else {
+            mAdapter.post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyItemRangeChanged(positionStart, count, payload);
+                }
+            });
         }
+
     }
 
     public void notifyItemRangeRemoved() {
         if (mAdapter == null) {
+            mTempCount = getCount();
             return;
         }
-        int count = getStartCount();
-        for (MultiData<?> data : mAdapter.getData()) {
-            if (data == this) {
-                mTempCount = getCount();
-                Log.d("notifyItemRangeRemoved", "count=" + count + " getCount=" + getCount());
-                mAdapter.postNotifyItemRangeRemoved(count, getCount());
-                break;
+        if (isInMainThread()) {
+            int count = getStartCount();
+            for (MultiData<?> data : mAdapter.getData()) {
+                if (data == this) {
+                    mTempCount = getCount();
+                    Log.d("notifyItemRangeRemoved", "count=" + count + " getCount=" + getCount());
+                    mAdapter.notifyItemRangeRemoved(count, getCount());
+                    break;
+                }
+                count  += data.getCount();
             }
-            count  += data.getCount();
+        } else {
+            mAdapter.post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyItemRangeRemoved();
+                }
+            });
         }
     }
 
-    public void notifyItemRangeRemoved(int positionStart, int count) {
+    public void notifyItemRangeRemoved(final int positionStart, final int count) {
         if (mAdapter == null) {
+            mTempCount = getCount();
             return;
         }
-        int num = getStartCount();
-        for (MultiData<?> data : mAdapter.getData()) {
-            if (data == this) {
-                if (positionStart >= getCount()) {
-                    return;
+        if (isInMainThread()) {
+            int num = getStartCount();
+            for (MultiData<?> data : mAdapter.getData()) {
+                if (data == this) {
+                    if (positionStart >= getCount()) {
+                        return;
+                    }
+                    mTempCount = getCount();
+                    if (positionStart + count > getCount()) {
+                        mAdapter.notifyItemRangeRemoved(num + positionStart, getCount() - positionStart);
+                    } else {
+                        mAdapter.notifyItemRangeRemoved(num + positionStart, count);
+                    }
+                    break;
                 }
-                mTempCount = getCount();
-                if (positionStart + count > getCount()) {
-                    mAdapter.postNotifyItemRangeRemoved(num + positionStart, getCount() - positionStart);
-                } else {
-                    mAdapter.postNotifyItemRangeRemoved(num + positionStart, count);
-                }
-                break;
+                num  += data.getCount();
             }
-            num  += data.getCount();
+        } else {
+            mAdapter.post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyItemRangeRemoved(positionStart, count);
+                }
+            });
         }
+
     }
 
-    public void notifyItemRemoved(int position) {
+    public void notifyItemRemoved(final int position) {
         if (mAdapter == null) {
+            mTempCount = getCount();
             return;
         }
-        int count = getStartCount();
-        for (MultiData<?> data : mAdapter.getData()) {
-            if (data == this) {
-                Log.d("postNotifyItemRemoved", "count=" + count + " position=" + position + " getCount=" + getCount());
-                mTempCount = getCount();
-                mAdapter.postNotifyItemRemoved(count + position);
-                break;
+        if (isInMainThread()) {
+            int count = getStartCount();
+            for (MultiData<?> data : mAdapter.getData()) {
+                if (data == this) {
+                    Log.d("postNotifyItemRemoved", "count=" + count + " position=" + position + " getCount=" + getCount());
+                    mTempCount = getCount();
+                    mAdapter.notifyItemRemoved(count + position);
+                    break;
+                }
+                count  += data.getCount();
             }
-            count  += data.getCount();
+        } else {
+            mAdapter.post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyItemRemoved(position);
+                }
+            });
         }
+
     }
 
     public void notifyItemRangeInserted() {
         if (mAdapter == null) {
+            mTempCount = getCount();
             return;
         }
-        int count = getStartCount();
-        for (MultiData<?> data : mAdapter.getData()) {
-            if (data == this) {
-                Log.d("notifyItemRangeInserted", "count=" + count + " getCount=" + getCount());
-                mTempCount = getCount();
-                mAdapter.postNotifyItemRangeInserted(count, getCount());
-                mAdapter.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (mAdapter.footerViewHolder != null) {
-                            mAdapter.footerViewHolder.getView().performClick();
+        if (isInMainThread()) {
+            int count = getStartCount();
+            for (MultiData<?> data : mAdapter.getData()) {
+                if (data == this) {
+                    Log.d("notifyItemRangeInserted", "count=" + count + " getCount=" + getCount());
+                    mTempCount = getCount();
+                    mAdapter.notifyItemRangeInserted(count, getCount());
+                    mAdapter.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mAdapter.footerViewHolder != null) {
+                                mAdapter.footerViewHolder.getView().performClick();
+                            }
                         }
-                    }
-                });
-                break;
+                    });
+                    break;
+                }
+                count  += data.getCount();
             }
-            count  += data.getCount();
+        } else {
+            mAdapter.post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyItemRangeInserted();
+                }
+            });
         }
+
     }
 
-    public void notifyItemRangeInserted(int positionStart, int count) {
+    public void notifyItemRangeInserted(final int positionStart, final int count) {
         if (mAdapter == null) {
+            mTempCount = getCount();
             return;
         }
-        int num = getStartCount();
-        for (MultiData<?> data : mAdapter.getData()) {
-            if (data == this) {
-                if (positionStart >= getCount()) {
-                    return;
-                }
-                mTempCount = getCount();
-                if (positionStart + count > getCount()) {
-                    mAdapter.postNotifyItemRangeInserted(num + positionStart, getCount() - positionStart);
-                } else {
-                    mAdapter.postNotifyItemRangeInserted(num + positionStart, count);
-                }
-                mAdapter.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (mAdapter.footerViewHolder != null) {
-                            mAdapter.footerViewHolder.getView().performClick();
-                        }
+        if (isInMainThread()) {
+            int num = getStartCount();
+            for (MultiData<?> data : mAdapter.getData()) {
+                if (data == this) {
+                    if (positionStart >= getCount()) {
+                        return;
                     }
-                });
-                break;
+                    mTempCount = getCount();
+                    if (positionStart + count > getCount()) {
+                        mAdapter.notifyItemRangeInserted(num + positionStart, getCount() - positionStart);
+                    } else {
+                        mAdapter.notifyItemRangeInserted(num + positionStart, count);
+                    }
+                    mAdapter.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mAdapter.footerViewHolder != null) {
+                                mAdapter.footerViewHolder.getView().performClick();
+                            }
+                        }
+                    });
+                    break;
+                }
+                num  += data.getCount();
             }
-            num  += data.getCount();
+        } else {
+            mAdapter.post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyItemRangeInserted(positionStart, count);
+                }
+            });
         }
     }
 
@@ -470,6 +540,10 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
             num++;
         }
         return num;
+    }
+
+    private boolean isInMainThread() {
+        return Looper.getMainLooper() == Looper.myLooper();
     }
 
 }

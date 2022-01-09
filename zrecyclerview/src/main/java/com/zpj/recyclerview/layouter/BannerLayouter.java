@@ -21,7 +21,10 @@ public class BannerLayouter extends ViewPagerLayouter {
             if (mAutoPlay) {
                 if (mFlinger != null) {
                     View current = findViewByPosition(getCurrentPosition());
-
+                    if (current == null) {
+                        onDetached();
+                        return;
+                    }
                     int dx = getDecoratedLeft(current) - getWidth();
                     Log.d(TAG, "mAutoRunnable mFirstOffset=" + mFirstOffset + " dx=" + dx + " mTop=" + mTop + " mBottom=" + mBottom);
                     mFlinger.fling(dx * 10, 0);
