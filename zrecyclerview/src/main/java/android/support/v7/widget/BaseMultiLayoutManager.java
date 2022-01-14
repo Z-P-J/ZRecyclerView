@@ -63,6 +63,14 @@ public class BaseMultiLayoutManager extends RecyclerView.LayoutManager {
         mChildHelper = recyclerView == null ? null : childHelper;
     }
 
+    public View getViewForPosition(int position) {
+        return RecyclerViewHelper.getRecycler(mRecycler).getViewForPosition(position);
+    }
+
+    public void detachAndScrapView(@NonNull View child) {
+        detachAndScrapView(child, RecyclerViewHelper.getRecycler(mRecycler));
+    }
+
     public MultiRecycler getRecycler() {
         return mRecycler;
     }
@@ -94,7 +102,8 @@ public class BaseMultiLayoutManager extends RecyclerView.LayoutManager {
         return mChildHelper.indexOfChild(child);
     }
 
-    public void recycleViews(RecyclerView.Recycler recycler) {
+    public void recycleViews() {
+        RecyclerView.Recycler recycler = RecyclerViewHelper.getRecycler(mRecycler);
         for (View view : recycleViews) {
             Log.d(TAG, "recycleViews pos=" + getPosition(view));
             detachAndScrapView(view, recycler);
@@ -105,6 +114,10 @@ public class BaseMultiLayoutManager extends RecyclerView.LayoutManager {
         for (int i = 0; i < scrapList.size(); i++) {
             removeAndRecycleView(scrapList.get(i).itemView, recycler);
         }
+    }
+
+    public void recycleView(View view) {
+        RecyclerViewHelper.getRecycler(mRecycler).recycleView(view);
     }
 
     public void offsetChildLeftAndRight(@NonNull View child, int offset) {

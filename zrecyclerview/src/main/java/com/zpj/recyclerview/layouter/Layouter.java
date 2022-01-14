@@ -57,17 +57,17 @@ public interface Layouter {
 
     boolean canScrollHorizontally();
 
-//    int scrollHorizontallyBy(int dx, RecyclerView.Recycler recycler, RecyclerView.State state);
+//    int scrollHorizontallyBy(int dx, RecyclerView.State state);
 
     boolean canScrollVertically();
 
-    void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition);
+    void layoutChildren(MultiData<?> multiData, int currentPosition);
 
-//    int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state);
+//    int scrollVerticallyBy(int dy, RecyclerView.State state);
 
-    int fillVertical(View anchorView, int dy, RecyclerView.Recycler recycler, MultiData<?> multiData);
+    int fillVertical(View anchorView, int dy, MultiData<?> multiData);
 
-    int fillHorizontal(View anchorView, int dx, RecyclerView.Recycler recycler, MultiData<?> multiData);
+    int fillHorizontal(View anchorView, int dx, MultiData<?> multiData);
 
     void saveState(int firstPosition, int firstOffset);
 

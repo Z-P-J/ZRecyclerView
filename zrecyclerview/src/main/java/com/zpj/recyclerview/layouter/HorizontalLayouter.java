@@ -3,7 +3,6 @@
 
 package com.zpj.recyclerview.layouter;
 
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 
@@ -54,8 +53,8 @@ public class HorizontalLayouter extends AbsLayouter {
     }
 
     @Override
-    public void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition) {
-        super.layoutChildren(multiData, recycler, mFirstPosition + mPositionOffset);
+    public void layoutChildren(MultiData<?> multiData, int currentPosition) {
+        super.layoutChildren(multiData, mFirstPosition + mPositionOffset);
     }
 
     @Override
@@ -69,11 +68,11 @@ public class HorizontalLayouter extends AbsLayouter {
     }
 
     @Override
-    public int fillVertical(View anchorView, int dy, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+    public int fillVertical(View anchorView, int dy, MultiData<?> multiData) {
         if (dy > 0) {
             // 从下往上滑动
             if (anchorView == null) {
-                return fillVerticalBottom(recycler, multiData, mFirstPosition + mPositionOffset, dy, getTop());
+                return fillVerticalBottom(multiData, mFirstPosition + mPositionOffset, dy, getTop());
             } else {
                 // 如果占用两行则需要以下代码
                 int anchorBottom = getDecoratedTop(anchorView);
@@ -88,7 +87,7 @@ public class HorizontalLayouter extends AbsLayouter {
         } else {
             // 从上往下滑动
             if (anchorView == null) {
-                return fillVerticalTop(recycler, multiData, mFirstPosition + mPositionOffset, dy, getBottom());
+                return fillVerticalTop(multiData, mFirstPosition + mPositionOffset, dy, getBottom());
             } else {
                 // 如果占用两行则需要以下代码
                 int anchorTop = getDecoratedTop(anchorView);
@@ -105,7 +104,7 @@ public class HorizontalLayouter extends AbsLayouter {
     }
 
     @Override
-    protected int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
+    protected int fillVerticalTop(MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
 
         int left = mFirstOffset;
         int top = anchorTop;
@@ -124,7 +123,7 @@ public class HorizontalLayouter extends AbsLayouter {
                 }
             }
 
-            View view = addViewAndMeasure(currentPosition++, i++, recycler, multiData);
+            View view = addViewAndMeasure(currentPosition++, i++, multiData);
 
             int measuredWidth = getDecoratedMeasuredWidth(view);
             availableSpace -= measuredWidth;
@@ -143,7 +142,7 @@ public class HorizontalLayouter extends AbsLayouter {
     }
 
     @Override
-    protected int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int dy, int anchorBottom) {
+    protected int fillVerticalBottom(MultiData<?> multiData, int currentPosition, int dy, int anchorBottom) {
 
         int left = mFirstOffset;
         int top = anchorBottom;
@@ -160,7 +159,7 @@ public class HorizontalLayouter extends AbsLayouter {
                     break;
                 }
             }
-            View view = addViewAndMeasure(currentPosition++, recycler, multiData);
+            View view = addViewAndMeasure(currentPosition++, multiData);
             int measuredWidth = getDecoratedMeasuredWidth(view);
             availableSpace -= measuredWidth;
 
@@ -175,7 +174,7 @@ public class HorizontalLayouter extends AbsLayouter {
     }
 
     @Override
-    public int fillHorizontal(View anchorView, int dx, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+    public int fillHorizontal(View anchorView, int dx, MultiData<?> multiData) {
         if (anchorView == null) {
             return 0;
         }
@@ -214,7 +213,7 @@ public class HorizontalLayouter extends AbsLayouter {
                         }
                     }
 
-                    View view = addViewAndMeasure(currentPosition++, i++, recycler, multiData);
+                    View view = addViewAndMeasure(currentPosition++, i++, multiData);
 
                     int measuredWidth = getDecoratedMeasuredWidth(view);
                     availableSpace -= measuredWidth;
@@ -252,7 +251,7 @@ public class HorizontalLayouter extends AbsLayouter {
                             break;
                         }
                     }
-                    View view = addViewAndMeasure(currentPosition--, index, recycler, multiData);
+                    View view = addViewAndMeasure(currentPosition--, index, multiData);
 
                     int measuredWidth = getDecoratedMeasuredWidth(view);
                     availableSpace -= measuredWidth;

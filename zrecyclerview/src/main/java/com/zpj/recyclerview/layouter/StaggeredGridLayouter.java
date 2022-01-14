@@ -1,6 +1,5 @@
 package com.zpj.recyclerview.layouter;
 
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.View;
@@ -133,7 +132,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
     }
 
     @Override
-    public void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition) {
+    public void layoutChildren(MultiData<?> multiData, int currentPosition) {
         if (getLayoutManager() == null || getCount(multiData) == 0 || mTop > getHeight()) {
             mBottom = mTop;
             return;
@@ -144,7 +143,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
         if (this.mTops == null || this.mPositions == null) {
             this.mTops = new int[mSpanCount];
             Arrays.fill(this.mTops, mTop);
-            fillVertical(null, 1, recycler, multiData);
+            fillVertical(null, 1, multiData);
         } else {
             if (mTop > 0) {
                 Arrays.fill(this.mTops, mTop);
@@ -155,7 +154,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
                 Column column = columns[i];
                 int position = mPositions[i];
 
-                int bottom = fillColumnBottom(recycler, multiData, column, getHeight(), position, mTops[i]);
+                int bottom = fillColumnBottom(multiData, column, getHeight(), position, mTops[i]);
                 maxBottom = Math.max(bottom, maxBottom);
             }
             mBottom = maxBottom;
@@ -163,9 +162,9 @@ public class StaggeredGridLayouter extends AbsLayouter {
     }
 
     @Override
-    public int fillVertical(View anchorView, int dy, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+    public int fillVertical(View anchorView, int dy, MultiData<?> multiData) {
         Log.e(TAG, "fillVertical anchorView is null=" + (anchorView == null) + " dy=" + dy);
-        initColumns(multiData, recycler);
+        initColumns(multiData);
 
         Log.e(TAG, "fillVertical anchorView is null=" + (anchorView == null) + " dy=" + dy);
         if (dy > 0) {
@@ -179,7 +178,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
                     Column column = columns[i];
 //                    int position = column.positions.get(0);
 
-                    int bottom = fillColumnBottom(recycler, multiData, column, dy, -1, mTop);
+                    int bottom = fillColumnBottom(multiData, column, dy, -1, mTop);
                     maxBottom = Math.max(bottom, maxBottom);
                 }
 
@@ -232,7 +231,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
                     Column column = columns[i];
                     int position = positions[i];
 
-                    int bottom = fillColumnBottom(recycler, multiData, column, dy, position, bottoms[i]);
+                    int bottom = fillColumnBottom(multiData, column, dy, position, bottoms[i]);
                     maxBottom = Math.max(bottom, maxBottom);
                 }
                 mBottom = maxBottom;
@@ -248,7 +247,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
                     Column column = columns[i];
 //                    int position = column.getLast();
 
-                    int top = fillColumnTop(recycler, multiData, column, dy, -1, mBottom + column.bottom);
+                    int top = fillColumnTop(multiData, column, dy, -1, mBottom + column.bottom);
                     minTop = Math.min(top, minTop);
                 }
 
@@ -312,7 +311,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
                     int position = positions[i];
 
                     Log.d(TAG, "fillVertical fillColumnTop tops[i]=" + tops[i] + " pos=" + position + " i=" + i);
-                    int top = fillColumnTop(recycler, multiData, column, dy, position, tops[i]);
+                    int top = fillColumnTop(multiData, column, dy, position, tops[i]);
                     minTop = Math.min(top, minTop);
                 }
 
@@ -325,16 +324,16 @@ public class StaggeredGridLayouter extends AbsLayouter {
     }
 
     @Override
-    protected int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop) {
+    protected int fillVerticalTop(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop) {
         return 0;
     }
 
     @Override
-    protected int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom) {
+    protected int fillVerticalBottom(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom) {
         return 0;
     }
 
-    private int fillColumnTop(RecyclerView.Recycler recycler, MultiData<?> multiData, Column column, int dy, int currentPosition, int anchorTop) {
+    private int fillColumnTop(MultiData<?> multiData, Column column, int dy, int currentPosition, int anchorTop) {
 
         if (anchorTop - dy < 0) {
             return anchorTop;
@@ -355,7 +354,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
         int childWidthUsed = getWidth() - childWidth;
         while (next >= 0) {
             int nextPosition = column.positions.get(next--);
-            View view = getViewForPosition(nextPosition, recycler, multiData);
+            View view = getViewForPosition(nextPosition, multiData);
             addView(view, 0);
             measureChild(view, childWidthUsed, 0);
 
@@ -380,7 +379,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
 
     }
 
-    private int fillColumnBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, Column column, int dy, int currentPosition, int anchorBottom) {
+    private int fillColumnBottom(MultiData<?> multiData, Column column, int dy, int currentPosition, int anchorBottom) {
 
         if (anchorBottom - dy > getHeight()) {
             return anchorBottom;
@@ -402,7 +401,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
         int childWidthUsed = getWidth() - childWidth;
         while (next < column.positions.size()) {
             int nextPosition = column.positions.get(next++);
-            View view = getViewForPosition(nextPosition, recycler, multiData);
+            View view = getViewForPosition(nextPosition, multiData);
             addView(view);
             measureChild(view, childWidthUsed, 0);
 
@@ -427,11 +426,11 @@ public class StaggeredGridLayouter extends AbsLayouter {
     }
 
     @Override
-    public int fillHorizontal(View anchorView, int dx, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+    public int fillHorizontal(View anchorView, int dx, MultiData<?> multiData) {
         return 0;
     }
 
-    private void initColumns(MultiData<?> multiData, RecyclerView.Recycler recycler) {
+    private void initColumns(MultiData<?> multiData) {
         if (columns == null || array.size() != getCount(multiData)) {
 
             columns = new Column[mSpanCount];
@@ -449,7 +448,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
 
 
             for (int i = mPositionOffset; i < mPositionOffset + getCount(multiData); i++) {
-                View view = getViewForPosition(i, recycler, multiData);
+                View view = getViewForPosition(i, multiData);
                 measureChild(view, childWidthUsed, 0);
 
                 int height = getDecoratedMeasuredHeight(view);

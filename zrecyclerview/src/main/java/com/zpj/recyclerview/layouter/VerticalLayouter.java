@@ -1,6 +1,5 @@
 package com.zpj.recyclerview.layouter;
 
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 
@@ -21,7 +20,7 @@ public class VerticalLayouter extends AbsLayouter {
     }
 
     @Override
-    protected int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop) {
+    protected int fillVerticalTop(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop) {
         int left = 0;
         int top = anchorTop;
         int right = getWidth();
@@ -29,7 +28,7 @@ public class VerticalLayouter extends AbsLayouter {
 
         while (availableSpace > 0 && currentPosition >= mPositionOffset) {
             Log.e(TAG, "scrollVerticallyBy decoratedTop currentPosition=" + currentPosition + " availableSpace=" + availableSpace);
-            View view = addViewAndMeasure(currentPosition--, 0, recycler, multiData);
+            View view = addViewAndMeasure(currentPosition--, 0, multiData);
 
             int measuredHeight= getDecoratedMeasuredHeight(view);
             availableSpace -= measuredHeight;
@@ -45,7 +44,7 @@ public class VerticalLayouter extends AbsLayouter {
     }
 
     @Override
-    protected int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom) {
+    protected int fillVerticalBottom(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom) {
         int left = 0;
         int top = anchorBottom;
         int right = getWidth();
@@ -54,7 +53,7 @@ public class VerticalLayouter extends AbsLayouter {
 
         while (availableSpace > 0 && currentPosition < mPositionOffset + getCount(multiData)) {
             Log.e(TAG, "fillVerticalBottom currentPosition=" + currentPosition + " availableSpace=" + availableSpace);
-            View view = addViewAndMeasure(currentPosition++, recycler, multiData);
+            View view = addViewAndMeasure(currentPosition++, multiData);
             int measuredHeight= getDecoratedMeasuredHeight(view);
             availableSpace -= measuredHeight;
 
@@ -69,7 +68,7 @@ public class VerticalLayouter extends AbsLayouter {
     }
 
     @Override
-    public int fillHorizontal(View anchorView, int dx, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+    public int fillHorizontal(View anchorView, int dx, MultiData<?> multiData) {
         return 0;
     }
 

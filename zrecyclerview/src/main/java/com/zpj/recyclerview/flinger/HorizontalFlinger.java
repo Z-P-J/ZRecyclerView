@@ -16,7 +16,7 @@ public class HorizontalFlinger extends AbsFlinger {
         if (dx == 0) {
             return true;
         }
-        int consumed = mLayouter.scrollHorizontallyBy(dx, RecyclerViewHelper.getRecycler(mLayouter.getRecycler()), mMultiData);
+        int consumed = mLayouter.scrollHorizontallyBy(dx, mMultiData);
 
         if (consumed != dx) {
             stop();

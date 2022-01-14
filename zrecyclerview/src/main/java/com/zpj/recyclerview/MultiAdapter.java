@@ -16,6 +16,7 @@ import com.zpj.statemanager.State;
 import java.util.List;
 
 import static com.zpj.statemanager.State.STATE_CONTENT;
+import static com.zpj.statemanager.State.STATE_LOADING;
 import static com.zpj.statemanager.State.STATE_LOGIN;
 
 public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {

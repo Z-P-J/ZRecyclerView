@@ -1,6 +1,5 @@
 package com.zpj.recyclerview.layouter;
 
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 
@@ -35,14 +34,14 @@ public class GridLayouter extends AbsLayouter {
     }
 
     @Override
-    protected int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop) {
+    protected int fillVerticalTop(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop) {
         int left = 0;
         int top = anchorTop;
         int right = 0;
         int bottom = anchorTop;
 
         if (multiData instanceof StateMultiData && ((StateMultiData<?>) multiData).getState() != com.zpj.statemanager.State.STATE_CONTENT) {
-            View view = addViewAndMeasure(mPositionOffset, 0, recycler, multiData);
+            View view = addViewAndMeasure(mPositionOffset, 0, multiData);
 
             int childHeight = getDecoratedMeasuredHeight(view);
             top = bottom - childHeight;
@@ -58,7 +57,7 @@ public class GridLayouter extends AbsLayouter {
                 right = (posInLine + 1) * childWidth;
                 left = right - childWidth;
 
-                View view = addView(currentPosition--, 0, recycler, multiData);
+                View view = addView(currentPosition--, 0, multiData);
                 measureChild(view, getWidth() - childWidth, 0);
 
                 if (childHeight <= 0) {
@@ -80,14 +79,14 @@ public class GridLayouter extends AbsLayouter {
     }
 
     @Override
-    protected int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom) {
+    protected int fillVerticalBottom(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom) {
         int left = 0;
         int top = anchorBottom;
         int right = 0;
         int bottom = anchorBottom;
 
         if (multiData instanceof StateMultiData && ((StateMultiData<?>) multiData).getState() != com.zpj.statemanager.State.STATE_CONTENT) {
-            View view = addViewAndMeasure(mPositionOffset, recycler, multiData);
+            View view = addViewAndMeasure(mPositionOffset, multiData);
 
             int childHeight = getDecoratedMeasuredHeight(view);
             bottom = top + childHeight;
@@ -103,7 +102,7 @@ public class GridLayouter extends AbsLayouter {
                 left = posInLine * childWidth;
                 right = left + childWidth;
 
-                View view = addView(currentPosition++, recycler, multiData);
+                View view = addView(currentPosition++, multiData);
                 measureChild(view, getWidth() - childWidth, 0);
 
                 if (childHeight <= 0) {
@@ -126,7 +125,7 @@ public class GridLayouter extends AbsLayouter {
     }
 
     @Override
-    public int fillHorizontal(View anchorView, int dx, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+    public int fillHorizontal(View anchorView, int dx, MultiData<?> multiData) {
         return 0;
     }
 

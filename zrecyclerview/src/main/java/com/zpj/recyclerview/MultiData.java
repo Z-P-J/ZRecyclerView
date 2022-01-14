@@ -153,13 +153,15 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
      * 加载数据，建议在子线程中加载数据
      * @return 是否可以加载更多。true:可以加载更多 false:没有更多数据
      */
-    public abstract boolean loadData();
+    protected abstract boolean loadData();
 
-    boolean load(MultiAdapter adapter) {
+    public boolean load(MultiAdapter adapter) {
         if (this.mAdapter == null) {
             setAdapter(adapter);
         }
-        hasMore = loadData();
+        if (hasMore()) {
+            hasMore = loadData();
+        }
         return !hasMore;
     }
 

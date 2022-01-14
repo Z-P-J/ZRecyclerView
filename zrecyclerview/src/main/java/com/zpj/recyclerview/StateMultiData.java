@@ -5,6 +5,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.zpj.recyclerview.layouter.Layouter;
+import com.zpj.recyclerview.manager.MultiLayoutManager;
 import com.zpj.statemanager.BaseViewHolder;
 import com.zpj.statemanager.IViewHolder;
 import com.zpj.statemanager.State;
@@ -58,6 +59,17 @@ public abstract class StateMultiData<T> extends MultiData<T> {
                     }
                 }
             });
+//            if (getAdapter().getRecyclerView().getLayoutManager() instanceof MultiLayoutManager
+//                    && viewType == STATE_LOADING.hashCode()) {
+//                if (hasMore()) {
+//                    getAdapter().post(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            load(getAdapter());
+//                        }
+//                    });
+//                }
+//            }
             return;
         }
         super.onBindViewHolder(holder, position, payloads);

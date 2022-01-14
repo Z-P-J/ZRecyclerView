@@ -16,8 +16,6 @@ import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.manager.MultiLayoutParams;
 
-import java.util.List;
-
 public class ContainerLayouter extends AbsLayouter {
 
     private static final String TAG = "ContainerLayouter";
@@ -153,15 +151,15 @@ public class ContainerLayouter extends AbsLayouter {
     }
 
     @Override
-    public void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition) {
-        View container = getViewForPosition(mPositionOffset, recycler, multiData);
+    public void layoutChildren(MultiData<?> multiData, int currentPosition) {
+        View container = getViewForPosition(mPositionOffset, multiData);
 //        ContainerLayout containerLayout = (ContainerLayout) container;
 //        containerLayout.removeAllViews();
 
         MultiLayoutParams params = (MultiLayoutParams) container.getLayoutParams();
         params.width = ViewGroup.LayoutParams.MATCH_PARENT;
         super.addView(container);
-        mLayouter.layoutChildren(multiData, recycler, currentPosition + 1);
+        mLayouter.layoutChildren(multiData, currentPosition + 1);
         setRight(getWidth());
         int height = mLayouter.getBottom() - mLayouter.getTop();
         mBottom = mTop + height;
@@ -172,11 +170,11 @@ public class ContainerLayouter extends AbsLayouter {
     }
 
     @Override
-    public int fillVertical(View anchorView, int dy, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+    public int fillVertical(View anchorView, int dy, MultiData<?> multiData) {
         View container = findViewByPosition(mPositionOffset);
         boolean isNewContainer = container == null;
         if (isNewContainer) {
-            container = getViewForPosition(mPositionOffset, recycler, multiData);
+            container = getViewForPosition(mPositionOffset, multiData);
             if (dy > 0) {
                 // 从下往上滑动
                 super.addView(container);
@@ -193,7 +191,7 @@ public class ContainerLayouter extends AbsLayouter {
         } else {
             anchorView = containerLayout.getChildAt(0);
         }
-        int consumed = mLayouter.fillVertical(anchorView, dy, recycler, multiData);
+        int consumed = mLayouter.fillVertical(anchorView, dy, multiData);
 
         int height = mLayouter.getBottom() - mLayouter.getTop();
 
@@ -235,23 +233,23 @@ public class ContainerLayouter extends AbsLayouter {
     }
 
     @Override
-    protected int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop) {
+    protected int fillVerticalTop(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop) {
         return 0;
     }
 
     @Override
-    protected int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom) {
+    protected int fillVerticalBottom(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom) {
         return 0;
     }
 
     @Override
-    public int fillHorizontal(View anchorView, int dx, RecyclerView.Recycler recycler, MultiData<?> multiData) {
-        return mLayouter.fillHorizontal(anchorView, dx, recycler, multiData);
+    public int fillHorizontal(View anchorView, int dx, MultiData<?> multiData) {
+        return mLayouter.fillHorizontal(anchorView, dx, multiData);
     }
 
     @Override
-    public int scrollHorizontallyBy(int dx, RecyclerView.Recycler recycler, MultiData<?> scrollMultiData) {
-        return mLayouter.scrollHorizontallyBy(dx, recycler, scrollMultiData);
+    public int scrollHorizontallyBy(int dx, MultiData<?> scrollMultiData) {
+        return mLayouter.scrollHorizontallyBy(dx, scrollMultiData);
     }
 
     @Override

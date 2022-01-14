@@ -5,7 +5,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.Px;
 import android.support.v7.widget.BaseMultiLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerViewHelper;
 import android.util.Log;
 import android.view.View;
@@ -34,21 +33,21 @@ public abstract class AbsLayouter implements Layouter {
     private boolean mAttached = false;
 
     @Override
-    public void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition) {
+    public void layoutChildren(MultiData<?> multiData, int currentPosition) {
         if (getLayoutManager() == null || getCount(multiData) == 0 || mTop > getHeight()) {
             mBottom = mTop;
             return;
         }
-        fillVerticalBottom(recycler, multiData, currentPosition, getHeight() - mTop, getTop());
+        fillVerticalBottom(multiData, currentPosition, getHeight() - mTop, getTop());
     }
 
     @Override
-    public int fillVertical(View anchorView, int dy, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+    public int fillVertical(View anchorView, int dy, MultiData<?> multiData) {
         Log.e(TAG, "fillVertical anchorView is null=" + (anchorView == null) + " dy=" + dy);
         if (dy > 0) {
             // 从下往上滑动
             if (anchorView == null) {
-                int result = fillVerticalBottom(recycler, multiData, mPositionOffset, dy, getTop());
+                int result = fillVerticalBottom(multiData, mPositionOffset, dy, getTop());
                 Log.e(TAG, "fillVertical111 result=" + result + " return=" + Math.min(dy, dy - result));
                 return Math.min(dy, dy - result);
             } else {
@@ -63,7 +62,7 @@ public abstract class AbsLayouter implements Layouter {
                         return Math.max(0, anchorBottom - getHeight());
                     }
                     int availableSpace = dy + getHeight() - anchorBottom;
-                    int result = fillVerticalBottom(recycler, multiData, anchorPosition + 1, availableSpace, anchorBottom);
+                    int result = fillVerticalBottom(multiData, anchorPosition + 1, availableSpace, anchorBottom);
                     Log.e(TAG, "fillVertical222 result=" + result + " return=" + Math.min(dy, dy - result) + " availableSpace=" + availableSpace);
                     return Math.min(dy, dy - result);
                 }
@@ -71,7 +70,7 @@ public abstract class AbsLayouter implements Layouter {
         } else {
             // 从上往下滑动
             if (anchorView == null) {
-                int result = fillVerticalTop(recycler, multiData, mPositionOffset + getCount(multiData) - 1,
+                int result = fillVerticalTop(multiData, mPositionOffset + getCount(multiData) - 1,
                         -dy, getBottom());
                 Log.e(TAG, "fillVertical111 result=" + result + " return=" + Math.min(-dy, -dy - result));
                 return Math.min(-dy, -dy - result);
@@ -86,7 +85,7 @@ public abstract class AbsLayouter implements Layouter {
                         return -anchorTop;
                     }
                     int availableSpace = -dy + anchorTop;
-                    int result = fillVerticalTop(recycler, multiData, anchorPosition - 1, availableSpace, anchorTop);
+                    int result = fillVerticalTop(multiData, anchorPosition - 1, availableSpace, anchorTop);
                     Log.e(TAG, "fillVertical222 result=" + result + " return=" + Math.min(-dy, availableSpace - result) + " availableSpace=" + availableSpace);
                     return Math.min(-dy, -dy - result);
                 }
@@ -258,46 +257,50 @@ public abstract class AbsLayouter implements Layouter {
         this.mFirstOffset = firstOffset;
     }
 
-    protected abstract int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop);
+    protected abstract int fillVerticalTop(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop);
 
-    protected abstract int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom);
+    protected abstract int fillVerticalBottom(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom);
 
-    public View getViewForPosition(int position, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+    public View getViewForPosition(int position) {
+        return getLayoutManager().getViewForPosition(position);
+    }
+
+    public View getViewForPosition(int position, MultiData<?> multiData) {
         View view = null;
         if (multiData.isStickyPosition(position - mPositionOffset)) {
             view  = getLayoutManager().findViewByPosition(position);
         }
         if (view == null) {
-            view = recycler.getViewForPosition(position);
+            view = getViewForPosition(position);
         } else {
-            getLayoutManager().detachAndScrapView(view, recycler);
+            getLayoutManager().detachAndScrapView(view);
         }
         MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
         params.setMultiData(multiData);
         return view;
     }
 
-    public View addView(int position, RecyclerView.Recycler recycler, MultiData<?> multiData) {
-        View view = getViewForPosition(position, recycler, multiData);
+    public View addView(int position, MultiData<?> multiData) {
+        View view = getViewForPosition(position, multiData);
         addView(view);
         return view;
     }
 
-    public View addView(int position, int index, RecyclerView.Recycler recycler, MultiData<?> multiData) {
-        View view = getViewForPosition(position, recycler, multiData);
+    public View addView(int position, int index, MultiData<?> multiData) {
+        View view = getViewForPosition(position, multiData);
         addView(view, index);
         return view;
     }
 
-    public View addViewAndMeasure(int position, RecyclerView.Recycler recycler, MultiData<?> multiData) {
-        View view = getViewForPosition(position, recycler, multiData);
+    public View addViewAndMeasure(int position, MultiData<?> multiData) {
+        View view = getViewForPosition(position, multiData);
         addView(view);
         measureChild(view, 0, 0);
         return view;
     }
 
-    public View addViewAndMeasure(int position, int index, RecyclerView.Recycler recycler, MultiData<?> multiData) {
-        View view = getViewForPosition(position, recycler, multiData);
+    public View addViewAndMeasure(int position, int index, MultiData<?> multiData) {
+        View view = getViewForPosition(position, multiData);
         addView(view, index);
         measureChild(view, 0, 0);
         return view;
@@ -471,7 +474,7 @@ public abstract class AbsLayouter implements Layouter {
     protected int mFirstPosition = 0;
     protected int mFirstOffset;
 
-    public int scrollHorizontallyBy(int dx, RecyclerView.Recycler recycler, MultiData<?> scrollMultiData) {
+    public int scrollHorizontallyBy(int dx, MultiData<?> scrollMultiData) {
         if (scrollMultiData == null) {
             return 0;
         }
@@ -548,7 +551,7 @@ public abstract class AbsLayouter implements Layouter {
                 View view = getChildAt(i);
                 if (getMultiData(view) == scrollMultiData) {
                     index = i;
-                    consumed += fillHorizontal(view, dx, recycler, scrollMultiData);
+                    consumed += fillHorizontal(view, dx, scrollMultiData);
                     break;
                 }
             }
@@ -558,7 +561,7 @@ public abstract class AbsLayouter implements Layouter {
                 View view = getChildAt(i);
                 if (getMultiData(view) == scrollMultiData) {
                     index = i;
-                    consumed -= fillHorizontal(view, dx, recycler, scrollMultiData);
+                    consumed -= fillHorizontal(view, dx, scrollMultiData);
                     break;
                 }
             }
@@ -597,12 +600,13 @@ public abstract class AbsLayouter implements Layouter {
                 if (shouldRecycleChildViewHorizontally(view, consumed)) {
                     addViewToRecycler(view);
                 } else {
+                    assert view != null;
                     offsetChildLeftAndRight(view, -consumed);
                 }
             }
         }
 
-        getLayoutManager().recycleViews(recycler);
+        getLayoutManager().recycleViews();
 
 
         for (int i = 0; i < getChildCount(); i++) {

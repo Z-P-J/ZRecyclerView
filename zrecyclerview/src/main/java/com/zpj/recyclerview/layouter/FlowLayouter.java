@@ -1,7 +1,6 @@
 package com.zpj.recyclerview.layouter;
 
 import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
@@ -121,7 +120,7 @@ public class FlowLayouter extends AbsLayouter {
         return true;
     }
 
-    private void initStates(MultiData<?> multiData, RecyclerView.Recycler recycler) {
+    private void initStates(MultiData<?> multiData) {
         if (states.size() == getCount(multiData)) {
             return;
         }
@@ -129,7 +128,7 @@ public class FlowLayouter extends AbsLayouter {
         int offsetX = mSpaceLeft;
         int offsetY = 0;
         for (int i = 0; i < getCount(multiData); i++) {
-            View view = recycler.getViewForPosition(i + mPositionOffset);
+            View view = getViewForPosition(i + mPositionOffset);
             measureChild(view, mSpaceLeft + mSpaceRight, 0);
             int childWidth = getDecoratedMeasuredWidth(view);
             int childHeight = getDecoratedMeasuredHeight(view);
@@ -154,7 +153,7 @@ public class FlowLayouter extends AbsLayouter {
 
             offsetX += (childWidth + mSpaceLeft + mSpaceRight);
 
-            recycler.recycleView(view);
+            getLayoutManager().recycleView(view);
 
             Log.d(TAG, "initStates item=" + item);
         }
@@ -162,13 +161,13 @@ public class FlowLayouter extends AbsLayouter {
 
     // 从上往下滑动
     @Override
-    protected int fillVerticalTop(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop) {
+    protected int fillVerticalTop(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop) {
         int left = 0;
         int top = anchorTop - mSpaceBottom;
         int right = 0;
         int bottom = anchorTop - mSpaceBottom;
 
-        initStates(multiData, recycler);
+        initStates(multiData);
 
         while (availableSpace > 0 && currentPosition >= mPositionOffset) {
             int key = currentPosition - mPositionOffset;
@@ -176,7 +175,7 @@ public class FlowLayouter extends AbsLayouter {
 
             Log.d(TAG, "onFillVertical itemState=" + itemState);
 
-            View view = getViewForPosition(currentPosition--, recycler, multiData);
+            View view = getViewForPosition(currentPosition--, multiData);
             addView(view, 0);
             measureChild(view, mSpaceLeft + mSpaceRight, 0);
 
@@ -201,13 +200,13 @@ public class FlowLayouter extends AbsLayouter {
 
     // 从下往上滑动
     @Override
-    protected int fillVerticalBottom(RecyclerView.Recycler recycler, MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom) {
+    protected int fillVerticalBottom(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom) {
         int left = 0;
         int top = anchorBottom + mSpaceBottom;
         int right = 0;
         int bottom = anchorBottom + mSpaceBottom;
 
-        initStates(multiData, recycler);
+        initStates(multiData);
 
         int key = currentPosition - mPositionOffset;
         ItemState itemState = states.get(key);
@@ -219,7 +218,7 @@ public class FlowLayouter extends AbsLayouter {
                 row = itemState.row;
             }
 
-            View view = getViewForPosition(currentPosition++, recycler, multiData);
+            View view = getViewForPosition(currentPosition++, multiData);
             addView(view);
             int childHeight = itemState.height;
             measureChild(view, mSpaceLeft + mSpaceRight, 0);
@@ -251,7 +250,7 @@ public class FlowLayouter extends AbsLayouter {
     }
 
     @Override
-    public int fillHorizontal(View anchorView, int dx, RecyclerView.Recycler recycler, MultiData<?> multiData) {
+    public int fillHorizontal(View anchorView, int dx, MultiData<?> multiData) {
         return 0;
     }
 

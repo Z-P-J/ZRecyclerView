@@ -252,27 +252,28 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                         });
                     }
 
-                }
+                    if (mOverScrollAnimator == null) {
+                        View lastChild = getChildAt(stickyInfo == null ? getChildCount() - 1 : getChildCount() - 2);
+                        if (lastChild != null) {
+                            final int bottom = getDecoratedBottom(lastChild);
+                            final int contentHeight = Math.min(getHeight(), bottom - firstTop);
+                            if (bottom < getHeight()) {
+                                mOverScrollAnimator = ValueAnimator.ofFloat(0f, 1f);
+                                mOverScrollAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                                    int lastBottom = bottom;
 
-                if (mOverScrollAnimator == null) {
-                    View lastChild = getChildAt(stickyInfo == null ? getChildCount() - 1 : getChildCount() - 2);
-                    if (lastChild != null) {
-                        final int bottom = getDecoratedBottom(lastChild);
-                        if (bottom < getHeight()) {
-                            mOverScrollAnimator = ValueAnimator.ofFloat(0f, 1f);
-                            mOverScrollAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                                int lastBottom = bottom;
-
-                                @Override
-                                public void onAnimationUpdate(ValueAnimator animation) {
-                                    float percent = (float) animation.getAnimatedValue();
-                                    int b = (int) (percent * (getHeight() - bottom) + bottom);
-                                    offsetChildrenVertical(b - lastBottom);
-                                    lastBottom = b;
-                                }
-                            });
+                                    @Override
+                                    public void onAnimationUpdate(ValueAnimator animation) {
+                                        float percent = (float) animation.getAnimatedValue();
+                                        int b = (int) (percent * (contentHeight - bottom) + bottom);
+                                        offsetChildrenVertical(b - lastBottom);
+                                        lastBottom = b;
+                                    }
+                                });
+                            }
                         }
                     }
+
                 }
             }
 
@@ -361,11 +362,11 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                 if (last != null) {
                     Log.d(TAG, "onLayoutChildren bottom=" + last.getBottom() + " i=" + i);
                     layouter.setTop(last.getBottom());
-                    layouter.layoutChildren(multiData, recycler, positionOffset);
+                    layouter.layoutChildren(multiData, positionOffset);
                 } else {
                     layouter.setTop(layouter.getTop() + mTopOffset);
                     mTopOffset = 0;
-                    layouter.layoutChildren(multiData, recycler, mTopPosition + positionOffset);
+                    layouter.layoutChildren(multiData, mTopPosition + positionOffset);
                     topPosition = mTopPosition + positionOffset;
                 }
                 last = layouter;
@@ -401,23 +402,43 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
             View child = findViewByPosition(stickyInfo.position);
             if (stickyInfoStack.isEmpty() && child != null && getDecoratedTop(child) == 0) {
                 stickyInfo = null;
-                return;
-            }
-
-            if (child == null) {
-                child = recycler.getViewForPosition(stickyInfo.position);
             } else {
-                detachAndScrapView(child, recycler);
-            }
-            MultiLayoutParams params = (MultiLayoutParams) child.getLayoutParams();
-            params.setMultiData(stickyInfo.multiData);
-            super.addView(child, getChildCount());
-            measureChild(child, 0, 0);
-            layoutDecorated(child, 0, currentStickyOffset, getWidth(), currentStickyOffset + getDecoratedMeasuredHeight(child));
+                if (child == null) {
+                    child = recycler.getViewForPosition(stickyInfo.position);
+                } else {
+                    detachAndScrapView(child, recycler);
+                }
+                MultiLayoutParams params = (MultiLayoutParams) child.getLayoutParams();
+                params.setMultiData(stickyInfo.multiData);
+                super.addView(child, getChildCount());
+                measureChild(child, 0, 0);
+                layoutDecorated(child, 0, currentStickyOffset, getWidth(), currentStickyOffset + getDecoratedMeasuredHeight(child));
 
-            Layouter layouter = stickyInfo.multiData.getLayouter();
-            stickyInfo.multiData.onItemSticky(new EasyViewHolder(child), stickyInfo.position - layouter.getPositionOffset(), true);
+                Layouter layouter = stickyInfo.multiData.getLayouter();
+                stickyInfo.multiData.onItemSticky(new EasyViewHolder(child), stickyInfo.position - layouter.getPositionOffset(), true);
+            }
         }
+
+
+
+
+        MultiData<?> lastData = null;
+        for (int i = 0; i < getChildCount(); i++) {
+            View view = getChildAt(i);
+            final MultiData<?> data = getMultiData(view);
+            if (data != lastData) {
+                lastData = data;
+                if (data.hasMore()) {
+                    mRecycler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            data.load(mRecycler.getAdapter());
+                        }
+                    });
+                }
+            }
+        }
+
 
     }
 
@@ -447,22 +468,18 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
     @Override
     public int scrollHorizontallyBy(int dx, RecyclerView.Recycler recycler, RecyclerView.State state) {
-        return scrollHorizontallyBy(dx, recycler, getTouchMultiData(mDownX, mDownY));
+        return scrollHorizontallyBy(dx, getTouchMultiData(mDownX, mDownY));
     }
 
     public int scrollHorizontallyBy(int dx) {
-        return scrollHorizontallyBy(dx, RecyclerViewHelper.getRecycler(mRecycler), getTouchMultiData(mDownX, mDownY));
+        return scrollHorizontallyBy(dx, getTouchMultiData(mDownX, mDownY));
     }
 
     public int scrollHorizontallyBy(int dx, MultiData<?> scrollMultiData) {
-        return scrollHorizontallyBy(dx, RecyclerViewHelper.getRecycler(mRecycler), scrollMultiData);
-    }
-
-    public int scrollHorizontallyBy(int dx, RecyclerView.Recycler recycler, MultiData<?> scrollMultiData) {
         if (multiDataList == null || scrollMultiData == null) {
             return 0;
         }
-        return ((AbsLayouter) scrollMultiData.getLayouter()).scrollHorizontallyBy(dx, recycler, scrollMultiData);
+        return ((AbsLayouter) scrollMultiData.getLayouter()).scrollHorizontallyBy(dx, scrollMultiData);
     }
 
     @Override
@@ -551,7 +568,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
             } while (multiData == null);
             Layouter layouter = multiData.getLayouter();
             Log.d(TAG, "scrollVerticallyBy firstChildPosition=" + getPosition(view));
-            consumed -= layouter.fillVertical(view, dy - consumed, recycler, multiData);
+            consumed -= layouter.fillVertical(view, dy - consumed, multiData);
             i = multiDataList.indexOf(multiData);
             while (consumed > dy && i > 0) {
                 int top = layouter.getTop();
@@ -559,7 +576,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                 layouter = multiData.getLayouter();
                 layouter.setBottom(top);
                 Log.d(TAG, "scrollVerticallyBy layouter=" + layouter);
-                consumed -= layouter.fillVertical(null, dy - consumed, recycler, multiData);
+                consumed -= layouter.fillVertical(null, dy - consumed, multiData);
             }
         } else {
             // 从下往上滑动
@@ -582,7 +599,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
             } while (multiData == null);
             Layouter layouter = multiData.getLayouter();
             Log.w(TAG, "scrollVerticallyBy layouter=" + layouter);
-            consumed += layouter.fillVertical(view, dy - consumed, recycler, multiData);
+            consumed += layouter.fillVertical(view, dy - consumed, multiData);
             i = multiDataList.indexOf(multiData);
             Log.w(TAG, "scrollVerticallyBy consumedLast=" + consumed + " i=" + i + " lastPosition=" + getPosition(view));
             while (consumed < dy && i < multiDataList.size() - 1) {
@@ -591,7 +608,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                 layouter = multiData.getLayouter();
                 Log.w(TAG, "scrollVerticallyBy layouter=" + layouter);
                 layouter.setTop(bottom);
-                consumed += layouter.fillVertical(null, dy - consumed, recycler, multiData);
+                consumed += layouter.fillVertical(null, dy - consumed, multiData);
             }
         }
 
@@ -617,7 +634,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                 last = data;
             }
             if (layouter.canScrollVertically()) {
-                if (handleSticky(recycler, data, view, i, consumed)) {
+                if (handleSticky(data, view, i, consumed)) {
                     continue;
                 }
                 if (layouter.shouldRecycleChildViewVertically(view, consumed)) {
@@ -627,7 +644,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                 }
             }
         }
-        recycleViews(recycler);
+        recycleViews();
 
         for (Layouter layouter : layouters) {
             if (layouter instanceof StaggeredGridLayouter) {
@@ -668,7 +685,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
     private boolean handleSticky;
 
-    private boolean handleSticky(RecyclerView.Recycler recycler, MultiData<?> data, View view, int i, int consumed) {
+    private boolean handleSticky(MultiData<?> data, View view, int i, int consumed) {
         Layouter layouter = data.getLayouter();
         int position = getPosition(view);
 
@@ -708,7 +725,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                 if (stickyInfo != null) {
                     View child = findViewByPosition(stickyInfo.position);
                     if (child == null) {
-                        child = recycler.getViewForPosition(stickyInfo.position);
+                        child = getViewForPosition(stickyInfo.position);
                         measureChild(child, 0, 0);
                     }
                     MultiLayoutParams params = (MultiLayoutParams) child.getLayoutParams();
@@ -738,7 +755,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                 // 说明已经有sticky吸顶item
                 View child = findViewByPosition(stickyInfo.position);
                 if (child == null) {
-                    child = recycler.getViewForPosition(stickyInfo.position);
+                    child = getViewForPosition(stickyInfo.position);
                     measureChild(child, 0, 0);
                 }
                 MultiLayoutParams params = (MultiLayoutParams) child.getLayoutParams();
@@ -795,7 +812,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                         if (stickyInfo != null) {
                             child = findViewByPosition(stickyInfo.position);
                             if (child == null) {
-                                child = recycler.getViewForPosition(stickyInfo.position);
+                                child = getViewForPosition(stickyInfo.position);
                                 measureChild(child, 0, 0);
                             }
                             params = (MultiLayoutParams) child.getLayoutParams();
@@ -910,8 +927,9 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
         return null;
     }
 
-    public void recycleViews(RecyclerView.Recycler recycler) {
-        super.recycleViews(recycler);
+    @Override
+    public void recycleViews() {
+        super.recycleViews();
         saveState();
     }
 

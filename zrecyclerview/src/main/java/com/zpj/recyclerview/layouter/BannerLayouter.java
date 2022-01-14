@@ -73,8 +73,8 @@ public class BannerLayouter extends ViewPagerLayouter {
     }
 
     @Override
-    public void layoutChildren(MultiData<?> multiData, RecyclerView.Recycler recycler, int currentPosition) {
-        super.layoutChildren(multiData, recycler, currentPosition);
+    public void layoutChildren(MultiData<?> multiData, int currentPosition) {
+        super.layoutChildren(multiData, currentPosition);
         if (mAutoPlay) {
             if (mStart) {
                 return;
