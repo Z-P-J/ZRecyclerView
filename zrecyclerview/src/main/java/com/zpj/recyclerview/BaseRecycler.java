@@ -74,9 +74,9 @@ public class BaseRecycler<T, R extends BaseRecycler<T, R>> extends EasyStateConf
     }
 
     @Override
-    public boolean onLoadMore(EasyAdapter.Enabled enabled, int currentPage) {
+    public boolean onLoadMore(int currentPage) {
         if (onLoadMoreListener != null) {
-            return onLoadMoreListener.onLoadMore(enabled, currentPage);
+            return onLoadMoreListener.onLoadMore(currentPage);
         }
         return false;
     }
@@ -413,7 +413,6 @@ public class BaseRecycler<T, R extends BaseRecycler<T, R>> extends EasyStateConf
             easyAdapter.setFooterViewHolder(new DefaultFooterViewHolder());
         }
         easyAdapter.setOnLoadMoreListener(this);
-        easyAdapter.setLoadMoreEnabled(onLoadMoreListener != null && enableLoadMore);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(easyAdapter);
         return self();

@@ -40,7 +40,7 @@ public abstract class ExpandableMultiData<T> extends HeaderMultiData<T> {
 
     @Override
     public int getCount() {
-        if (state == STATE_CONTENT) {
+        if (getState() == STATE_CONTENT) {
             if (getChildCount() == 0 && hasMore) {
                 return 0;
             }

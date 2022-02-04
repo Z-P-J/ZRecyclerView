@@ -21,11 +21,11 @@ import static com.zpj.statemanager.State.STATE_NO_NETWORK;
 
 public abstract class StateMultiData<T> extends MultiData<T> {
 
-    protected State state = STATE_CONTENT;
+    private State state = STATE_CONTENT;
 
     public StateMultiData() {
         super();
-        state = STATE_LOADING;
+        setState(STATE_LOADING);
     }
 
     public StateMultiData(List<T> list) {
@@ -34,7 +34,7 @@ public abstract class StateMultiData<T> extends MultiData<T> {
 
     public StateMultiData(Layouter layouter) {
         super(layouter);
-        state = STATE_LOADING;
+        setState(STATE_LOADING);
     }
 
     public StateMultiData(List<T> list, Layouter layouter) {
@@ -43,6 +43,13 @@ public abstract class StateMultiData<T> extends MultiData<T> {
 
     public State getState() {
         return state;
+    }
+
+    public void setState(State state) {
+        this.state = state;
+        if (state == STATE_LOADING) {
+            hasMore = true;
+        }
     }
 
     @Override
@@ -135,18 +142,19 @@ public abstract class StateMultiData<T> extends MultiData<T> {
     }
 
     protected void showContent() {
-        this.state = STATE_CONTENT;
+        setState(STATE_CONTENT);
         notifyDataSetChange();
     }
 
     protected void showLoading() {
-        this.state = STATE_LOADING;
+        setState(STATE_LOADING);
         this.mData.clear();
+        hasMore = true;
         notifyDataSetChange();
     }
 
     protected void showEmpty() {
-        this.state = STATE_EMPTY;
+        setState(STATE_EMPTY);
         this.mData.clear();
         notifyDataSetChange();
     }
@@ -156,36 +164,19 @@ public abstract class StateMultiData<T> extends MultiData<T> {
 //    }
 
     protected void showError() {
-//        notifyItemRangeRemoved();
-//
-//        int tempCount = getCount();
-//        this.list.clear();
-//        int currentCount = getCount();
-//
-//        if (tempCount == currentCount) {
-//            notifyDataSetChange();
-//        } else {
-//            notifyItemRangeChanged(0, tempCount - currentCount);
-//            notifyItemRangeRemoved();
-//        }
-//        this.state = STATE_ERROR;
-//        int newCount = getCount();
-//        if () {
-//
-//        }
-        this.state = STATE_ERROR;
+        setState(STATE_ERROR);
         this.mData.clear();
         notifyDataSetChange();
     }
 
     protected void showLogin() {
-        this.state = STATE_LOGIN;
+        setState(STATE_LOGIN);
         this.mData.clear();
         notifyDataSetChange();
     }
 
     protected void showNoNetwork() {
-        this.state = STATE_NO_NETWORK;
+        setState(STATE_NO_NETWORK);
         this.mData.clear();
         notifyDataSetChange();
     }

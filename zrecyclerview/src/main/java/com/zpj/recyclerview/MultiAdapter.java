@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.RecyclerViewHelper;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -160,35 +161,59 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
 
     @Override
     protected void onLoadMore() {
-        if (mIsLoading || !getLoadMoreEnabled() || !isBottom()) {
+        if (mIsLoading) { //  || !isBottom()
             return;
         }
         mIsLoading = true;
+
         Log.d(TAG, "onLoadMore");
         if (list.isEmpty() || currentPage < -1) {
             currentPage = -1;
         }
 
+        View firstChild = mRecyclerView.getChildAt(0);
+        View lastChild = mRecyclerView.getChildAt(mRecyclerView.getLayoutManager().getChildCount() - 1);
+        int start = mRecyclerView.getLayoutManager().getPosition(firstChild);
+        int position = mRecyclerView.getLayoutManager().getPosition(lastChild);
+        Log.d(TAG, "onLoadMore start=" + start + " pos=" + position);
+
         MultiData<?> multiData = null;
-        for (MultiData<?> data : list) {
-            if (data.hasMore()) {
-                multiData = data;
+        int count = 0;
+        for (int i = 0; i < list.size(); i++) {
+            MultiData<?> data = list.get(i);
+
+            if (position >= count && start < count + data.getCount()) {
+                if (data.hasMore() && data.load(this)) {
+                    multiData = data;
+                    Log.d(TAG, "onLoadMore multiData=" + multiData);
+                }
+            } else if (position < count) {
                 break;
             }
+            count  += data.getCount();
         }
-        if (multiData != null && multiData.load(this)) {
+
+
+
+
+
+//        MultiData<?> multiData = null;
+//        for (MultiData<?> data : list) {
+//            if (data.hasMore()) {
+//                multiData = data;
+//                break;
+//            }
+//        }
+        if (multiData != null) { //  && multiData.load(this)
             if (footerViewHolder != null) {
                 footerViewHolder.onShowLoading();
             }
             currentPage++;
         } else {
             mIsLoading = false;
-            if (footerViewHolder != null) {
+            if (footerViewHolder != null && footerViewHolder.getView() != null) {
                 footerViewHolder.onShowHasNoMore();
             }
-        }
-        if (mOnLoadMoreListener != null) {
-            mOnLoadMoreListener.onLoadMore(mEnabled, currentPage);
         }
     }
 

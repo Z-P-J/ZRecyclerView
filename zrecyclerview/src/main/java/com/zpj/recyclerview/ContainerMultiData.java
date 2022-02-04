@@ -45,7 +45,7 @@ public abstract class ContainerMultiData<T> extends StateMultiData<T> {
 
     @Override
     public final int getCount() {
-        if (state == STATE_CONTENT) {
+        if (getState() == STATE_CONTENT) {
             if (getChildCount() == 0 && hasMore) {
                 return 0;
             }
@@ -63,15 +63,15 @@ public abstract class ContainerMultiData<T> extends StateMultiData<T> {
         if (position == 0) {
             return ContainerLayouter.ContainerLayout.class.hashCode();
         }
-        if (state != STATE_CONTENT) {
-            return state.hashCode();
+        if (getState() != STATE_CONTENT) {
+            return getState().hashCode();
         }
         return getLayoutId();
     }
 
     @Override
     public final boolean hasViewType(int viewType) {
-        if (state != STATE_CONTENT && viewType == state.hashCode()) {
+        if (getState() != STATE_CONTENT && viewType == getState().hashCode()) {
             return true;
         }
         return viewType == ContainerLayouter.ContainerLayout.class.hashCode()
@@ -85,7 +85,7 @@ public abstract class ContainerMultiData<T> extends StateMultiData<T> {
 
     @Override
     public final void onBindViewHolder(EasyViewHolder holder, List<T> list, int position, List<Object> payloads) {
-        if (position != 0 && state == STATE_CONTENT) {
+        if (position != 0 && getState() == STATE_CONTENT) {
             onBindChild(holder, list, --position, payloads);
         }
     }

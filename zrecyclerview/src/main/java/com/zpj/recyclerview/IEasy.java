@@ -52,7 +52,7 @@ public interface IEasy {
 //    }
 
     interface OnLoadMoreListener {
-        boolean onLoadMore(EasyAdapter.Enabled enabled, int currentPage);
+        boolean onLoadMore(int currentPage);
     }
 
     interface OnLoadRetryListener {

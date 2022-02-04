@@ -276,7 +276,6 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
             return;
         }
         state = STATE_CONTENT;
-        setLoadMoreEnabled(true);
         notifyDataSetChanged();
     }
 
@@ -286,8 +285,6 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
 
     private void changeState(State state) {
         this.state = state;
-        setLoadMoreEnabled(false);
-//        list.clear();
         notifyDataSetChanged();
     }
 

@@ -32,7 +32,7 @@ public abstract class SingleTypeMultiData<T> extends StateMultiData<T> {
 
     @Override
     public final int getColumnCount(int viewType) {
-        if (state != State.STATE_CONTENT) {
+        if (getState() != State.STATE_CONTENT) {
             return 1;
         }
         return getColumnCount();
@@ -40,15 +40,15 @@ public abstract class SingleTypeMultiData<T> extends StateMultiData<T> {
 
     @Override
     public final int getViewType(int position) {
-        if (state == STATE_CONTENT) {
+        if (getState() == STATE_CONTENT) {
             return getViewType();
         }
-        return state.hashCode();
+        return getState().hashCode();
     }
 
     @Override
     public final boolean hasViewType(int viewType) {
-        if (state != STATE_CONTENT && viewType == state.hashCode()) {
+        if (getState() != STATE_CONTENT && viewType == getState().hashCode()) {
             return true;
         }
         return viewType == getViewType();

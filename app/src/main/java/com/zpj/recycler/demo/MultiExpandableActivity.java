@@ -39,7 +39,7 @@ public class MultiExpandableActivity extends AppCompatActivity {
 
         public MyExpandMultiData(String title) {
             super(title);
-            state = State.STATE_LOADING;
+            setState(State.STATE_LOADING);
         }
 
         @Override

@@ -94,7 +94,7 @@ public class RecyclerActivity extends AppCompatActivity {
                 })
                 .onLoadMore(new IEasy.OnLoadMoreListener() {
                     @Override
-                    public boolean onLoadMore(final EasyAdapter.Enabled enabled, final int currentPage) {
+                    public boolean onLoadMore(final int currentPage) {
                         if (mRecycler.getCount() >= 40) {
                             mRecycler.postDelayed(new Runnable() {
                                 @Override

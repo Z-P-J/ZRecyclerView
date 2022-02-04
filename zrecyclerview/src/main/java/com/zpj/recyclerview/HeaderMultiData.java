@@ -29,7 +29,7 @@ public abstract class HeaderMultiData<T> extends StateMultiData<T> {
 
     @Override
     public int getCount() {
-        if (state == STATE_CONTENT) {
+        if (getState() == STATE_CONTENT) {
             if (getChildCount() == 0 && hasMore) {
                 return 0;
             }
@@ -48,7 +48,7 @@ public abstract class HeaderMultiData<T> extends StateMultiData<T> {
         if (viewType == getHeaderViewType()) {
             return getHeaderColumnCount();
         }
-        if (state != STATE_CONTENT) {
+        if (getState() != STATE_CONTENT) {
             return 1;
         }
         return getChildColumnCount(viewType);
@@ -59,15 +59,15 @@ public abstract class HeaderMultiData<T> extends StateMultiData<T> {
         if (position == 0) {
             return getHeaderViewType();
         }
-        if (state != STATE_CONTENT) {
-            return state.hashCode();
+        if (getState() != STATE_CONTENT) {
+            return getState().hashCode();
         }
         return getChildViewType(position);
     }
 
     @Override
     public final boolean hasViewType(int viewType) {
-        if (state != STATE_CONTENT && viewType == state.hashCode()) {
+        if (getState() != STATE_CONTENT && viewType == getState().hashCode()) {
             return true;
         }
         return viewType == getHeaderViewType() || hasChildViewType(viewType);
@@ -86,7 +86,7 @@ public abstract class HeaderMultiData<T> extends StateMultiData<T> {
 
         if (position == 0) {
             onBindHeader(holder, payloads);
-        } else if (state == STATE_CONTENT) {
+        } else if (getState() == STATE_CONTENT) {
             onBindChild(holder, list, --position, payloads);
         }
     }

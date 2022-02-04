@@ -75,7 +75,6 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         this.onClickListeners = onClickListeners;
         this.onLongClickListeners = onLongClickListeners;
         registerAdapterDataObserver(mObserver);
-        mEnabled = new Enabled(mOnEnabledListener);
         mRefreshHeader = refresh;
     }
 
@@ -415,7 +414,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     }
 
     protected void tryToLoadMore() {
-        mRecyclerView.post(new Runnable() {
+        post(new Runnable() {
             @Override
             public void run() {
                 onLoadMore();
@@ -424,20 +423,27 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     }
 
     protected void onLoadMore() {
-        if (mOnLoadMoreListener == null || mIsLoading || !getLoadMoreEnabled() || !isBottom()) {
-            return;
-        }
-        mIsLoading = true;
         if (list.isEmpty() || currentPage < -1) {
             currentPage = -1;
+            mHasMore = true;
         }
-        if (mOnLoadMoreListener.onLoadMore(mEnabled, currentPage + 1)) {
+
+        if (footerViewHolder == null || footerViewHolder.getView() == null
+                || footerViewHolder.getView().getParent() == null
+                || mOnLoadMoreListener == null || mIsLoading || !mHasMore) {
+            return;
+        }
+
+        mIsLoading = true;
+
+        if (mOnLoadMoreListener.onLoadMore(currentPage + 1)) {
             if (footerViewHolder != null) {
                 footerViewHolder.onShowLoading();
             }
             currentPage++;
         } else {
             mIsLoading = false;
+            mHasMore = false;
             if (footerViewHolder != null) {
                 footerViewHolder.onShowHasNoMore();
             }
@@ -445,15 +451,6 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     }
 
     protected void showFooterMsg(String msg) {
-//        LinearLayout llContainerProgress = footerView.findViewById(R.id.ll_container_progress);
-//        TextView tvMsg = getFooterView().findViewById(R.id.tv_msg);
-//        if (llContainerProgress != null) {
-//            llContainerProgress.setVisibility(View.GONE);
-//        }
-//        if (tvMsg != null) {
-//            tvMsg.setVisibility(View.VISIBLE);
-//            tvMsg.setText(msg);
-//        }
         if (footerViewHolder != null) {
             footerViewHolder.onShowError(msg);
         }
@@ -539,131 +536,17 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
     public void setOnLoadMoreListener(IEasy.OnLoadMoreListener mOnLoadMoreListener) {
         this.mOnLoadMoreListener = mOnLoadMoreListener;
-        setLoadMoreEnabled(true);
     }
 
     protected RecyclerView mRecyclerView;
     protected IEasy.OnLoadMoreListener mOnLoadMoreListener;
 
-    protected Enabled mEnabled;
     protected boolean mIsLoading;
-    private boolean mShouldRemove;
-    private boolean mShowNoMoreEnabled;
-    private boolean mIsLoadFailed;
+    protected boolean mHasMore = true;
 
     public IRefresher getRefresher() {
         return mRefreshHeader;
     }
-
-    public boolean getLoadMoreEnabled() {
-        return mEnabled.getLoadMoreEnabled() && getItemCount() >= 0;
-    }
-
-    public void setLoadMoreEnabled(boolean enabled) {
-        mEnabled.setLoadMoreEnabled(enabled);
-    }
-
-    private void notifyFooterHolderChanged() {
-//        Log.d(TAG, "notifyFooterHolderChanged getLoadMoreEnabled=" + getLoadMoreEnabled());
-        if (getLoadMoreEnabled()) {
-            mShouldRemove = false;
-            postNotifyItemChanged(getItemCount() - 1);
-//            notifyItemChanged(getItemCount() - 1);
-        } else if (mShouldRemove) {
-            mShouldRemove = false;
-
-            /*
-              fix IndexOutOfBoundsException when setLoadMoreEnabled(false) and then use onItemRangeInserted
-              @see android.support.v7.widget.RecyclerView.Recycler#validateViewHolderForOffsetPosition(RecyclerView.ViewHolder)
-             */
-            int position = getItemCount() - 1;
-//            Log.d(TAG, "notifyFooterHolderChanged isFooterPosition(position)=" + isFooterPosition(position));
-            if (isFooterPosition(position)) {
-//                notifyItemRemoved(position);
-                postNotifyItemRemoved(position);
-            } else {
-//                notifyItemChanged(position);
-                postNotifyItemChanged(position);
-            }
-//            RecyclerView.ViewHolder viewHolder =
-//                    mRecyclerView.findViewHolderForAdapterPosition(position);
-//            if (viewHolder instanceof LoadMoreAdapter.FooterHolder) {
-//                notifyItemRemoved(position);
-//            } else {
-//                notifyItemChanged(position);
-//            }
-        }
-    }
-
-    private interface OnEnabledListener {
-        void notifyChanged();
-
-        void notifyLoadFailed(boolean isLoadFailed);
-    }
-
-    public static class Enabled {
-        private boolean mLoadMoreEnabled = false;
-        private boolean mIsLoadFailed = false;
-        private OnEnabledListener mListener;
-
-        public Enabled(OnEnabledListener listener) {
-            mListener = listener;
-        }
-
-        /**
-         * 设置是否启用加载更多
-         *
-         * @param enabled 是否启用
-         */
-        public void setLoadMoreEnabled(boolean enabled) {
-            final boolean canNotify = mLoadMoreEnabled;
-            mLoadMoreEnabled = enabled;
-
-            if (canNotify && !mLoadMoreEnabled) {
-                mListener.notifyChanged();
-            }
-        }
-
-        /**
-         * 设置是否加载失败
-         *
-         * @param isLoadFailed 是否加载失败
-         */
-        public void setLoadFailed(boolean isLoadFailed) {
-            if (mIsLoadFailed != isLoadFailed) {
-                mIsLoadFailed = isLoadFailed;
-                mListener.notifyLoadFailed(isLoadFailed);
-                setLoadMoreEnabled(!mIsLoadFailed);
-            }
-        }
-
-        /**
-         * 获取是否启用了加载更多,默认是 true
-         *
-         * @return boolean
-         */
-        public boolean getLoadMoreEnabled() {
-            return mLoadMoreEnabled;
-        }
-    }
-
-    private OnEnabledListener mOnEnabledListener = new OnEnabledListener() {
-        @Override
-        public void notifyChanged() {
-            mShouldRemove = true;
-//            if (!getLoadMoreEnabled()) {
-//                currentPage = -1;
-//            }
-//            mOnScrollListener.onScrollStateChanged(mRecyclerView, RecyclerView.SCROLL_STATE_IDLE);
-        }
-
-        @Override
-        public void notifyLoadFailed(boolean isLoadFailed) {
-            mIsLoadFailed = isLoadFailed;
-//            notifyFooterHolderChanged();
-//            Log.d(TAG, "notifyLoadFailed isLoadFailed=" + isLoadFailed);
-        }
-    };
 
     protected void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
 //        Log.d(TAG, "onScrollStateChanged newState=" + newState);
@@ -719,13 +602,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     private final RecyclerView.AdapterDataObserver mObserver = new RecyclerView.AdapterDataObserver() {
         @Override
         public void onChanged() {
-            if (mShouldRemove) {
-                mShouldRemove = false;
-            }
-//            notifyDataSetChanged();
-            mIsLoading = false;
-//            Log.d(TAG, "onChanged getCount=" + getItemCount());
-//            onScrollStateChanged(mRecyclerView, RecyclerView.SCROLL_STATE_IDLE);
+            finishLoad();
 
             if (mRefreshHeader != null) {
                 mRefreshHeader.stopRefresh();
@@ -734,83 +611,29 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
         @Override
         public void onItemRangeChanged(int positionStart, int itemCount) {
-            if (mShouldRemove && positionStart == getItemCount() - 1) {
-                mShouldRemove = false;
-            }
-//            notifyItemRangeChanged(positionStart, itemCount);
-            mIsLoading = false;
-//            onScrollStateChanged(mRecyclerView, RecyclerView.SCROLL_STATE_IDLE);
-//            Log.d(TAG, "onItemRangeChanged getCount=" + getItemCount() + " positionStart=" + positionStart + " itemCount=" + itemCount);
+            finishLoad();
         }
-
-//        @Override
-//        public void onItemRangeChanged(int positionStart, int itemCount, Object payload) {
-//            if (mShouldRemove && positionStart == getItemCount() - 1) {
-//                mShouldRemove = false;
-//            }
-////            notifyItemRangeChanged(positionStart, itemCount, payload);
-//            mIsLoading = false;
-//            Log.d(TAG, "onItemRangeChanged getCount=" + getItemCount() + " positionStart=" + positionStart + " itemCount=" + itemCount + " payload=" + payload);
-//        }
 
         @Override
         public void onItemRangeInserted(int positionStart, int itemCount) {
-            // when no data is initialized (has loadMoreView)
-            // should remove loadMoreView before notifyItemRangeInserted
-//            if (mRecyclerView.getChildCount() == 1) {
-//                notifyItemRemoved(0);
-//            }
-//            notifyItemRangeInserted(positionStart, itemCount);
-//            Log.d(TAG, "onItemRangeInserted positionStart=" + positionStart + " itemCount=" + itemCount + " getCount=" + getItemCount());
-//            postDelayed(new Runnable() {
-//                @Override
-//                public void run() {
-//                    notifyFooterHolderChanged();
-//                }
-//            }, 1000);
-            mIsLoading = false;
-//            onScrollStateChanged(mRecyclerView, RecyclerView.SCROLL_STATE_IDLE);
+            finishLoad();
         }
 
         @Override
         public void onItemRangeRemoved(int positionStart, int itemCount) {
-//            Log.d(TAG, "onItemRangeRemoved positionStart=" + positionStart + " itemCount=" + itemCount + " getCount=" + getItemCount());
-            if (mShouldRemove && positionStart == getItemCount() - 1) {
-                mShouldRemove = false;
-            }
-            /*
-               use notifyItemRangeRemoved after clear item, can throw IndexOutOfBoundsException
-               @link RecyclerView#tryGetViewHolderForPositionByDeadline
-               fix java.lang.IndexOutOfBoundsException: Inconsistency detected. Invalid item position
-             */
-            boolean shouldSync = false;
-            if (mEnabled.getLoadMoreEnabled() && getItemCount() == 0) {
-                setLoadMoreEnabled(false);
-                shouldSync = true;
-                // when use onItemRangeInserted(0, count) after clear item
-                // recyclerView will auto scroll to bottom, because has one item(loadMoreView)
-                // remove loadMoreView
-                if (getItemCount() == 1) {
-                    notifyItemRemoved(0);
-                }
-            }
-//            notifyItemRangeRemoved(positionStart, itemCount);
-            if (shouldSync) {
-                setLoadMoreEnabled(true);
-            }
-            mIsLoading = false;
-//            onScrollStateChanged(mRecyclerView, RecyclerView.SCROLL_STATE_IDLE);
+            finishLoad();
         }
 
         @Override
         public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
-            if (mShouldRemove && (fromPosition == getItemCount() - 1 || toPosition == getItemCount() - 1)) {
-                throw new IllegalArgumentException("can not move last position after setLoadMoreEnabled(false)");
-            }
-//            notifyItemMoved(fromPosition, toPosition);
-            mIsLoading = false;
-//            onScrollStateChanged(mRecyclerView, RecyclerView.SCROLL_STATE_IDLE);
+            finishLoad();
         }
+
+        private void finishLoad() {
+            mIsLoading = false;
+            tryToLoadMore();
+        }
+
     };
 
     public RecyclerView getRecyclerView() {

@@ -155,7 +155,6 @@ public class MultiRecycler extends BaseRecycler<MultiData<?>, MultiRecycler> {
         } else {
             easyAdapter.setFooterViewHolder(new DefaultFooterViewHolder());
         }
-        easyAdapter.setLoadMoreEnabled(true);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(easyAdapter);
         easyAdapter.showContent();
