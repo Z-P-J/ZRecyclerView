@@ -222,6 +222,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
     }
 
+    @Override
     public boolean isOverScrolling() {
         return isOverScrolling;
     }
@@ -286,38 +287,22 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                     public void onAnimationEnd(Animator animation) {
                         super.onAnimationEnd(animation);
                         isOverScrolling = false;
+                        RecyclerViewHelper.stopInterceptRequestLayout(MultiLayoutManager.this);
                     }
                 });
                 mOverScrollAnimator.start();
                 return;
             }
 
+
             isOverScrolling = false;
+            RecyclerViewHelper.stopInterceptRequestLayout(MultiLayoutManager.this);
         }
     }
 
     @Override
-    public boolean checkLayoutParams(RecyclerView.LayoutParams lp) {
-        return lp instanceof MultiLayoutParams;
-    }
-
-    @Override
-    public RecyclerView.LayoutParams generateLayoutParams(ViewGroup.LayoutParams lp) {
-        return new MultiLayoutParams(lp);
-    }
-
-    @Override
-    public RecyclerView.LayoutParams generateLayoutParams(Context c, AttributeSet attrs) {
-        return new MultiLayoutParams(c, attrs);
-    }
-
-    @Override
-    public RecyclerView.LayoutParams generateDefaultLayoutParams() {
-        return new MultiLayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-    }
-
-    @Override
     public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+
         Log.d(TAG, "onLayoutChildren mTopMultiDataIndex=" + mTopMultiDataIndex
                 + " mTopPosition=" + mTopPosition + " mTopOffset=" + mTopOffset + " isPreLayout=" + state.isPreLayout());
         Log.d(TAG, "onLayoutChildren state=" + state);
@@ -326,16 +311,9 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
             return;
         }
 
-
-
         if (getChildCount() == 0 && state.isPreLayout()) {
             return;
         }
-
-        // TODO 在适当时机onLayoutChildren
-//        if (getChildCount() > 0) {
-//            return;
-//        }
 
 //        detachAndScrapAttachedViews(recycler);
 
@@ -541,6 +519,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
                 return dy;
             }
+            RecyclerViewHelper.stopInterceptRequestLayout(MultiLayoutManager.this);
 
         }
 
@@ -655,6 +634,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
         if (dy != consumed) {
             int overScroll = (int) ((consumed - dy) * 0.1f);
             isOverScrolling = true;
+            RecyclerViewHelper.startInterceptRequestLayout(MultiLayoutManager.this);
             overScrollDirection = dy > 0 ? OVER_SCROLL_UP : OVER_SCROLL_DOWN;
             overScrollDistance = dy - consumed;
             offsetChildrenVertical(overScroll);

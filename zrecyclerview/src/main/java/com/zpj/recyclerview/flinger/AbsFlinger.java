@@ -28,11 +28,17 @@ public abstract class AbsFlinger implements Flinger, Runnable, Interpolator {
         this.mScroller = new OverScroller(layouter.getContext(), this);
     }
 
+    private boolean flag = true;
+
     @Override
     public void run() {
         if (mMultiData == null) {
             stop();
             return;
+        }
+        if (flag) {
+            flag = false;
+            RecyclerViewHelper.startInterceptRequestLayout(mLayouter.getLayoutManager());
         }
         if (mScroller.computeScrollOffset()) {
             int x = mScroller.getCurrX();
@@ -114,11 +120,19 @@ public abstract class AbsFlinger implements Flinger, Runnable, Interpolator {
     @Override
     public void onFinished() {
         mLayouter.onFlingFinished();
+        if (!flag) {
+            flag = true;
+            RecyclerViewHelper.stopInterceptRequestLayout(mLayouter.getLayoutManager());
+        }
     }
 
     @Override
     public void onStopped() {
         mLayouter.onFlingStopped();
+        if (!flag) {
+            flag = true;
+            RecyclerViewHelper.stopInterceptRequestLayout(mLayouter.getLayoutManager());
+        }
     }
 
     public void setInterpolator(Interpolator mInterpolator) {

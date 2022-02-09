@@ -2,6 +2,7 @@ package com.zpj.recyclerview;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.BaseMultiLayoutManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -140,8 +141,8 @@ public class MultiRecycler extends BaseRecycler<MultiData<?>, MultiRecycler> {
                 mItemTouchHelper.attachToRecyclerView(recyclerView);
             }
         }
-        if (layoutManager instanceof MultiLayoutManager) {
-            ((MultiLayoutManager) layoutManager).attachRecycler(this);
+        if (layoutManager instanceof BaseMultiLayoutManager) {
+            ((BaseMultiLayoutManager) layoutManager).attachRecycler(this);
         } else {
             layoutManager = new GridLayoutManager(recyclerView.getContext(), maxSpan);
         }

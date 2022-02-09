@@ -2,14 +2,13 @@ package com.zpj.recyclerview;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.v7.widget.BaseMultiLayoutManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerViewHelper;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.zpj.recyclerview.manager.MultiLayoutManager;
 import com.zpj.recyclerview.refresh.IRefresher;
 import com.zpj.statemanager.IViewHolder;
 import com.zpj.statemanager.State;
@@ -17,7 +16,6 @@ import com.zpj.statemanager.State;
 import java.util.List;
 
 import static com.zpj.statemanager.State.STATE_CONTENT;
-import static com.zpj.statemanager.State.STATE_LOADING;
 import static com.zpj.statemanager.State.STATE_LOGIN;
 
 public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
@@ -43,7 +41,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
                 view.setLayoutParams(layoutParams);
                 return new EasyViewHolder(view);
             }
-        } else if (viewType == TYPE_REFRESH && !(getRecyclerView().getLayoutManager() instanceof MultiLayoutManager)) {
+        } else if (viewType == TYPE_REFRESH && !(getRecyclerView().getLayoutManager() instanceof BaseMultiLayoutManager)) {
             View view = onCreateView(viewGroup.getContext(), viewGroup, viewType);
             if (view == null) {
                 return new EasyViewHolder(mRefreshHeader.onCreateView(context, viewGroup));
@@ -71,7 +69,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
 //                break;
 //            }
         }
-        boolean isMultiManager = getRecyclerView().getLayoutManager() instanceof MultiLayoutManager;
+        boolean isMultiManager = getRecyclerView().getLayoutManager() instanceof BaseMultiLayoutManager;
         if (!isMultiManager && mRefreshHeader != null) {
             count++;
         }
@@ -86,7 +84,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
 
     @Override
     public int getItemViewType(int position) {
-        boolean isMultiManager = getRecyclerView().getLayoutManager() instanceof MultiLayoutManager;
+        boolean isMultiManager = getRecyclerView().getLayoutManager() instanceof BaseMultiLayoutManager;
         if (state != State.STATE_CONTENT) {
             return state.hashCode();
         } else if (!isMultiManager && isRefreshPosition(position)) {
@@ -108,7 +106,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
 
     @Override
     protected int getRealPosition(RecyclerView.ViewHolder holder) {
-        if (getRecyclerView().getLayoutManager() instanceof MultiLayoutManager) {
+        if (getRecyclerView().getLayoutManager() instanceof BaseMultiLayoutManager) {
             int position = holder.getLayoutPosition();
             if (headerView != null) {
                 position--;

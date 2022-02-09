@@ -58,6 +58,10 @@ public class BaseMultiLayoutManager extends RecyclerView.LayoutManager {
         super.setRecyclerView(recyclerView);
     }
 
+    public boolean isOverScrolling() {
+        return false;
+    }
+
     public void setRecyclerView(RecyclerView recyclerView, ChildHelper childHelper) {
         super.setRecyclerView(recyclerView);
         mChildHelper = recyclerView == null ? null : childHelper;

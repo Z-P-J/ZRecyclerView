@@ -5,7 +5,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.zpj.recyclerview.layouter.Layouter;
-import com.zpj.recyclerview.manager.MultiLayoutManager;
 import com.zpj.statemanager.BaseViewHolder;
 import com.zpj.statemanager.IViewHolder;
 import com.zpj.statemanager.State;

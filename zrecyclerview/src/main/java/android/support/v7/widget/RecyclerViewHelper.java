@@ -6,6 +6,7 @@ import android.view.animation.Interpolator;
 
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.layouter.ContainerLayouter;
+import com.zpj.recyclerview.layouter.Layouter;
 
 public class RecyclerViewHelper {
 
@@ -19,6 +20,14 @@ public class RecyclerViewHelper {
 
     public static Interpolator getInterpolator() {
         return RecyclerView.sQuinticInterpolator;
+    }
+
+    public static void startInterceptRequestLayout(RecyclerView.LayoutManager manager) {
+        manager.mRecyclerView.startInterceptRequestLayout();
+    }
+
+    public static void stopInterceptRequestLayout(RecyclerView.LayoutManager manager) {
+        manager.mRecyclerView.stopInterceptRequestLayout(false);
     }
 
     public static void scrapOrRecycleView(RecyclerView.LayoutManager manager, int index, View view) {

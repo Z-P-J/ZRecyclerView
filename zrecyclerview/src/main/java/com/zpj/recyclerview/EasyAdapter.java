@@ -3,6 +3,7 @@ package com.zpj.recyclerview;
 import android.annotation.SuppressLint;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.BaseMultiLayoutManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,7 +15,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.zpj.recyclerview.footer.IFooterViewHolder;
-import com.zpj.recyclerview.manager.MultiLayoutManager;
 import com.zpj.recyclerview.refresh.IRefresher;
 
 import java.util.List;
@@ -251,8 +251,8 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
             @Override
             public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent event) {
 
-                if (recyclerView.getLayoutManager() instanceof MultiLayoutManager) {
-                    MultiLayoutManager layoutManager = (MultiLayoutManager) recyclerView.getLayoutManager();
+                if (recyclerView.getLayoutManager() instanceof BaseMultiLayoutManager) {
+                    BaseMultiLayoutManager layoutManager = (BaseMultiLayoutManager) recyclerView.getLayoutManager();
                     if (layoutManager.isOverScrolling() || layoutManager.canScrollHorizontally()) {
                         return false;
                     }
