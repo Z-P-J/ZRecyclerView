@@ -150,6 +150,13 @@ public class LayoutManagerActivity extends AppCompatActivity {
 
         multiDataList.add(new LayouterMultiData(list, new VerticalLayouter()));
 
+        multiDataList.add(new LayouterMultiData(list, new HorizontalLayouter()) {
+            @Override
+            public int getLayoutId() {
+                return R.layout.item_text_grid;
+            }
+        });
+
 //        final ViewPagerLayouter viewPagerLayouter = new ViewPagerLayouter();
 //        viewPagerLayouter.setPageTransformer(new ViewPagerLayouter.PageTransformer() {
 //            @Override

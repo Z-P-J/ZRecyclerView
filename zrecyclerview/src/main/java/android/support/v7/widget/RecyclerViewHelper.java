@@ -30,6 +30,13 @@ public class RecyclerViewHelper {
         manager.mRecyclerView.stopInterceptRequestLayout(false);
     }
 
+    public static void dispatchLayout(BaseMultiLayoutManager manager) {
+
+//        manager.onLayoutChildren(manager.mRecyclerView.mRecycler, manager.mRecyclerView.mState);
+
+        manager.mRecyclerView.dispatchLayout();
+    }
+
     public static void scrapOrRecycleView(RecyclerView.LayoutManager manager, int index, View view) {
         RecyclerView.ViewHolder viewHolder = getChildViewHolderInt(view);
         if (!viewHolder.shouldIgnore()) {

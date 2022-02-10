@@ -585,7 +585,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                 int bottom = layouter.getBottom();
                 multiData = multiDataList.get(++i);
                 layouter = multiData.getLayouter();
-                Log.w(TAG, "scrollVerticallyBy layouter=" + layouter);
+                Log.w(TAG, "scrollVerticallyBy layouter=" + layouter + " consumed=" + consumed);
                 layouter.setTop(bottom);
                 consumed += layouter.fillVertical(null, dy - consumed, multiData);
             }

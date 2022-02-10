@@ -4,9 +4,14 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.support.v7.widget.BaseMultiLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.RecyclerViewHelper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
@@ -35,6 +40,15 @@ public class SimpleRefresher extends AbsRefresher {
         ViewGroup.LayoutParams params = view.getLayoutParams();
         params.height = Math.min((int) (delta / 2), 3 * mHeight);
         view.setLayoutParams(params);
+
+//        ViewParent parent = view.getParent();
+//        Log.d("SimpleRefresher", "parent=" + parent);
+//        if (parent instanceof RecyclerView) {
+//            RecyclerView.LayoutManager manager = ((RecyclerView) parent).getLayoutManager();
+//            if (manager instanceof BaseMultiLayoutManager) {
+//                RecyclerViewHelper.dispatchLayout((BaseMultiLayoutManager) manager);
+//            }
+//        }
         if (params.height < mHeight) {
             showText(R.string.text_pull_to_refresh);
         } else {
@@ -106,6 +120,13 @@ public class SimpleRefresher extends AbsRefresher {
                 params.height = (int) (animation.getAnimatedValue());
                 view.setLayoutParams(params);
                 mDelta = params.height * 2;
+//                ViewParent parent = view.getParent();
+//                if (parent instanceof RecyclerView) {
+//                    RecyclerView.LayoutManager manager = ((RecyclerView) parent).getLayoutManager();
+//                    if (manager instanceof BaseMultiLayoutManager) {
+//                        RecyclerViewHelper.dispatchLayout((BaseMultiLayoutManager) manager);
+//                    }
+//                }
             }
         });
         mAnimator.addListener(new AnimatorListenerAdapter() {

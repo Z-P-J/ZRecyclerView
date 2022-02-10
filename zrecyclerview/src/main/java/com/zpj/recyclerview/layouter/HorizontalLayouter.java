@@ -75,13 +75,11 @@ public class HorizontalLayouter extends AbsLayouter {
                 return fillVerticalBottom(multiData, mFirstPosition + mPositionOffset, dy, getTop());
             } else {
                 // 如果占用两行则需要以下代码
-                int anchorBottom = getDecoratedTop(anchorView);
-                if (anchorBottom > getHeight()) {
-                    if (anchorBottom - dy > getHeight()) {
-                        return dy;
-                    } else {
-                        return anchorBottom - getHeight();
-                    }
+                int anchorBottom = getDecoratedBottom(anchorView);
+                if (anchorBottom - dy > getHeight()) {
+                    return dy;
+                } else {
+                    return anchorBottom - getHeight();
                 }
             }
         } else {
@@ -91,16 +89,13 @@ public class HorizontalLayouter extends AbsLayouter {
             } else {
                 // 如果占用两行则需要以下代码
                 int anchorTop = getDecoratedTop(anchorView);
-                if (anchorTop < 0) {
-                    if (anchorTop - dy < 0) {
-                        return -dy;
-                    } else {
-                        return -anchorTop;
-                    }
+                if (anchorTop - dy < 0) {
+                    return -dy;
+                } else {
+                    return -anchorTop;
                 }
             }
         }
-        return 0;
     }
 
     @Override
@@ -170,7 +165,8 @@ public class HorizontalLayouter extends AbsLayouter {
             left += measuredWidth;
         }
         mBottom = bottom;
-        return Math.min(dy, - anchorBottom);
+        Log.d(TAG, "fillVerticalBottom dy=" + dy + " anchorBottom=" + anchorBottom + " bottom=" + bottom);
+        return Math.min(dy, mBottom - anchorBottom);
     }
 
     @Override
