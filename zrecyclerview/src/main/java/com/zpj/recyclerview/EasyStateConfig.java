@@ -1,9 +1,10 @@
 package com.zpj.recyclerview;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.view.View;
 
-import com.zpj.statemanager.BaseStateConfig;
+import com.zpj.recyclerview.skeleton.SkeletonConfig;
 import com.zpj.statemanager.BaseViewHolder;
 import com.zpj.statemanager.IViewHolder;
 import com.zpj.statemanager.State;
@@ -22,6 +23,20 @@ public class EasyStateConfig<T extends EasyStateConfig<T>> {
     protected IViewHolder loginViewHolder;
 
     protected IViewHolder noNetworkViewHolder;
+
+    protected boolean showSkeletonWhenLoading;
+
+    protected SkeletonConfig skeletonConfig;
+
+    public T setShowSkeletonWhenLoading(boolean showSkeletonWhenLoading) {
+        this.showSkeletonWhenLoading = showSkeletonWhenLoading;
+        return (T) this;
+    }
+
+    public T setSkeletonConfig(SkeletonConfig skeletonConfig) {
+        this.skeletonConfig = skeletonConfig;
+        return (T) this;
+    }
 
     public T setOnLoadRetryListener(IEasy.OnLoadRetryListener onLoadRetryListener) {
         this.onLoadRetryListener = onLoadRetryListener;
@@ -157,6 +172,18 @@ public class EasyStateConfig<T extends EasyStateConfig<T>> {
             return StateManager.config().getNoNetworkViewHolder();
         }
         return noNetworkViewHolder;
+    }
+
+    public boolean isShowSkeletonWhenLoading() {
+        return showSkeletonWhenLoading;
+    }
+
+    @NonNull
+    public SkeletonConfig getSkeletonConfig() {
+        if (skeletonConfig == null) {
+            skeletonConfig = new SkeletonConfig.Builder().build();
+        }
+        return skeletonConfig;
     }
 
     private static class EmptyViewHolder extends BaseViewHolder {

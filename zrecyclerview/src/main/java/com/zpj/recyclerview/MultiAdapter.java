@@ -170,7 +170,13 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         }
 
         View firstChild = mRecyclerView.getChildAt(0);
+        if (firstChild == null) {
+            return;
+        }
         View lastChild = mRecyclerView.getChildAt(mRecyclerView.getLayoutManager().getChildCount() - 1);
+        if (lastChild == null) {
+            return;
+        }
         int start = mRecyclerView.getLayoutManager().getPosition(firstChild);
         int position = mRecyclerView.getLayoutManager().getPosition(lastChild);
         Log.d(TAG, "onLoadMore start=" + start + " pos=" + position);

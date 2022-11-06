@@ -1,23 +1,27 @@
 package com.zpj.recyclerview;
 
-import android.content.Context;
-import android.support.annotation.NonNull;
-import android.util.SparseArray;
-import android.view.View;
-import android.view.ViewGroup;
-
-import com.zpj.recyclerview.refresh.IRefresher;
-import com.zpj.statemanager.IViewHolder;
-import com.zpj.statemanager.State;
-
-import java.util.List;
-
 import static com.zpj.statemanager.State.STATE_CONTENT;
 import static com.zpj.statemanager.State.STATE_EMPTY;
 import static com.zpj.statemanager.State.STATE_ERROR;
 import static com.zpj.statemanager.State.STATE_LOADING;
 import static com.zpj.statemanager.State.STATE_LOGIN;
 import static com.zpj.statemanager.State.STATE_NO_NETWORK;
+
+import android.content.Context;
+import android.support.annotation.NonNull;
+import android.util.SparseArray;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import com.zpj.recyclerview.refresh.IRefresher;
+import com.zpj.recyclerview.skeleton.SkeletonConfig;
+import com.zpj.statemanager.IViewHolder;
+import com.zpj.statemanager.State;
+
+import java.util.List;
+
+import io.supercharge.shimmerlayout.ShimmerLayout;
 
 public class EasyStateAdapter<T> extends EasyAdapter<T> {
 
@@ -52,17 +56,38 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     @NonNull
     @Override
     public EasyViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
-        if (viewType == STATE_EMPTY.hashCode() || viewType == STATE_LOADING.hashCode()
-                || viewType == STATE_ERROR.hashCode() || viewType == STATE_LOGIN.hashCode()
-                || viewType == STATE_NO_NETWORK.hashCode()) {
-            IViewHolder viewHolder = config.getViewHolder(state);
-            if (viewHolder != null) {
-                View view = viewHolder.onCreateView(context);
-                ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-                view.setLayoutParams(layoutParams);
-                return new EasyViewHolder(view);
+        if (state != STATE_CONTENT) {
+            if (state == STATE_LOADING && viewType == -STATE_LOADING.hashCode()) {
+                ShimmerLayout shimmerLayout = new ShimmerLayout(viewGroup.getContext());
+
+                int itemId = config.getSkeletonConfig().getItemResID();
+                if (itemId <= 0) {
+                    itemId = itemRes;
+                }
+
+                View child = LayoutInflater.from(viewGroup.getContext())
+                        .inflate(itemId, shimmerLayout, false);
+                if (child.getLayoutParams() != null) {
+                    shimmerLayout.setLayoutParams(child.getLayoutParams());
+                }
+                shimmerLayout.addView(child);
+                return new EasyViewHolder(shimmerLayout);
+            }
+            if (viewType == STATE_EMPTY.hashCode() || viewType == STATE_LOADING.hashCode()
+                    || viewType == STATE_ERROR.hashCode() || viewType == STATE_LOGIN.hashCode()
+                    || viewType == STATE_NO_NETWORK.hashCode()) {
+
+                IViewHolder viewHolder = config.getViewHolder(state);
+                if (viewHolder != null) {
+                    View view = viewHolder.onCreateView(context);
+                    ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                    view.setLayoutParams(layoutParams);
+                    return new EasyViewHolder(view);
+                }
             }
         }
+
         return super.onCreateViewHolder(viewGroup, viewType);
     }
 
@@ -70,12 +95,35 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     public void onBindViewHolder(@NonNull EasyViewHolder holder, int position, @NonNull List<Object> payloads) {
         if (state == STATE_CONTENT) {
             super.onBindViewHolder(holder, position, payloads);
+        } else if (canShowSkeletonWhenLoading() && config.getSkeletonConfig().isShimmer()
+                && holder.getItemView() instanceof ShimmerLayout) {
+            ShimmerLayout shimmerLayout = (ShimmerLayout) holder.getItemView();
+
+            SkeletonConfig skeletonConfig = config.getSkeletonConfig();
+            shimmerLayout.setShimmerAngle(skeletonConfig.getShimmerAngle());
+            shimmerLayout.setShimmerAnimationDuration(skeletonConfig.getShimmerDuration());
+            shimmerLayout.setShimmerColor(skeletonConfig.getShimmerColor());
+
+            shimmerLayout.startShimmerAnimation();
+        }
+    }
+
+    @Override
+    public void onViewDetachedFromWindow(@NonNull EasyViewHolder holder) {
+        super.onViewDetachedFromWindow(holder);
+        if (canShowSkeletonWhenLoading() && config.getSkeletonConfig().isShimmer()
+                && holder.getItemView() instanceof ShimmerLayout) {
+            ShimmerLayout shimmerLayout = (ShimmerLayout) holder.getItemView();
+            shimmerLayout.stopShimmerAnimation();
         }
     }
 
     @Override
     public int getItemViewType(int position) {
         if (state != STATE_CONTENT) {
+            if (canShowSkeletonWhenLoading()) {
+                return -state.hashCode();
+            }
             return state.hashCode();
         }
         return super.getItemViewType(position);
@@ -84,7 +132,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     @Override
     protected boolean isHeaderPosition(int position) {
         if (state != STATE_CONTENT) {
-            return true;
+            return false;
         }
         return super.isHeaderPosition(position);
     }
@@ -92,17 +140,27 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
     @Override
     protected boolean isFooterPosition(int position) {
         if (state != STATE_CONTENT) {
-            return true;
+            return false;
         }
         return super.isFooterPosition(position);
     }
 
     @Override
     public int getItemCount() {
+        if (canShowSkeletonWhenLoading()) {
+            return config.getSkeletonConfig().getItemCount();
+        }
         if (state != STATE_CONTENT) {
             return 1;
         }
         return super.getItemCount();
+    }
+
+    @Override
+    protected void tryToLoadMore() {
+        if (state == STATE_CONTENT) {
+            super.tryToLoadMore();
+        }
     }
 
     /**
@@ -138,10 +196,6 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
      */
 
     private void showErrorFooter(String msg) {
-//        String errorMsg = "~ 出错了 ~";
-//        if (!TextUtils.isEmpty(msg)) {
-//            errorMsg += ("\n错误信息：" + msg);
-//        }
         showFooterMsg(msg);
         if (mIsLoading) {
             currentPage--;
@@ -199,27 +253,22 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
      */
     public final void showLoading() {
         changeState(STATE_LOADING);
-//        stateLayout.showLoadingView();
     }
 
     public void showLoadingView(View view) {
         changeState(STATE_LOADING);
-//        stateLayout.showLoadingView(view);
     }
 
     public void showLoadingView(View view, boolean showTip) {
         changeState(STATE_LOADING);
-//        stateLayout.showLoadingView(view, showTip);
     }
 
     public void showLoadingView(int msgId) {
         changeState(STATE_LOADING);
-//        stateLayout.showLoadingView(msgId);
     }
 
     public void showLoadingView(String msg) {
         changeState(STATE_LOADING);
-//        stateLayout.showLoadingView(msg);
     }
 
     /**
@@ -275,8 +324,7 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
             notifyDataSetChanged();
             return;
         }
-        state = STATE_CONTENT;
-        notifyDataSetChanged();
+        changeState(STATE_CONTENT);
     }
 
     public State getState() {
@@ -285,7 +333,25 @@ public class EasyStateAdapter<T> extends EasyAdapter<T> {
 
     private void changeState(State state) {
         this.state = state;
+        if (canShowSkeletonWhenLoading()) {
+            if (config.getSkeletonConfig().isFrozen() && !mRecyclerView.isComputingLayout()) {
+                mRecyclerView.setLayoutFrozen(false);
+                notifyDataSetChanged();
+                mRecyclerView.setLayoutFrozen(true);
+                return;
+            }
+        } else {
+            if (!mRecyclerView.isComputingLayout() && mRecyclerView.isLayoutFrozen()) {
+                mRecyclerView.setLayoutFrozen(false);
+            }
+        }
         notifyDataSetChanged();
     }
+
+    private boolean canShowSkeletonWhenLoading() {
+        return state == STATE_LOADING && config.isShowSkeletonWhenLoading()
+                && (config.getSkeletonConfig().getItemResID() >= 0 || itemRes >= 0);
+    }
+
 
 }

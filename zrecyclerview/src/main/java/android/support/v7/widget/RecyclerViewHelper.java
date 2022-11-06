@@ -11,7 +11,11 @@ import com.zpj.recyclerview.layouter.Layouter;
 public class RecyclerViewHelper {
 
     public static RecyclerView.Recycler getRecycler(MultiRecycler recycler) {
-        return recycler.getRecyclerView().mRecycler;
+        return getRecycler(recycler.getRecyclerView());
+    }
+
+    public static RecyclerView.Recycler getRecycler(RecyclerView recyclerView) {
+        return recyclerView.mRecycler;
     }
 
     public static RecyclerView.State getState(MultiRecycler recycler) {

@@ -25,7 +25,10 @@ public abstract class DecorationRefresher extends AbsRefresher {
                 DecorationRefresher.this.onDrawOver(c,  parent, state, mDelta);
             }
         });
+        onAttachRecyclerView(mRecyclerView);
     }
+
+
 
     @Override
     public View onCreateRefreshView(Context context, ViewGroup parent) {
@@ -42,6 +45,10 @@ public abstract class DecorationRefresher extends AbsRefresher {
         if (mRecyclerView != null) {
             mRecyclerView.invalidate();
         }
+    }
+
+    protected void onAttachRecyclerView(RecyclerView recyclerView) {
+
     }
 
     public abstract void onDraw(@NonNull Canvas c, @NonNull RecyclerView parent, @NonNull RecyclerView.State state, float delta);

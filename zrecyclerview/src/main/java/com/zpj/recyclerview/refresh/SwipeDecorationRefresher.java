@@ -3,7 +3,9 @@ package com.zpj.recyclerview.refresh;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
+import android.content.Context;
 import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -11,6 +13,8 @@ import android.graphics.RectF;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+
+import com.zpj.recyclerview.R;
 
 /**
  * 仿SwipeRefreshLayout效果
@@ -67,7 +71,6 @@ public class SwipeDecorationRefresher extends DecorationRefresher {
         });
 
         mPaint.setAntiAlias(true);
-        mPaint.setColor(Color.GREEN);
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setStrokeWidth(mBackgroundRadius / 6);
         mPaint.setStrokeCap(Paint.Cap.ROUND);
@@ -75,6 +78,19 @@ public class SwipeDecorationRefresher extends DecorationRefresher {
 
         mShadowPaint.setShadowLayer(8, 0, 0, Color.LTGRAY);
         mShadowPaint.setAntiAlias(true);
+    }
+
+    @Override
+    protected void onAttachRecyclerView(RecyclerView recyclerView) {
+        mPaint.setColor(getColor(mRecyclerView.getContext(), R.attr.colorPrimary, Color.BLACK));
+    }
+
+    public static int getColor(Context context, int colorAttrId, int defaultColor) {
+        int[] ints = { colorAttrId };
+        TypedArray typedArray = context.obtainStyledAttributes(ints);
+        int color = typedArray.getColor(0, defaultColor);
+        typedArray.recycle();
+        return color;
     }
 
     @Override

@@ -517,7 +517,7 @@ public class BaseRecycler<T, R extends BaseRecycler<T, R>> extends EasyStateConf
         if (easyAdapter == null) {
             return;
         }
-        easyAdapter.notifyDataSetChanged();
+        showContent();
     }
 
     public void notifyItemChanged(int position) {
