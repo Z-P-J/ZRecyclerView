@@ -102,7 +102,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
     public void attachRecycler(MultiRecycler recycler) {
         super.attachRecycler(recycler);
-        this.multiDataList = recycler.getDataSet();
+        this.multiDataList = recycler.getItems();
         if (recycler.getRefresher() != null) {
             this.multiDataList.add(0, new RefresherMultiData(recycler.getRefresher()));
         }

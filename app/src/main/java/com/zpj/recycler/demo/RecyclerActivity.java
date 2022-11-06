@@ -35,7 +35,7 @@ public class RecyclerActivity extends AppCompatActivity {
                 .onRefresh(new IRefresher.OnRefreshListener() {
                     @Override
                     public void onRefresh(IRefresher refresher) {
-                        mRecycler.clearDataSet();
+                        mRecycler.clearItems();
                         mRecycler.notifyDataSetChanged();
                     }
                 })
@@ -95,7 +95,7 @@ public class RecyclerActivity extends AppCompatActivity {
                 .onLoadMore(new IEasy.OnLoadMoreListener() {
                     @Override
                     public boolean onLoadMore(final int currentPage) {
-                        if (mRecycler.getCount() >= 40) {
+                        if (mRecycler.getItemCount() >= 40) {
                             mRecycler.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
@@ -112,7 +112,7 @@ public class RecyclerActivity extends AppCompatActivity {
                             @Override
                             public void run() {
                                 for (int i = currentPage * 20; i < (currentPage + 1) * 20; i++) {
-                                    mRecycler.addData(i);
+                                    mRecycler.addItem(i);
                                 }
                                 mRecycler.notifyDataSetChanged();
                             }

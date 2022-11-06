@@ -28,7 +28,7 @@ public class MultiExpandableActivity extends AppCompatActivity {
 
 
         MultiRecycler.with((RecyclerView) findViewById(R.id.recycler_view))
-                .setData(list)
+                .setItems(list)
                 .setLayoutManager(new MultiLayoutManager())
 //                .addItemDecoration(new StickyHeaderItemDecoration())
                 .build();
