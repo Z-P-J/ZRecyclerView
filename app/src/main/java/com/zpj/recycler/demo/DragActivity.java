@@ -45,7 +45,7 @@ public class DragActivity extends AppCompatActivity {
 
         final RecyclerView recyclerView = findViewById(R.id.recycler_view);
         MultiRecycler.with(recyclerView)
-                .setData(list)
+                .setItems(list)
 //                .onRefresh(new BounceViewHolder(), new IRefresh.OnRefreshListener() {
 //                    @Override
 //                    public void onRefresh(IRefresh refresh) {
