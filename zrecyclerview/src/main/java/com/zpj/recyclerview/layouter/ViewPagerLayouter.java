@@ -1,9 +1,9 @@
 package com.zpj.recyclerview.layouter;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Px;
-import android.support.v7.widget.BaseMultiLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import androidx.annotation.Px;
+import androidx.recyclerview.widget.BaseMultiLayoutManager;
+
 import android.util.Log;
 import android.view.View;
 

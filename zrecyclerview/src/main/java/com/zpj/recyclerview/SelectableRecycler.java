@@ -1,13 +1,12 @@
 package com.zpj.recyclerview;
 
-import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
 import com.zpj.recyclerview.refresh.IRefresher;
@@ -222,7 +221,7 @@ public class SelectableRecycler<T> extends BaseRecycler<T, SelectableRecycler<T>
     @Override
     public void onSelectChange(List<T> list, int position, boolean isChecked) {
         if (onSelectChangeListener != null) {
-            onSelectChangeListener.onSelectChange(getDataSet(), position, isChecked);
+            onSelectChangeListener.onSelectChange(getItems(), position, isChecked);
         }
     }
 
@@ -324,7 +323,7 @@ public class SelectableRecycler<T> extends BaseRecycler<T, SelectableRecycler<T>
             showContent();
             return this;
         }
-        if (getDataSet().isEmpty()) {
+        if (getItems().isEmpty()) {
             Log.d(TAG, "build-->showLoading");
             showLoading();
         } else {
@@ -371,7 +370,7 @@ public class SelectableRecycler<T> extends BaseRecycler<T, SelectableRecycler<T>
                 selectMode = true;
             }
         }
-        onSelectChange(getDataSet(), position, isChecked);
+        onSelectChange(getItems(), position, isChecked);
     }
 
     private boolean onSelected(int position) {
@@ -389,7 +388,7 @@ public class SelectableRecycler<T> extends BaseRecycler<T, SelectableRecycler<T>
         if (!selectedList.contains(position)) {
             selectedList.add(position);
             onSelectChange(position, true);
-            if (selectedList.size() == getCount()) {
+            if (selectedList.size() == getItemCount()) {
                 onSelectAll();
             }
             return true;
@@ -416,7 +415,7 @@ public class SelectableRecycler<T> extends BaseRecycler<T, SelectableRecycler<T>
         if (maxSelectCount == Integer.MAX_VALUE) {
             selectedList.clear();
         }
-        for (int i = 0; i < getCount(); i++) {
+        for (int i = 0; i < getItemCount(); i++) {
             if (selectedList.size() >= maxSelectCount) {
                 break;
             }
@@ -461,8 +460,8 @@ public class SelectableRecycler<T> extends BaseRecycler<T, SelectableRecycler<T>
     public List<T> getSelectedItem() {
         List<T> selectedItems = new ArrayList<>();
         for (Integer i : selectedList) {
-            if (i < getCount()) {
-                selectedItems.add(getData(i));
+            if (i < getItemCount()) {
+                selectedItems.add(getItemAt(i));
             }
         }
         return selectedItems;

@@ -1,8 +1,8 @@
 package com.zpj.recycler.demo;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.widget.TextView;
 
@@ -53,7 +53,7 @@ public class MultiDataActivity extends AppCompatActivity {
         list.add(new StringSingleTypeMultiData());
 
         MultiRecycler.with((RecyclerView) findViewById(R.id.recycler_view))
-                .setData(list)
+                .setItems(list)
                 .setHeaderView(LayoutInflater.from(this).inflate(R.layout.item_header, null, false))
                 .setFooterViewBinder(new SimpleFooterViewHolder(R.layout.layout_loading_footer, R.layout.layout_error_footer) {
 

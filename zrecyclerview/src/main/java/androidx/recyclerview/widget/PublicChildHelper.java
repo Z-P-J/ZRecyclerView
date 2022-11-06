@@ -1,4 +1,6 @@
-package android.support.v7.widget;
+package androidx.recyclerview.widget;
+
+import androidx.recyclerview.widget.ChildHelper;
 
 public class PublicChildHelper extends ChildHelper {
 

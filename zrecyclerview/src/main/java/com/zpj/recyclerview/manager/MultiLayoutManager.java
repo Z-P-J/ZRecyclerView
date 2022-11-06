@@ -5,15 +5,15 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.PointF;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.view.animation.FastOutSlowInInterpolator;
-import android.support.v7.widget.BaseMultiLayoutManager;
-import android.support.v7.widget.LinearSmoothScroller;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerViewHelper;
-import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.AttributeSet;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
+import androidx.recyclerview.widget.BaseMultiLayoutManager;
+import androidx.recyclerview.widget.LinearSmoothScroller;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerViewHelper;
+import androidx.recyclerview.widget.ItemTouchHelper;
+
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
@@ -102,7 +102,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
     public void attachRecycler(MultiRecycler recycler) {
         super.attachRecycler(recycler);
-        this.multiDataList = recycler.getDataSet();
+        this.multiDataList = recycler.getItems();
         if (recycler.getRefresher() != null) {
             this.multiDataList.add(0, new RefresherMultiData(recycler.getRefresher()));
         }

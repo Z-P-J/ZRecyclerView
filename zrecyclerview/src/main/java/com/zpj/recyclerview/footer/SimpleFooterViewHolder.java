@@ -1,7 +1,7 @@
 package com.zpj.recyclerview.footer;
 
 import android.content.Context;
-import android.support.annotation.LayoutRes;
+import androidx.annotation.LayoutRes;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
-import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.R;
 
 public class SimpleFooterViewHolder extends AbsFooterViewHolder {

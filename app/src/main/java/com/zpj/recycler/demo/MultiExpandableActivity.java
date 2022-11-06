@@ -1,8 +1,8 @@
 package com.zpj.recycler.demo;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.zpj.recycler.demo.mutildata.ExpandableMultiData;
 import com.zpj.recyclerview.MultiData;
@@ -28,7 +28,7 @@ public class MultiExpandableActivity extends AppCompatActivity {
 
 
         MultiRecycler.with((RecyclerView) findViewById(R.id.recycler_view))
-                .setData(list)
+                .setItems(list)
                 .setLayoutManager(new MultiLayoutManager())
 //                .addItemDecoration(new StickyHeaderItemDecoration())
                 .build();

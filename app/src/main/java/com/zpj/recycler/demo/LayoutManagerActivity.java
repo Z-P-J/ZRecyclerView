@@ -1,36 +1,28 @@
 package com.zpj.recycler.demo;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.view.ViewCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
-import android.util.Log;
+import androidx.annotation.NonNull;
+import androidx.core.view.ViewCompat;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
 import com.zpj.recycler.demo.mutildata.BaseHeaderMultiData;
-import com.zpj.recycler.demo.mutildata.TestContainerMultiData;
 import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.SingleTypeMultiData;
-import com.zpj.recyclerview.layouter.BannerLayouter;
-import com.zpj.recyclerview.layouter.FlowLayouter;
-import com.zpj.recyclerview.layouter.GridLayouter;
 import com.zpj.recyclerview.layouter.HorizontalLayouter;
-import com.zpj.recyclerview.layouter.StaggeredGridLayouter;
 import com.zpj.recyclerview.layouter.VerticalLayouter;
-import com.zpj.recyclerview.layouter.ViewPagerLayouter;
 import com.zpj.recyclerview.manager.MultiLayoutManager;
 import com.zpj.recyclerview.refresh.IRefresher;
 import com.zpj.recyclerview.refresh.SimpleRefresher;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class LayoutManagerActivity extends AppCompatActivity {

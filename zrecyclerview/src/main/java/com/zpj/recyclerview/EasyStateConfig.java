@@ -1,7 +1,7 @@
 package com.zpj.recyclerview;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.view.View;
 
 import com.zpj.recyclerview.skeleton.SkeletonConfig;

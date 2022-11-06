@@ -8,7 +8,7 @@ import static com.zpj.statemanager.State.STATE_LOGIN;
 import static com.zpj.statemanager.State.STATE_NO_NETWORK;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;

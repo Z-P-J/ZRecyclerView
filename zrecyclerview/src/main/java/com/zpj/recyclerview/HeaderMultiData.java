@@ -1,7 +1,7 @@
 package com.zpj.recyclerview;
 
-import android.support.annotation.IntRange;
-import android.support.annotation.LayoutRes;
+import androidx.annotation.IntRange;
+import androidx.annotation.LayoutRes;
 
 import com.zpj.recyclerview.layouter.Layouter;
 

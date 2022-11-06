@@ -1,9 +1,9 @@
 package com.zpj.recyclerview.skeleton;
 
 import android.graphics.Color;
-import android.support.annotation.ColorInt;
-import android.support.annotation.IntRange;
-import android.support.annotation.LayoutRes;
+import androidx.annotation.ColorInt;
+import androidx.annotation.IntRange;
+import androidx.annotation.LayoutRes;
 import android.view.View;
 
 public class SkeletonConfig {

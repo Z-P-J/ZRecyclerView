@@ -1,8 +1,8 @@
 package com.zpj.recycler.demo;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -45,7 +45,7 @@ public class DragActivity extends AppCompatActivity {
 
         final RecyclerView recyclerView = findViewById(R.id.recycler_view);
         MultiRecycler.with(recyclerView)
-                .setData(list)
+                .setItems(list)
 //                .onRefresh(new BounceViewHolder(), new IRefresh.OnRefreshListener() {
 //                    @Override
 //                    public void onRefresh(IRefresh refresh) {

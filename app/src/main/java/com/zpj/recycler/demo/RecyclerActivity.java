@@ -2,13 +2,12 @@ package com.zpj.recycler.demo;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.zpj.recyclerview.EasyAdapter;
 import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.IEasy;
 import com.zpj.recyclerview.SelectableRecycler;
@@ -35,7 +34,7 @@ public class RecyclerActivity extends AppCompatActivity {
                 .onRefresh(new IRefresher.OnRefreshListener() {
                     @Override
                     public void onRefresh(IRefresher refresher) {
-                        mRecycler.clearDataSet();
+                        mRecycler.clearItems();
                         mRecycler.notifyDataSetChanged();
                     }
                 })
@@ -95,7 +94,7 @@ public class RecyclerActivity extends AppCompatActivity {
                 .onLoadMore(new IEasy.OnLoadMoreListener() {
                     @Override
                     public boolean onLoadMore(final int currentPage) {
-                        if (mRecycler.getCount() >= 40) {
+                        if (mRecycler.getItemCount() >= 40) {
                             mRecycler.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
@@ -112,7 +111,7 @@ public class RecyclerActivity extends AppCompatActivity {
                             @Override
                             public void run() {
                                 for (int i = currentPage * 20; i < (currentPage + 1) * 20; i++) {
-                                    mRecycler.addData(i);
+                                    mRecycler.addItem(i);
                                 }
                                 mRecycler.notifyDataSetChanged();
                             }

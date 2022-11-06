@@ -1,4 +1,4 @@
-package android.support.v7.widget;
+package androidx.recyclerview.widget;
 
 import android.view.View;
 import android.view.ViewGroup;
@@ -6,7 +6,6 @@ import android.view.animation.Interpolator;
 
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.layouter.ContainerLayouter;
-import com.zpj.recyclerview.layouter.Layouter;
 
 public class RecyclerViewHelper {
 

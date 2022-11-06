@@ -1,6 +1,6 @@
 package com.zpj.recyclerview;
 
-import android.support.v7.widget.helper.ItemTouchHelper;
+import androidx.recyclerview.widget.ItemTouchHelper;
 
 import java.util.Collections;
 

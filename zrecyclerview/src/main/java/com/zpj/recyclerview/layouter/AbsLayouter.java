@@ -1,11 +1,11 @@
 package com.zpj.recyclerview.layouter;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.Px;
-import android.support.v7.widget.BaseMultiLayoutManager;
-import android.support.v7.widget.RecyclerViewHelper;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.Px;
+import androidx.recyclerview.widget.BaseMultiLayoutManager;
+import androidx.recyclerview.widget.RecyclerViewHelper;
 import android.util.Log;
 import android.view.View;
 

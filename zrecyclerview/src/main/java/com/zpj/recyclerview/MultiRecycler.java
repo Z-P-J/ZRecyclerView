@@ -1,14 +1,13 @@
 package com.zpj.recyclerview;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v7.widget.BaseMultiLayoutManager;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.BaseMultiLayoutManager;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.ItemTouchHelper;
 
 import com.zpj.recyclerview.footer.DefaultFooterViewHolder;
-import com.zpj.recyclerview.manager.MultiLayoutManager;
 
 import java.util.List;
 
@@ -33,11 +32,11 @@ public class MultiRecycler extends BaseRecycler<MultiData<?>, MultiRecycler> {
     }
 
     public MultiRecycler build() {
-        MultiAdapter adapter = new MultiAdapter(recyclerView.getContext(), getDataSet(), this, mRefresher);
+        MultiAdapter adapter = new MultiAdapter(recyclerView.getContext(), getItems(), this, mRefresher);
         easyAdapter = adapter;
 
         int maxSpan = 1;
-        for (MultiData<?> data : getDataSet()) {
+        for (MultiData<?> data : getItems()) {
             maxSpan = lcm(data.getMaxColumnCount(), maxSpan);
             data.setAdapter(adapter);
             if (data instanceof IDragAndSwipe && mItemTouchHelper == null) {
@@ -46,7 +45,7 @@ public class MultiRecycler extends BaseRecycler<MultiData<?>, MultiRecycler> {
                     public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
                         int position = easyAdapter.getRealPosition(viewHolder);
                         int count = 0;
-                        for (MultiData<?> data : getDataSet()) {
+                        for (MultiData<?> data : getItems()) {
                             if (data instanceof IDragAndSwipe && position >= count && position < count + data.getCount()) {
                                 IDragAndSwipe dragAndSwipeMultiData = (IDragAndSwipe) data;
                                 return makeMovementFlags(dragAndSwipeMultiData.getDragDirection(position),
@@ -62,7 +61,7 @@ public class MultiRecycler extends BaseRecycler<MultiData<?>, MultiRecycler> {
                         final int pos = easyAdapter.getRealPosition(viewHolder);
                         final int pos1 = easyAdapter.getRealPosition(viewHolder1);
                         int count = 0;
-                        for (MultiData<?> data : getDataSet()) {
+                        for (MultiData<?> data : getItems()) {
                             if (data instanceof IDragAndSwipe && pos >= count && pos < count + data.getCount()
                                     && pos1 >= count && pos1 < count + data.getCount()) {
                                 IDragAndSwipe dragAndSwipeMultiData = (IDragAndSwipe) data;
@@ -127,7 +126,7 @@ public class MultiRecycler extends BaseRecycler<MultiData<?>, MultiRecycler> {
                     public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, final int i) {
                         final int pos = easyAdapter.getRealPosition(viewHolder);
                         int count = 0;
-                        for (MultiData<?> data : getDataSet()) {
+                        for (MultiData<?> data : getItems()) {
                             if (data instanceof IDragAndSwipe && pos >= count && pos < count + data.getCount()) {
                                 IDragAndSwipe dragAndSwipeMultiData = (IDragAndSwipe) data;
                                 dragAndSwipeMultiData.onSwiped(pos - count, i);

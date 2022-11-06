@@ -1,7 +1,5 @@
 package com.zpj.recyclerview.flinger;
 
-import android.support.v7.widget.RecyclerViewHelper;
-
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.layouter.AbsLayouter;
 

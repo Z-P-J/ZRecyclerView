@@ -1,8 +1,8 @@
 package com.zpj.recyclerview;
 
 import android.content.Context;
-import android.support.annotation.IntRange;
-import android.support.annotation.LayoutRes;
+import androidx.annotation.IntRange;
+import androidx.annotation.LayoutRes;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,7 +10,6 @@ import android.view.ViewGroup;
 
 import com.zpj.recyclerview.layouter.AbsLayouter;
 import com.zpj.recyclerview.layouter.ContainerLayouter;
-import com.zpj.recyclerview.layouter.Layouter;
 
 import java.util.List;
 

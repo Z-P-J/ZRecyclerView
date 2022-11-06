@@ -2,12 +2,12 @@ package com.zpj.recyclerview;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.support.annotation.IdRes;
-import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
+import androidx.annotation.IdRes;
+import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,7 +41,7 @@ public class BaseRecycler<T, R extends BaseRecycler<T, R>> extends EasyStateConf
 
     protected IEasy.AdapterInjector adapterInjector;
 
-    protected final List<T> mDataSet;
+    protected final List<T> mItems;
 
     protected int itemRes = -1;
 
@@ -68,9 +68,9 @@ public class BaseRecycler<T, R extends BaseRecycler<T, R>> extends EasyStateConf
         this(recyclerView, new ArrayList<T>(0));
     }
 
-    public BaseRecycler(@NonNull RecyclerView recyclerView, @NonNull List<T> dataSet) {
+    public BaseRecycler(@NonNull RecyclerView recyclerView, @NonNull List<T> items) {
         this.recyclerView = recyclerView;
-        this.mDataSet = dataSet;
+        this.mItems = items;
     }
 
     @Override
@@ -95,50 +95,50 @@ public class BaseRecycler<T, R extends BaseRecycler<T, R>> extends EasyStateConf
         return self();
     }
 
-    public R setData(Collection<T> list) {
-        this.mDataSet.clear();
-        this.mDataSet.addAll(list);
+    public R setItems(Collection<T> list) {
+        this.mItems.clear();
+        this.mItems.addAll(list);
         return self();
     }
 
-    public R setData(T...dataSet) {
-        return setData(Arrays.asList(dataSet));
+    public R setItems(T...items) {
+        return setItems(Arrays.asList(items));
     }
 
-    public R addData(Collection<T> list) {
-        this.mDataSet.addAll(list);
+    public R addItems(Collection<T> list) {
+        this.mItems.addAll(list);
         return self();
     }
 
-    public R addData(T...dataSet) {
-        return addData(Arrays.asList(dataSet));
+    public R addItems(T...items) {
+        return addItems(Arrays.asList(items));
     }
 
-    public R addData(int index, Collection<T> list) {
-        this.mDataSet.addAll(index, list);
+    public R addItems(int index, Collection<T> list) {
+        this.mItems.addAll(index, list);
         return self();
     }
 
-    public R addData(int index, T...dataSet) {
-        return addData(index, Arrays.asList(dataSet));
+    public R addItems(int index, T...items) {
+        return addItems(index, Arrays.asList(items));
     }
 
-    public R setData(int index, T data) {
-        if (index >= 0 && index < this.mDataSet.size()) {
-            this.mDataSet.set(index, data);
+    public R setItem(int index, T item) {
+        if (index >= 0 && index < this.mItems.size()) {
+            this.mItems.set(index, item);
         }
         return self();
     }
 
-    public R addData(int index, T data) {
-        if (index >= 0 && index < this.mDataSet.size()) {
-            this.mDataSet.add(index, data);
+    public R addItem(int index, T item) {
+        if (index >= 0 && index < this.mItems.size()) {
+            this.mItems.add(index, item);
         }
         return self();
     }
 
-    public R addData(T data) {
-        this.mDataSet.add(data);
+    public R addItem(T item) {
+        this.mItems.add(item);
         return self();
     }
 
@@ -390,7 +390,7 @@ public class BaseRecycler<T, R extends BaseRecycler<T, R>> extends EasyStateConf
         }
 
         easyAdapter = new EasyStateAdapter<>(
-                recyclerView.getContext(), mDataSet,
+                recyclerView.getContext(), mItems,
                 itemRes, onGetChildViewTypeListener,
                 onGetChildLayoutIdListener, onCreateViewHolder,
                 onBindViewHolderListener, onItemClickListener,
@@ -566,7 +566,7 @@ public class BaseRecycler<T, R extends BaseRecycler<T, R>> extends EasyStateConf
 
         if (last > first) {
             int count = last - first;
-            if (last + 1 <= getDataSet().size()) {
+            if (last + 1 <= getItems().size()) {
                 count += 1;
             }
             if (payload == null) {
@@ -634,7 +634,7 @@ public class BaseRecycler<T, R extends BaseRecycler<T, R>> extends EasyStateConf
     }
 
     public void scrollToLastPosition() {
-        scrollToPosition(getCount() - 1);
+        scrollToPosition(getItemCount() - 1);
     }
 
     public void smoothScrollToPosition(int position) {
@@ -646,7 +646,7 @@ public class BaseRecycler<T, R extends BaseRecycler<T, R>> extends EasyStateConf
     }
 
     public void smoothScrollToLastPosition() {
-        smoothScrollToPosition(getCount() - 1);
+        smoothScrollToPosition(getItemCount() - 1);
     }
 
     public void scrollBy(int x, int y) {
@@ -681,60 +681,60 @@ public class BaseRecycler<T, R extends BaseRecycler<T, R>> extends EasyStateConf
         recyclerView.removeCallbacks(runnable);
     }
 
-    public List<T> getDataSet() {
-        return this.mDataSet;
+    public List<T> getItems() {
+        return this.mItems;
     }
 
-    public void removeData(T data) {
-        this.mDataSet.remove(data);
+    public void removeItem(T item) {
+        this.mItems.remove(item);
     }
 
-    public void removeData(T...dataSet) {
-        this.mDataSet.removeAll(Arrays.asList(dataSet));
+    public void removeItem(int index) {
+        this.mItems.remove(index);
     }
 
-    public void removeData(Collection<T> dataSet) {
-        this.mDataSet.removeAll(dataSet);
+    public void removeItems(T...items) {
+        this.mItems.removeAll(Arrays.asList(items));
     }
 
-    public void removeData(int index) {
-        this.mDataSet.remove(index);
+    public void removeItems(Collection<T> items) {
+        this.mItems.removeAll(items);
     }
 
-    public void removeData(int fromIndex, int toIndex) {
-        this.mDataSet.subList(fromIndex, toIndex).clear();
+    public void removeItems(int fromIndex, int toIndex) {
+        this.mItems.subList(fromIndex, toIndex).clear();
     }
 
-    public int getCount() {
-        return this.mDataSet.size();
+    public int getItemCount() {
+        return this.mItems.size();
     }
 
-    public List<T> subDataList(int fromIndex, int toIndex) {
-        return this.mDataSet.subList(fromIndex, toIndex);
+    public List<T> subItems(int fromIndex, int toIndex) {
+        return this.mItems.subList(fromIndex, toIndex);
     }
 
-    public void clearDataSet() {
-        this.mDataSet.clear();
+    public void clearItems() {
+        this.mItems.clear();
     }
 
-    public boolean containsData(T data) {
-        return this.mDataSet.contains(data);
+    public boolean containsItem(T item) {
+        return this.mItems.contains(item);
     }
 
-    public T getData(int index) {
-        return this.mDataSet.get(index);
+    public T getItemAt(int index) {
+        return this.mItems.get(index);
     }
 
-    public T getFirstData() {
-        return getData(0);
+    public T getFirstItem() {
+        return getItemAt(0);
     }
 
-    public T getLastData() {
-        return getData(getCount() - 1);
+    public T getLastItem() {
+        return getItemAt(getItemCount() - 1);
     }
 
     public boolean isEmpty() {
-        return this.mDataSet.isEmpty();
+        return this.mItems.isEmpty();
     }
 
     public State getState() {
@@ -745,8 +745,8 @@ public class BaseRecycler<T, R extends BaseRecycler<T, R>> extends EasyStateConf
         recyclerView.setVisibility(visibility);
     }
 
-    public void sortDataSet(Comparator<? super T> comparator) {
-        Collections.sort(this.mDataSet, comparator);
+    public void sortItems(Comparator<? super T> comparator) {
+        Collections.sort(this.mItems, comparator);
     }
 
     public IFooterViewHolder getFooterViewHolder() {

@@ -1,8 +1,8 @@
 package com.zpj.recyclerview.flinger;
 
-import android.support.v4.view.ViewCompat;
-import android.support.v4.view.animation.FastOutSlowInInterpolator;
-import android.support.v7.widget.RecyclerViewHelper;
+import androidx.core.view.ViewCompat;
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
+import androidx.recyclerview.widget.RecyclerViewHelper;
 import android.view.animation.Interpolator;
 import android.widget.OverScroller;
 
