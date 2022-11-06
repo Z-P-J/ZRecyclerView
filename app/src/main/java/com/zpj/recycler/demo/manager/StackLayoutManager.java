@@ -316,8 +316,24 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
         final int top = getDecoratedTop(current);
         final int bottom = getDecoratedBottom(current);
 
-        final View pre = findViewByPosition(targetPosition - 1);
-        final View next = findViewByPosition(targetPosition + 1);
+        final Rect endRect = new Rect((getWidth() - mChildWidth) / 2, (getHeight() - mChildHeight) / 2,
+                (getWidth() + mChildWidth) / 2, (getHeight() + mChildHeight) / 2);
+
+        View pre = findViewByPosition(targetPosition - 1);
+        View next = findViewByPosition(targetPosition + 1);
+
+        final int offsetLeft;
+        final int offsetRight;
+        if (pre != null) {
+            offsetLeft = endRect.left - mGap - getDecoratedRight(pre);
+        } else {
+            offsetLeft = 0;
+        }
+        if (next != null) {
+            offsetRight = endRect.right + mGap - getDecoratedLeft(next);
+        } else {
+            offsetRight = 0;
+        }
 
         if (targetPosition > 0 && targetPosition < getItemCount() - 1) {
             if (pre == null) {
@@ -335,10 +351,6 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
             }
         }
 
-
-        final Rect endRect = new Rect((getWidth() - mChildWidth) / 2, (getHeight() - mChildHeight) / 2,
-                (getWidth() + mChildWidth) / 2, (getHeight() + mChildHeight) / 2);
-
         final float startScale = current.getScaleX();
         final float endScale = 1f;
         final float deltaScale = endScale - startScale;
@@ -348,8 +360,11 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
         animator.setInterpolator(new FastOutSlowInInterpolator());
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
 
-            private int lastLeft = left;
-            private int lastRight = right;
+//            private int lastLeft = left;
+//            private int lastRight = right;
+
+            private int lastLeft = 0;
+            private int lastRight = 0;
 
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
@@ -366,6 +381,14 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
 //                current.setScaleX(scale);
 //                current.setScaleY(scale);
 
+//                int offsetPre = newLeft - lastLeft;
+//                int offsetNext = newRight - lastRight;
+//
+//                lastLeft = newLeft;
+//                lastRight = newRight;
+
+                newLeft = (int) (p * offsetLeft);
+                newRight = (int) (p * offsetRight);
                 int offsetPre = newLeft - lastLeft;
                 int offsetNext = newRight - lastRight;
 
@@ -402,6 +425,7 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
 
             }
         });
+
         animator.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {
@@ -521,6 +545,41 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
         }
         mAnimator = animator;
         animator.start();
+    }
+
+
+    public void moveDrag(int targetPosition, int x, int y, int dx, int dy) {
+
+        View current = findViewByPosition(targetPosition);
+        if(current == null) {
+            // TODO getView
+            return;
+        }
+
+
+        int min = getHeight() / 4;
+
+        float p = (float) (Math.max(min, y)) / (getHeight() + min);
+
+        Log.e(TAG, "moveDrag height=" + getHeight() + " width=" + getWidth()
+                + " x=" + x + " y=" + y
+                + " dx=" + dx + " dy=" + dy + " p=" + p);
+
+
+        int height = (int) (getHeight() * p);
+        int width = (int) (getWidth() * p);
+        int left = dx;
+        int right = left + width;
+        int bottom = y;
+        int top = bottom - height;
+
+        layoutDecorated(current, left, top, right, bottom);
+
+
+    }
+
+    public void endDrag(int targetPosition, float velocityY) {
+        idle(targetPosition);
     }
 
 

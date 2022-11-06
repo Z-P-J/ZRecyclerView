@@ -7,8 +7,12 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.LinearSnapHelper;
 import android.support.v7.widget.PagerSnapHelper;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
+import android.view.VelocityTracker;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,12 +25,23 @@ import com.zpj.recycler.demo.manager.StackLayoutManager;
 
 public class CustomLayoutManagerActivity extends AppCompatActivity {
 
+    private static final String TAG = "CustomLayoutManager";
+
     private RecyclerView recyclerView;
     //    private GalleryLayoutManager layoutManager;
     private StackLayoutManager layoutManager;
     private final LinearSnapHelper snapHelper = new LinearSnapHelper();
 
+    private View mBottomBar;
+
+    private VelocityTracker mTracker;
+
     private int mCurrentPosition;
+
+    private float mDownX;
+    private float mDownY;
+
+    private float mY;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +65,65 @@ public class CustomLayoutManagerActivity extends AppCompatActivity {
         snapHelper.attachToRecyclerView(recyclerView);
 
         recyclerView.setAdapter(new MyAdapter());
+
+
+
+        final int maxV = ViewConfiguration.get(this).getScaledMaximumFlingVelocity();
+
+
+        mBottomBar = findViewById(R.id.bottom_bar);
+        mBottomBar.setOnTouchListener(new View.OnTouchListener() {
+            boolean isUp = false;
+            @Override
+            public boolean onTouch(View view, MotionEvent event) {
+                Log.d(TAG, "onTouch isExpand=" + layoutManager.isExpand());
+                if (!layoutManager.isExpand()) {
+                    return false;
+                }
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    if (mTracker == null) {
+                        mTracker = VelocityTracker.obtain();
+                    } else {
+                        mTracker.clear();
+                    }
+                    mTracker.addMovement(event);
+                    mDownX = event.getRawX();
+                    mDownY = event.getRawY();
+                    mY = event.getY();
+                } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                    float deltaX = event.getRawX() - mDownX;
+                    float deltaY = event.getRawY() - mDownY;
+
+//                    if (!isUp) {
+//                        if (deltaY > 0 || Math.abs(deltaY) < Math.abs(deltaX)) {
+//                            isUp = false;
+//                            return true;
+//                        }
+//                    }
+
+                    isUp = true;
+                    mTracker.addMovement(event);
+
+
+
+
+                    int y = (int) (mY - event.getY()  + mBottomBar.getTop());
+                    y = (int) (mBottomBar.getTop() + event.getY());
+
+                    layoutManager.moveDrag(mCurrentPosition, (int) event.getRawX(), y, (int) deltaX, (int) deltaY);
+                } else if (event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP) {
+                    mTracker.addMovement(event);
+                    mTracker.computeCurrentVelocity(1000, maxV);
+                    Toast.makeText(CustomLayoutManagerActivity.this, "vX=" + mTracker.getXVelocity() + " vY=" + mTracker.getYVelocity(), Toast.LENGTH_SHORT).show();
+
+                    if (isUp) {
+                        layoutManager.endDrag(mCurrentPosition, mTracker.getYVelocity());
+                    }
+
+                }
+                return true;
+            }
+        });
     }
 
     @Override

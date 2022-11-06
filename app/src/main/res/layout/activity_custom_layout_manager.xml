@@ -1,11 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.RecyclerView
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/recycler_view"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".CustomLayoutManagerActivity">
+    android:layout_height="match_parent">
 
-</android.support.v7.widget.RecyclerView>
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </android.support.v7.widget.RecyclerView>
+
+    <TextView
+        android:id="@+id/bottom_bar"
+        android:layout_width="match_parent"
+        android:layout_height="42dp"
+        android:text="Bottom"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:background="#80ffffff"
+        android:layout_gravity="bottom"
+        />
+
+</FrameLayout>
