@@ -351,15 +351,13 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
         ValueAnimator animator = ValueAnimator.ofFloat(0, 1f);
         animator.setDuration(500);
         animator.setInterpolator(new FastOutSlowInInterpolator());
-        final View finalPre = pre;
-        final View finalNext = next;
+
+        final List<ViewEvaluator> evaluators = new ArrayList<>();
+        for (int i = 0; i < getChildCount(); i++) {
+            evaluators.add(new ViewEvaluator(getChildAt(i)));
+        }
+
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-
-            private final float preX = finalPre == null ? 0 : finalPre.getTranslationX();
-            private final float nextX = finalNext == null ? 0 : finalNext.getTranslationX();
-
-            private float tx = current.getTranslationX();
-            private float ty = current.getTranslationY();
 
             private final int centerX = (left + right) / 2;
             private final int targetCenterX = endRect.centerX();
@@ -370,29 +368,14 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
             public void onAnimationUpdate(ValueAnimator animation) {
                 float p = (float) animation.getAnimatedValue();
 
-                float scale = startScale + deltaScale * p;
-                current.setScaleX(scale);
-                current.setScaleY(scale);
-
                 if (centerX != targetCenterX) {
                     int newCenterX = (int) (centerX + (targetCenterX - centerX) * p);
                     offsetChildrenHorizontal(newCenterX - lastCenterX);
                     lastCenterX = newCenterX;
                 }
 
-                if (tx != 0) {
-                    current.setTranslationX(tx * (1f - p));
-                }
-                if (ty != 0) {
-                    current.setTranslationY(ty * (1f - p));
-                }
-
-                if (finalPre != null) {
-                    finalPre.setTranslationX(preX * (1f - p));
-                }
-
-                if (finalNext != null) {
-                    finalNext.setTranslationX(nextX * (1f - p));
+                for (ViewEvaluator evaluator : evaluators) {
+                    evaluator.update(p);
                 }
             }
         });
@@ -435,8 +418,6 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
             return;
         }
 
-        final View pre = findViewByPosition(targetPosition - 1);
-        final View next = findViewByPosition(targetPosition + 1);
         mRecyclerView.setLayoutFrozen(true);
         expand = true;
 
@@ -449,42 +430,40 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
 
         ValueAnimator animator = ValueAnimator.ofFloat(0, 1f);
 
-        final float startScale = current.getScaleX();
-        final float endScale = mScale;
-        final float deltaScale = endScale - startScale;
-
 
         animator.setDuration(500);
         animator.setInterpolator(new FastOutSlowInInterpolator());
 
-         float transX = (getWidth() - mChildWidth) / 2f;
-//        ViewAnimator currentViewAnimator = new ViewAnimator(current, 0, 0, mScale, mScale);
-//        ViewAnimator preViewAnimator = new ViewAnimator(pre, -transX, 0, mScale, mScale);
-//        ViewAnimator nextViewAnimator = new ViewAnimator(next, transX, 0, mScale, mScale);
+        float transX = (getWidth() - mChildWidth) / 2f;
+
+        final List<ViewEvaluator> evaluators = new ArrayList<>();
+        for (int i = 0; i < getChildCount(); i++) {
+            View child = getChildAt(i);
+            if (child == null) {
+                continue;
+            }
+            int pos = getPosition(child);
+            if (pos == targetPosition) {
+                evaluators.add(new ViewEvaluator(child, 0, 0, mScale, mScale));
+            } else if (pos == targetPosition - 1) {
+                evaluators.add(new ViewEvaluator(child, -transX, 0, 1f, 1f));
+            } else if (pos == targetPosition + 1) {
+                evaluators.add(new ViewEvaluator(child, transX, 0, 1f, 1f));
+            } else {
+                evaluators.add(new ViewEvaluator(child));
+            }
+        }
 
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
 
-            private int centerX = (left + right) / 2;
-            private int targetCenterX = endRect.centerX();
+            private final int centerX = (left + right) / 2;
+            private final int targetCenterX = endRect.centerX();
 
             private int lastCenterX = centerX;
-
-            private float tx = current.getTranslationX();
-            private float ty = current.getTranslationY();
-
-            private float preX = pre == null ? 0 : pre.getTranslationX();
-            private float nextX = next == null ? 0 : next.getTranslationX();
-
-            private float nearX = (getWidth() - mChildWidth) / 2f;
 
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 float p = (float) animation.getAnimatedValue();
-
-                float scale = startScale + deltaScale * p;
-                current.setScaleX(scale);
-                current.setScaleY(scale);
-
 
                 if (centerX != targetCenterX) {
                     int newCenterX = (int) (centerX + (targetCenterX - centerX) * p);
@@ -492,19 +471,8 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
                     lastCenterX = newCenterX;
                 }
 
-                if (tx != 0) {
-                    current.setTranslationX(tx * p);
-                }
-                if (ty != 0) {
-                    current.setTranslationY(ty * p);
-                }
-
-                if (pre != null) {
-                    pre.setTranslationX(preX - (nearX + preX) * p);
-                }
-
-                if (next != null) {
-                    next.setTranslationX(nextX + (nearX - nextX) * p);
+                for (ViewEvaluator evaluator : evaluators) {
+                    evaluator.update(p);
                 }
             }
         });
@@ -561,15 +529,15 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
 
 
 
-    private static class ViewAnimator {
+    private static class ViewEvaluator {
 
         private final View mView;
 
-        private final float mOldTranslationX;
-        private final float mOldTranslationY;
+        private float mOldTranslationX;
+        private float mOldTranslationY;
 
-        private final float mOldScaleX;
-        private final float mOldScaleY;
+        private float mOldScaleX;
+        private float mOldScaleY;
 
         private float mTargetTranslationX;
         private float mTargetTranslationY;
@@ -577,23 +545,16 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
         private float mTargetScaleX;
         private float mTargetScaleY;
 
-        private ViewAnimator(View view) {
-            this.mView = view;
-
-            mOldTranslationX = view.getTranslationX();
-            mOldTranslationY = view.getTranslationY();
-            mOldScaleX = view.getScaleX();
-            mOldScaleY = view.getScaleY();
-
-            mTargetTranslationX = mOldTranslationX;
-            mTargetTranslationY = mOldTranslationY;
-            mTargetScaleX = mOldScaleX;
-            mTargetScaleY = mOldScaleY;
+        private ViewEvaluator(View view) {
+            this(view, 0, 0, 1f, 1f);
         }
 
-        private ViewAnimator(View view, float targetTranslationX, float targetTranslationY,
-                             float targetScaleX, float targetScaleY) {
+        private ViewEvaluator(View view, float targetTranslationX, float targetTranslationY,
+                              float targetScaleX, float targetScaleY) {
             this.mView = view;
+            if (view == null) {
+                return;
+            }
 
             mOldTranslationX = view.getTranslationX();
             mOldTranslationY = view.getTranslationY();
@@ -623,6 +584,9 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
         }
 
         public void update(float p) {
+            if (mView == null) {
+                return;
+            }
             if (mTargetTranslationX != mOldTranslationX) {
                 mView.setTranslationX(mOldTranslationX + (mTargetTranslationX - mOldTranslationX) * p);
             }
@@ -636,10 +600,6 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
                 mView.setScaleY(mOldScaleY + (mTargetScaleY - mOldScaleY) * p);
             }
         }
-
-//        public void start() {
-//
-//        }
 
     }
 
