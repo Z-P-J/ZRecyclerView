@@ -41,6 +41,7 @@ public class CustomLayoutManagerActivity extends AppCompatActivity {
     private float mDownX;
     private float mDownY;
 
+    private float mX;
     private float mY;
 
     @Override
@@ -89,7 +90,8 @@ public class CustomLayoutManagerActivity extends AppCompatActivity {
                     mTracker.addMovement(event);
                     mDownX = event.getRawX();
                     mDownY = event.getRawY();
-                    mY = event.getY();
+                    mX = event.getX();
+                    mY = event.getY() + mBottomBar.getTop();
                 } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
                     float deltaX = event.getRawX() - mDownX;
                     float deltaY = event.getRawY() - mDownY;
@@ -110,7 +112,7 @@ public class CustomLayoutManagerActivity extends AppCompatActivity {
                     int y = (int) (mY - event.getY()  + mBottomBar.getTop());
                     y = (int) (mBottomBar.getTop() + event.getY());
 
-                    layoutManager.moveDrag(mCurrentPosition, (int) event.getRawX(), y, (int) deltaX, (int) deltaY);
+                    layoutManager.moveDrag(mCurrentPosition, mX, mY, (int) event.getX(), y, (int) deltaX, (int) deltaY);
                 } else if (event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP) {
                     mTracker.addMovement(event);
                     mTracker.computeCurrentVelocity(1000, maxV);

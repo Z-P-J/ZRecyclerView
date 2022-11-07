@@ -47,7 +47,7 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
         mChildWidth = getWidth() / 3 * 2;
         mChildHeight = getHeight() / 3 * 2;
         mGap = (getWidth() - mChildWidth) / 5;
-        mScale = (float) getWidth() / mChildWidth;
+        mScale = 1.5f;
 
         // TODO currentPosition
         if (getChildCount() == 0) {
@@ -322,18 +322,7 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
         View pre = findViewByPosition(targetPosition - 1);
         View next = findViewByPosition(targetPosition + 1);
 
-        final int offsetLeft;
-        final int offsetRight;
-        if (pre != null) {
-            offsetLeft = endRect.left - mGap - getDecoratedRight(pre);
-        } else {
-            offsetLeft = 0;
-        }
-        if (next != null) {
-            offsetRight = endRect.right + mGap - getDecoratedLeft(next);
-        } else {
-            offsetRight = 0;
-        }
+        float nearX = (getWidth() - mChildWidth) / 2f;
 
         if (targetPosition > 0 && targetPosition < getItemCount() - 1) {
             if (pre == null) {
@@ -341,6 +330,8 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
                 addView(child, 0);
                 measureChild(child, 0, 0);
                 layoutDecorated(child, left - mChildWidth - mGap, (getHeight() - mChildHeight) / 2, left - mGap, (getHeight() + mChildHeight) / 2);
+                child.setTranslationX(-nearX);
+                pre = child;
             }
 
             if (next == null) {
@@ -348,6 +339,8 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
                 addView(child);
                 measureChild(child, 0, 0);
                 layoutDecorated(child, right + mGap, (getHeight() - mChildHeight) / 2, right + mGap + mChildWidth, (getHeight() + mChildHeight) / 2);
+                child.setTranslationX(nearX);
+                next = child;
             }
         }
 
@@ -358,71 +351,49 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
         ValueAnimator animator = ValueAnimator.ofFloat(0, 1f);
         animator.setDuration(500);
         animator.setInterpolator(new FastOutSlowInInterpolator());
+        final View finalPre = pre;
+        final View finalNext = next;
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
 
-//            private int lastLeft = left;
-//            private int lastRight = right;
+            private final float preX = finalPre == null ? 0 : finalPre.getTranslationX();
+            private final float nextX = finalNext == null ? 0 : finalNext.getTranslationX();
 
-            private int lastLeft = 0;
-            private int lastRight = 0;
+            private float tx = current.getTranslationX();
+            private float ty = current.getTranslationY();
+
+            private final int centerX = (left + right) / 2;
+            private final int targetCenterX = endRect.centerX();
+
+            private int lastCenterX = centerX;
 
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 float p = (float) animation.getAnimatedValue();
 
-                int newLeft = (int) (left + (endRect.left - left) * p);
-                int newTop = (int) (top + (endRect.top - top) * p);
-                int newRight = (int) (right + (endRect.right - right) * p);
-                int newBottom = (int) (bottom + (endRect.bottom - bottom) * p);
+                float scale = startScale + deltaScale * p;
+                current.setScaleX(scale);
+                current.setScaleY(scale);
 
-                layoutDecorated(current, newLeft, newTop, newRight, newBottom);
-
-//                float scale = startScale + deltaScale * p;
-//                current.setScaleX(scale);
-//                current.setScaleY(scale);
-
-//                int offsetPre = newLeft - lastLeft;
-//                int offsetNext = newRight - lastRight;
-//
-//                lastLeft = newLeft;
-//                lastRight = newRight;
-
-                newLeft = (int) (p * offsetLeft);
-                newRight = (int) (p * offsetRight);
-                int offsetPre = newLeft - lastLeft;
-                int offsetNext = newRight - lastRight;
-
-                lastLeft = newLeft;
-                lastRight = newRight;
-
-
-                for (int i = 0; i < getChildCount(); i++) {
-                    View child = getChildAt(i);
-                    if (child == null) {
-                        continue;
-                    }
-                    int pos = getPosition(child);
-                    if (pos == targetPosition) {
-                        continue;
-                    }
-                    if (pos < targetPosition) {
-                        child.offsetLeftAndRight(offsetPre);
-                    } else {
-                        child.offsetLeftAndRight(offsetNext);
-                    }
-//                    if (pos < targetPosition) {
-//                        int left = newL - (targetPosition - pos) * (mChildWidth + mGap);
-//                        Log.e(TAG, "i=" + i + " getDecoratedLeft=" + getDecoratedLeft(child) + " off=" + (getDecoratedLeft(child) - left));
-//                        child.offsetLeftAndRight(left - getDecoratedLeft(child));
-//                        Log.e(TAG, "right=" + child.getRight());
-//                    } else {
-//                        int right = newRight + (pos - targetPosition) * (mChildWidth + mGap);
-//                        Log.e(TAG, "i=" + i + " getDecoratedRight=" + getDecoratedRight(child) + " off=" + (getDecoratedRight(child) - right));
-//                        child.offsetLeftAndRight(right - getDecoratedRight(child));
-//                        Log.e(TAG, "left=" + child.getLeft());
-//                    }
+                if (centerX != targetCenterX) {
+                    int newCenterX = (int) (centerX + (targetCenterX - centerX) * p);
+                    offsetChildrenHorizontal(newCenterX - lastCenterX);
+                    lastCenterX = newCenterX;
                 }
 
+                if (tx != 0) {
+                    current.setTranslationX(tx * (1f - p));
+                }
+                if (ty != 0) {
+                    current.setTranslationY(ty * (1f - p));
+                }
+
+                if (finalPre != null) {
+                    finalPre.setTranslationX(preX * (1f - p));
+                }
+
+                if (finalNext != null) {
+                    finalNext.setTranslationX(nextX * (1f - p));
+                }
             }
         });
 
@@ -463,6 +434,9 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
         if (current == null) {
             return;
         }
+
+        final View pre = findViewByPosition(targetPosition - 1);
+        final View next = findViewByPosition(targetPosition + 1);
         mRecyclerView.setLayoutFrozen(true);
         expand = true;
 
@@ -482,59 +456,55 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
 
         animator.setDuration(500);
         animator.setInterpolator(new FastOutSlowInInterpolator());
+
+         float transX = (getWidth() - mChildWidth) / 2f;
+//        ViewAnimator currentViewAnimator = new ViewAnimator(current, 0, 0, mScale, mScale);
+//        ViewAnimator preViewAnimator = new ViewAnimator(pre, -transX, 0, mScale, mScale);
+//        ViewAnimator nextViewAnimator = new ViewAnimator(next, transX, 0, mScale, mScale);
+
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
 
-            private int lastLeft = left;
-            private int lastRight = right;
+            private int centerX = (left + right) / 2;
+            private int targetCenterX = endRect.centerX();
+
+            private int lastCenterX = centerX;
+
+            private float tx = current.getTranslationX();
+            private float ty = current.getTranslationY();
+
+            private float preX = pre == null ? 0 : pre.getTranslationX();
+            private float nextX = next == null ? 0 : next.getTranslationX();
+
+            private float nearX = (getWidth() - mChildWidth) / 2f;
 
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 float p = (float) animation.getAnimatedValue();
 
-                int newLeft = (int) (left + (endRect.left - left) * p);
-                int newTop = (int) (top + (endRect.top - top) * p);
-                int newRight = (int) (right + (endRect.right - right) * p);
-                int newBottom = (int) (bottom + (endRect.bottom - bottom) * p);
+                float scale = startScale + deltaScale * p;
+                current.setScaleX(scale);
+                current.setScaleY(scale);
 
-                layoutDecorated(current, newLeft, newTop, newRight, newBottom);
 
-//                float scale = startScale + deltaScale * p;
-//                current.setScaleX(scale);
-//                current.setScaleY(scale);
+                if (centerX != targetCenterX) {
+                    int newCenterX = (int) (centerX + (targetCenterX - centerX) * p);
+                    offsetChildrenHorizontal(newCenterX - lastCenterX);
+                    lastCenterX = newCenterX;
+                }
 
-                int offsetPre = newLeft - lastLeft;
-                int offsetNext = newRight - lastRight;
+                if (tx != 0) {
+                    current.setTranslationX(tx * p);
+                }
+                if (ty != 0) {
+                    current.setTranslationY(ty * p);
+                }
 
-                lastLeft = newLeft;
-                lastRight = newRight;
+                if (pre != null) {
+                    pre.setTranslationX(preX - (nearX + preX) * p);
+                }
 
-                for (int i = 0; i < getChildCount(); i++) {
-                    View child = getChildAt(i);
-                    if (child == null) {
-                        continue;
-                    }
-                    int pos = getPosition(child);
-                    if (pos == targetPosition) {
-                        continue;
-                    }
-                    if (pos < targetPosition) {
-                        child.offsetLeftAndRight(offsetPre);
-                    } else {
-                        child.offsetLeftAndRight(offsetNext);
-                    }
-//                    if (pos < targetPosition) {
-//                        int left = newLeft - (targetPosition - pos) * (mChildWidth + mGap);
-//                        child.offsetLeftAndRight(left - getDecoratedLeft(child));
-//
-//                        layoutDecorated(child, left, getDecoratedTop(child),
-//                                left + mChildWidth, getDecoratedBottom(child));
-//                    } else {
-//                        int right = newRight + (pos - targetPosition) * (mChildWidth + mGap);
-//                        child.offsetLeftAndRight(right - getDecoratedRight(child));
-//
-//                        layoutDecorated(child, right - mChildWidth, getDecoratedTop(child),
-//                                right, getDecoratedBottom(child));
-//                    }
+                if (next != null) {
+                    next.setTranslationX(nextX + (nearX - nextX) * p);
                 }
             }
         });
@@ -548,7 +518,7 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
     }
 
 
-    public void moveDrag(int targetPosition, int x, int y, int dx, int dy) {
+    public void moveDrag(int targetPosition, float downX, float downY, int x, int y, int dx, int dy) {
 
         View current = findViewByPosition(targetPosition);
         if(current == null) {
@@ -557,29 +527,120 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
         }
 
 
-        int min = getHeight() / 4;
+        float p = Math.max(0.4f, mScale - (downY - y) / downY * 2f);
+        p = Math.min(mScale, p);
 
-        float p = (float) (Math.max(min, y)) / (getHeight() + min);
 
         Log.e(TAG, "moveDrag height=" + getHeight() + " width=" + getWidth()
                 + " x=" + x + " y=" + y
                 + " dx=" + dx + " dy=" + dy + " p=" + p);
 
 
-        int height = (int) (getHeight() * p);
-        int width = (int) (getWidth() * p);
-        int left = dx;
+        int height = (int) (mChildHeight * p);
+        int width = (int) (mChildWidth * p);
+
+
+        float px = downX / getWidth() ;
+        float py = downY / getHeight();
+        int left = (int) (x - px * width);
         int right = left + width;
-        int bottom = y;
-        int top = bottom - height;
 
-        layoutDecorated(current, left, top, right, bottom);
+        int top = (int) (y - py * height);
+        int bottom = top + height;
 
 
+        current.setScaleX(p);
+        current.setScaleY(p);
+        current.setTranslationX((left + right - getWidth()) / 2f);
+        current.setTranslationY((top + bottom - getHeight()) / 2f);
     }
 
     public void endDrag(int targetPosition, float velocityY) {
         idle(targetPosition);
+    }
+
+
+
+    private static class ViewAnimator {
+
+        private final View mView;
+
+        private final float mOldTranslationX;
+        private final float mOldTranslationY;
+
+        private final float mOldScaleX;
+        private final float mOldScaleY;
+
+        private float mTargetTranslationX;
+        private float mTargetTranslationY;
+
+        private float mTargetScaleX;
+        private float mTargetScaleY;
+
+        private ViewAnimator(View view) {
+            this.mView = view;
+
+            mOldTranslationX = view.getTranslationX();
+            mOldTranslationY = view.getTranslationY();
+            mOldScaleX = view.getScaleX();
+            mOldScaleY = view.getScaleY();
+
+            mTargetTranslationX = mOldTranslationX;
+            mTargetTranslationY = mOldTranslationY;
+            mTargetScaleX = mOldScaleX;
+            mTargetScaleY = mOldScaleY;
+        }
+
+        private ViewAnimator(View view, float targetTranslationX, float targetTranslationY,
+                             float targetScaleX, float targetScaleY) {
+            this.mView = view;
+
+            mOldTranslationX = view.getTranslationX();
+            mOldTranslationY = view.getTranslationY();
+            mOldScaleX = view.getScaleX();
+            mOldScaleY = view.getScaleY();
+
+            mTargetTranslationX = targetTranslationX;
+            mTargetTranslationY = targetTranslationY;
+            mTargetScaleX = targetScaleX;
+            mTargetScaleY = targetScaleY;
+        }
+
+        public void setTargetScaleX(float targetScaleX) {
+            this.mTargetScaleX = targetScaleX;
+        }
+
+        public void setTargetScaleY(float targetScaleY) {
+            this.mTargetScaleY = targetScaleY;
+        }
+
+        public void setTargetTranslationX(float targetTranslationX) {
+            this.mTargetTranslationX = targetTranslationX;
+        }
+
+        public void setTargetTranslationY(float targetTranslationY) {
+            this.mTargetTranslationY = targetTranslationY;
+        }
+
+        public void update(float p) {
+            if (mTargetTranslationX != mOldTranslationX) {
+                mView.setTranslationX(mOldTranslationX + (mTargetTranslationX - mOldTranslationX) * p);
+            }
+            if (mTargetTranslationY != mOldTranslationY) {
+                mView.setTranslationY(mOldTranslationY + (mTargetTranslationY - mOldTranslationY) * p);
+            }
+            if (mTargetScaleX != mOldScaleX) {
+                mView.setScaleX(mOldScaleX + (mTargetScaleX - mOldScaleX) * p);
+            }
+            if (mTargetScaleY != mOldScaleY) {
+                mView.setScaleY(mOldScaleY + (mTargetScaleY - mOldScaleY) * p);
+            }
+        }
+
+//        public void start() {
+//
+//        }
+
     }
 
 
