@@ -3,14 +3,20 @@ package com.zpj.recycler.demo.manager;
 import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.graphics.Rect;
+import android.support.annotation.NonNull;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerViewHelper;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.view.animation.Interpolator;
+import android.widget.OverScroller;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class StackLayoutManager extends RecyclerView.LayoutManager {
@@ -19,16 +25,66 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
 
     private final RecyclerView mRecyclerView;
 
+    private final float mMinFlingVelocity;
+    private final float mMaxFlingVelocity;;
+
+    private OverScroller mScroller;
+
 
     private int mGap;
+    private int mWidth;
+    private int mHeight;
     private int mChildWidth;
     private int mChildHeight;
+    private final Rect mChildRect = new Rect();
     private float mScale = 1f;
 
+    private int mCurrentPosition = 0;
+
+    static final Interpolator sQuinticInterpolator = new Interpolator() {
+        @Override
+        public float getInterpolation(float t) {
+            t -= 1.0f;
+            return t * t * t * t * t + 1.0f;
+        }
+    };
 
     public StackLayoutManager(RecyclerView recyclerView) {
         mRecyclerView = recyclerView;
+        ViewConfiguration configuration = ViewConfiguration.get(recyclerView.getContext());
+        mMinFlingVelocity = configuration.getScaledMinimumFlingVelocity();
+        mMaxFlingVelocity = configuration.getScaledMaximumFlingVelocity();
+
+        mScroller = new OverScroller(recyclerView.getContext(), sQuinticInterpolator);
     }
+
+    public void setTargetPosition(int pos) {
+        this.mCurrentPosition = pos;
+    }
+
+    //    private void initTouchHelper(RecyclerView recyclerView) {
+//        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.Callback() {
+//            @Override
+//            public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+//                return makeMovementFlags(ItemTouchHelper.UP | ItemTouchHelper.DOWN
+//                        | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT, ItemTouchHelper.UP | ItemTouchHelper.DOWN);
+//            }
+//
+//            @Override
+//            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder viewHolder1) {
+//                Collections.swap(mData, from, to);
+//                notifyItemMove(from, to);
+//                return false;
+//            }
+//
+//            @Override
+//            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int pos) {
+//
+//            }
+//        });
+//        itemTouchHelper.attachToRecyclerView(recyclerView);
+//    }
+
 
     @Override
     public RecyclerView.LayoutParams generateDefaultLayoutParams() {
@@ -44,10 +100,21 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
     public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
 
 
-        mChildWidth = getWidth() / 3 * 2;
-        mChildHeight = getHeight() / 3 * 2;
-        mGap = (getWidth() - mChildWidth) / 5;
-        mScale = 1.5f;
+        if (mWidth != getWidth() || mHeight != getHeight()) {
+            mWidth = getWidth();
+            mHeight = getHeight();
+
+            mChildWidth = mWidth / 3 * 2;
+            mChildHeight = mHeight / 3 * 2;
+            mGap = (mWidth - mChildWidth) / 5;
+            mScale = 1.5f;
+
+            mChildRect.set((mWidth - mChildWidth) / 2, (mHeight - mChildHeight) / 2,
+                    (mWidth + mChildWidth) / 2, (mHeight + mChildHeight) / 2);
+        }
+
+
+
 
         // TODO currentPosition
         if (getChildCount() == 0) {
@@ -302,7 +369,20 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
         return expand;
     }
 
-    public void idle(final int targetPosition) {
+
+    public void idle() {
+        idle(mCurrentPosition);
+    }
+
+    public void idle(int targetPosition) {
+        idle(targetPosition, 1f);
+    }
+
+    private void hide(int targetPosition) {
+        idle(targetPosition, 0.2f);
+    }
+
+    private void idle(final int targetPosition, float endScale) {
 
         final View current = findViewByPosition(targetPosition);
         if (current == null) {
@@ -316,37 +396,38 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
         final int top = getDecoratedTop(current);
         final int bottom = getDecoratedBottom(current);
 
-        final Rect endRect = new Rect((getWidth() - mChildWidth) / 2, (getHeight() - mChildHeight) / 2,
-                (getWidth() + mChildWidth) / 2, (getHeight() + mChildHeight) / 2);
+//        final Rect endRect = new Rect(mChildRect);
 
-        View pre = findViewByPosition(targetPosition - 1);
-        View next = findViewByPosition(targetPosition + 1);
-
-        float nearX = (getWidth() - mChildWidth) / 2f;
-
-        if (targetPosition > 0 && targetPosition < getItemCount() - 1) {
-            if (pre == null) {
-                View child = RecyclerViewHelper.getRecycler(mRecyclerView).getViewForPosition(targetPosition - 1);
-                addView(child, 0);
-                measureChild(child, 0, 0);
-                layoutDecorated(child, left - mChildWidth - mGap, (getHeight() - mChildHeight) / 2, left - mGap, (getHeight() + mChildHeight) / 2);
-                child.setTranslationX(-nearX);
-                pre = child;
-            }
-
-            if (next == null) {
-                View child = RecyclerViewHelper.getRecycler(mRecyclerView).getViewForPosition(targetPosition + 1);
-                addView(child);
-                measureChild(child, 0, 0);
-                layoutDecorated(child, right + mGap, (getHeight() - mChildHeight) / 2, right + mGap + mChildWidth, (getHeight() + mChildHeight) / 2);
-                child.setTranslationX(nearX);
-                next = child;
-            }
+        View pre = obtainPreChild(current);
+        if (pre != null && pre.getTranslationX() == 0) {
+            pre.setTranslationX(-mChildRect.left);
+        }
+        View next = obtainNextChild(current);
+        if (next != null && next.getTranslationX() == 0) {
+            next.setTranslationX(mChildRect.left);
         }
 
-        final float startScale = current.getScaleX();
-        final float endScale = 1f;
-        final float deltaScale = endScale - startScale;
+
+
+//        if (targetPosition > 0 && targetPosition < getItemCount() - 1) {
+//            if (pre == null) {
+//                View child = RecyclerViewHelper.getRecycler(mRecyclerView).getViewForPosition(targetPosition - 1);
+//                addView(child, 0);
+//                measureChild(child, 0, 0);
+//                layoutDecorated(child, left - mChildWidth - mGap, (getHeight() - mChildHeight) / 2, left - mGap, (getHeight() + mChildHeight) / 2);
+//                child.setTranslationX(-nearX);
+//                pre = child;
+//            }
+//
+//            if (next == null) {
+//                View child = RecyclerViewHelper.getRecycler(mRecyclerView).getViewForPosition(targetPosition + 1);
+//                addView(child);
+//                measureChild(child, 0, 0);
+//                layoutDecorated(child, right + mGap, (getHeight() - mChildHeight) / 2, right + mGap + mChildWidth, (getHeight() + mChildHeight) / 2);
+//                child.setTranslationX(nearX);
+//                next = child;
+//            }
+//        }
 
         ValueAnimator animator = ValueAnimator.ofFloat(0, 1f);
         animator.setDuration(500);
@@ -354,13 +435,21 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
 
         final List<ViewEvaluator> evaluators = new ArrayList<>();
         for (int i = 0; i < getChildCount(); i++) {
-            evaluators.add(new ViewEvaluator(getChildAt(i)));
+            View child = getChildAt(i);
+            if (child == null) {
+                continue;
+            }
+            if (targetPosition == getPosition(child)) {
+                evaluators.add(new ViewEvaluator(child, 0, 0, endScale, endScale));
+            } else {
+                evaluators.add(new ViewEvaluator(child));
+            }
         }
 
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
 
             private final int centerX = (left + right) / 2;
-            private final int targetCenterX = endRect.centerX();
+            private final int targetCenterX = getWidth() / 2;
 
             private int lastCenterX = centerX;
 
@@ -408,6 +497,10 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
         }
         mAnimator = animator;
         animator.start();
+    }
+
+    public void expand() {
+        expand(mCurrentPosition);
     }
 
     public void expand(final int targetPosition) {
@@ -465,6 +558,7 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
             public void onAnimationUpdate(ValueAnimator animation) {
                 float p = (float) animation.getAnimatedValue();
 
+                // TODO 动画结束时直接offsetChildrenHorizontal
                 if (centerX != targetCenterX) {
                     int newCenterX = (int) (centerX + (targetCenterX - centerX) * p);
                     offsetChildrenHorizontal(newCenterX - lastCenterX);
@@ -476,6 +570,29 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
                 }
             }
         });
+//        animator.addListener(new Animator.AnimatorListener() {
+//            @Override
+//            public void onAnimationStart(Animator animation) {
+//
+//            }
+//
+//            @Override
+//            public void onAnimationEnd(Animator animation) {
+//                int centerX = (left + right) / 2;
+//                int targetCenterX = endRect.centerX();
+//                offsetChildrenHorizontal(targetCenterX - centerX);
+//            }
+//
+//            @Override
+//            public void onAnimationCancel(Animator animation) {
+//
+//            }
+//
+//            @Override
+//            public void onAnimationRepeat(Animator animation) {
+//
+//            }
+//        });
 
         if (mAnimator != null) {
             mAnimator.cancel();
@@ -485,6 +602,9 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
         animator.start();
     }
 
+    public void moveDrag(float downX, float downY, int x, int y, int dx, int dy) {
+        moveDrag(mCurrentPosition, downX, downY, x, y, dx, dy);
+    }
 
     public void moveDrag(int targetPosition, float downX, float downY, int x, int y, int dx, int dy) {
 
@@ -523,10 +643,181 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
         current.setTranslationY((top + bottom - getHeight()) / 2f);
     }
 
-    public void endDrag(int targetPosition, float velocityY) {
-        idle(targetPosition);
+    public void endDrag(float velocityY) {
+        endDrag(mCurrentPosition, velocityY);
     }
 
+    public void endDrag(int targetPosition, float velocityY) {
+        View current = findViewByPosition(targetPosition);
+        if(current == null) {
+            // TODO getView
+            return;
+        }
+
+
+
+
+        mScroller.fling(0, 0, 0, (int) -velocityY, Integer.MIN_VALUE,
+                Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE);
+
+        int finalY = mScroller.getFinalY();
+        this.mScroller.forceFinished(true);
+
+        float scale = current.getScaleX();
+        Log.e(TAG, "endDrag scale=" + scale + " velocityY=" + velocityY
+                + " minV=" + mMinFlingVelocity + " maxV=" + mMaxFlingVelocity + " finalY=" + finalY);
+        if (scale > 1.3f || velocityY > 5000) {
+            expand(targetPosition);
+        } else if (velocityY < -5000) {
+            hide(targetPosition);
+        } else {
+            idle(targetPosition);
+        }
+    }
+
+    public void swipeBy(float downX, float downY, int x, int y, int dx, int dy) {
+        swipeBy(mCurrentPosition, downX, downY, x, y, dx, dy);
+    }
+
+    public void swipeBy(int targetPosition, float downX, float downY, int x, int y, int dx, int dy) {
+        View current = findViewByPosition(targetPosition);
+        if(current == null) {
+            // TODO getView
+            return;
+        }
+
+
+        float p = Math.max(0.4f, mScale - (downY - y) / downY * 2f);
+        p = Math.min(mScale, p);
+
+
+        Log.e(TAG, "moveDrag height=" + getHeight() + " width=" + getWidth()
+                + " x=" + x + " y=" + y
+                + " dx=" + dx + " dy=" + dy + " p=" + p);
+
+
+        int height = (int) (mChildHeight * p);
+        int width = (int) (mChildWidth * p);
+
+
+        float px = downX / getWidth() ;
+        float py = downY / getHeight();
+        int left = (int) (x - px * width);
+        int right = left + width;
+
+        int top = (int) (y - py * height);
+        int bottom = top + height;
+
+
+        current.setScaleX(p);
+        current.setScaleY(p);
+        float translationX = (left + right - getWidth()) / 2f;
+        float translationY = (top + bottom - getHeight()) / 2f;
+        current.setTranslationX(translationX);
+        current.setTranslationY(translationY);
+
+        Log.e(TAG, "moveDrag translationX=" + translationX + " targetPosition=" + targetPosition);
+
+        if (translationX > 0) {
+            View pre = obtainPreChild(current);
+            if (pre != null) {
+                pre.setScaleX(p);
+                pre.setScaleY(p);
+
+//                left = right + mGap;
+                right = left - mGap;
+                left = right - width;
+
+                pre.setTranslationX((left + right - getDecoratedLeft(pre) - getDecoratedRight(pre)) / 2f);
+                pre.setTranslationY(translationY);
+            }
+        } else if (translationX < 0) {
+            View next = obtainNextChild(current);
+            if (next != null) {
+                next.setScaleX(p);
+                next.setScaleY(p);
+
+                left = right + mGap;
+                right = left + width;
+
+
+                next.setTranslationX((left + right - getDecoratedLeft(next) - getDecoratedRight(next)) / 2f);
+                next.setTranslationY(translationY);
+            }
+        }
+    }
+
+    public void endSwipe(float velocityY) {
+        endSwipe(mCurrentPosition, velocityY);
+    }
+
+    public void endSwipe(int targetPosition, float velocityY) {
+
+        View current = findViewByPosition(targetPosition);
+        if(current == null) {
+            // TODO getView
+            return;
+        }
+
+
+//        current.setScaleX(p);
+//        current.setScaleY(p);
+//        current.setTranslationX((left + right - getWidth()) / 2f);
+//        current.setTranslationY((top + bottom - getHeight()) / 2f);
+
+        float translationX = current.getTranslationX();
+        float scale = current.getScaleX();
+
+        if (translationX < 0) {
+
+            if (scale * mChildWidth / 2 + translationX < 0 && findViewByPosition(targetPosition + 1) != null) {
+                mCurrentPosition = targetPosition + 1;
+                expand(mCurrentPosition);
+            } else {
+                expand(targetPosition);
+            }
+        } else {
+            if (translationX - scale * mChildWidth / 2 > 0 && findViewByPosition(targetPosition - 1) != null) {
+                mCurrentPosition = targetPosition - 1;
+                expand(mCurrentPosition);
+            } else {
+                expand(targetPosition);
+            }
+        }
+    }
+
+
+
+
+    private View obtainPreChild(View current) {
+        int pos = getPosition(current);
+        if (pos > 0) {
+            View child = findViewByPosition(--pos);
+            if (child == null) {
+                child = RecyclerViewHelper.getRecycler(mRecyclerView).getViewForPosition(pos);
+                addView(child, 0);
+                measureChild(child, 0, 0);
+                layoutDecorated(child, getDecoratedLeft(current) - mChildWidth - mGap, (getHeight() - mChildHeight) / 2, getDecoratedLeft(current) - mGap, (getHeight() + mChildHeight) / 2);
+            }
+            return child;
+        }
+        return null;
+    }
+
+    private View obtainNextChild(View current) {
+        int pos = getPosition(current);
+        if (pos < getItemCount() - 1) {
+            View child = findViewByPosition(++pos);
+            if (child == null) {
+                child = RecyclerViewHelper.getRecycler(mRecyclerView).getViewForPosition(pos);
+                addView(child);
+                measureChild(child, 0, 0);
+                layoutDecorated(child, getDecoratedRight(current) + mGap, (getHeight() - mChildHeight) / 2, getDecoratedRight(current) + mGap + mChildWidth, (getHeight() + mChildHeight) / 2);
+            }
+            return child;
+        }
+        return null;
+    }
 
 
     private static class ViewEvaluator {
@@ -567,21 +858,21 @@ public class StackLayoutManager extends RecyclerView.LayoutManager {
             mTargetScaleY = targetScaleY;
         }
 
-        public void setTargetScaleX(float targetScaleX) {
-            this.mTargetScaleX = targetScaleX;
-        }
-
-        public void setTargetScaleY(float targetScaleY) {
-            this.mTargetScaleY = targetScaleY;
-        }
-
-        public void setTargetTranslationX(float targetTranslationX) {
-            this.mTargetTranslationX = targetTranslationX;
-        }
-
-        public void setTargetTranslationY(float targetTranslationY) {
-            this.mTargetTranslationY = targetTranslationY;
-        }
+//        public void setTargetScaleX(float targetScaleX) {
+//            this.mTargetScaleX = targetScaleX;
+//        }
+//
+//        public void setTargetScaleY(float targetScaleY) {
+//            this.mTargetScaleY = targetScaleY;
+//        }
+//
+//        public void setTargetTranslationX(float targetTranslationX) {
+//            this.mTargetTranslationX = targetTranslationX;
+//        }
+//
+//        public void setTargetTranslationY(float targetTranslationY) {
+//            this.mTargetTranslationY = targetTranslationY;
+//        }
 
         public void update(float p) {
             if (mView == null) {

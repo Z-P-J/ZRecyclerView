@@ -3,9 +3,7 @@ package com.zpj.recycler.demo;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.LinearSnapHelper;
-import android.support.v7.widget.PagerSnapHelper;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,15 +15,16 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.zpj.recycler.demo.manager.GalleryLayoutManager;
-import com.zpj.recycler.demo.manager.HorizontalDecoration;
-import com.zpj.recycler.demo.manager.RecentLayoutManager;
-import com.zpj.recycler.demo.manager.RecentLayoutManager2;
 import com.zpj.recycler.demo.manager.StackLayoutManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CustomLayoutManagerActivity extends AppCompatActivity {
 
     private static final String TAG = "CustomLayoutManager";
+
+    private final List<String> items = new ArrayList<>();
 
     private RecyclerView recyclerView;
     //    private GalleryLayoutManager layoutManager;
@@ -35,8 +34,6 @@ public class CustomLayoutManagerActivity extends AppCompatActivity {
     private View mBottomBar;
 
     private VelocityTracker mTracker;
-
-    private int mCurrentPosition;
 
     private float mDownX;
     private float mDownY;
@@ -63,9 +60,43 @@ public class CustomLayoutManagerActivity extends AppCompatActivity {
 //        recyclerView.setLayoutManager(new RecentLayoutManager());
 
 
+
         snapHelper.attachToRecyclerView(recyclerView);
 
-        recyclerView.setAdapter(new MyAdapter());
+        for (int i = 0; i < 50; i++) {
+            items.add("item " + i);
+        }
+
+        final MyAdapter adapter = new MyAdapter();
+        recyclerView.setAdapter(adapter);
+
+
+
+//        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.Callback() {
+//            @Override
+//            public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+//                return makeMovementFlags(ItemTouchHelper.UP | ItemTouchHelper.DOWN
+//                        | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT, ItemTouchHelper.UP | ItemTouchHelper.DOWN);
+//            }
+//
+//            @Override
+//            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder holder, @NonNull RecyclerView.ViewHolder holder1) {
+//                int from = holder.getAdapterPosition();
+//                int to = holder.getAdapterPosition();
+//                Collections.swap(items, from, to);
+//                adapter.notifyItemMoved(from, to);
+//                return true;
+//            }
+//
+//            @Override
+//            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
+//                int pos = viewHolder.getAdapterPosition();
+//                items.remove(pos);
+//                adapter.notifyItemRemoved(pos);
+//            }
+//        });
+//        itemTouchHelper.attachToRecyclerView(recyclerView);
+
 
 
 
@@ -75,19 +106,21 @@ public class CustomLayoutManagerActivity extends AppCompatActivity {
         mBottomBar = findViewById(R.id.bottom_bar);
         mBottomBar.setOnTouchListener(new View.OnTouchListener() {
             boolean isUp = false;
+            boolean isSwipe = false;
             @Override
             public boolean onTouch(View view, MotionEvent event) {
                 Log.d(TAG, "onTouch isExpand=" + layoutManager.isExpand());
                 if (!layoutManager.isExpand()) {
                     return false;
                 }
+
+                if (mTracker == null) {
+                    mTracker = VelocityTracker.obtain();
+                }
+                mTracker.addMovement(event);
+
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    if (mTracker == null) {
-                        mTracker = VelocityTracker.obtain();
-                    } else {
-                        mTracker.clear();
-                    }
-                    mTracker.addMovement(event);
+
                     mDownX = event.getRawX();
                     mDownY = event.getRawY();
                     mX = event.getX();
@@ -103,24 +136,42 @@ public class CustomLayoutManagerActivity extends AppCompatActivity {
 //                        }
 //                    }
 
-                    isUp = true;
-                    mTracker.addMovement(event);
 
+                    if (!isUp && !isSwipe) {
+                        if (Math.abs(deltaY) < Math.abs(deltaX)) {
+                            isSwipe = true;
+                            isUp = false;
+                        } else if (deltaY < 0) {
+                            isSwipe = false;
+                            isUp = true;
+                        } else {
+                            return false;
+                        }
+                    }
 
-
+//                    isUp = true;
 
                     int y = (int) (mY - event.getY()  + mBottomBar.getTop());
                     y = (int) (mBottomBar.getTop() + event.getY());
 
-                    layoutManager.moveDrag(mCurrentPosition, mX, mY, (int) event.getX(), y, (int) deltaX, (int) deltaY);
+                    if (isUp) {
+                        layoutManager.moveDrag(mX, mY, (int) event.getX(), y, (int) deltaX, (int) deltaY);
+                    } else if (isSwipe) {
+                        layoutManager.swipeBy(mX, mY, (int) event.getX(), y, (int) deltaX, (int) deltaY);
+                    }
+
+
                 } else if (event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP) {
-                    mTracker.addMovement(event);
                     mTracker.computeCurrentVelocity(1000, maxV);
                     Toast.makeText(CustomLayoutManagerActivity.this, "vX=" + mTracker.getXVelocity() + " vY=" + mTracker.getYVelocity(), Toast.LENGTH_SHORT).show();
 
                     if (isUp) {
-                        layoutManager.endDrag(mCurrentPosition, mTracker.getYVelocity());
+                        layoutManager.endDrag(mTracker.getYVelocity());
+                    } else if (isSwipe) {
+                        layoutManager.endSwipe(mTracker.getYVelocity());
                     }
+                    mTracker.recycle();
+                    mTracker = null;
 
                 }
                 return true;
@@ -131,7 +182,7 @@ public class CustomLayoutManagerActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if (layoutManager.isExpand()) {
-            layoutManager.idle(mCurrentPosition);
+            layoutManager.idle();
             return;
         }
         super.onBackPressed();
@@ -150,6 +201,8 @@ public class CustomLayoutManagerActivity extends AppCompatActivity {
 
     private class MyAdapter extends RecyclerView.Adapter<CustomViewHolder> {
 
+
+
         @NonNull
         @Override
         public CustomViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
@@ -162,7 +215,7 @@ public class CustomLayoutManagerActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull CustomViewHolder holder, int i) {
-            holder.mTvText.setText("pos " + i);
+            holder.mTvText.setText(items.get(i));
             holder.mTvText.setTag(i);
 //            holder.itemView.setScaleX(0.8f);
 //            holder.itemView.setScaleY(0.8f);
@@ -174,10 +227,12 @@ public class CustomLayoutManagerActivity extends AppCompatActivity {
 //                    snapHelper.attachToRecyclerView(null);
 
 
-                    mCurrentPosition = pos;
+//                    mCurrentPosition = pos;
+
+                    layoutManager.setTargetPosition(pos);
 
                     if (layoutManager.isExpand()) {
-                        layoutManager.idle(pos);
+                        layoutManager.idle();
                     } else {
                         layoutManager.expand(pos);
                     }
@@ -190,7 +245,7 @@ public class CustomLayoutManagerActivity extends AppCompatActivity {
 
         @Override
         public int getItemCount() {
-            return 50;
+            return items.size();
         }
     }
 
