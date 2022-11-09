@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearSnapHelper;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -18,6 +19,7 @@ import android.widget.Toast;
 import com.zpj.recycler.demo.manager.StackLayoutManager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class CustomLayoutManagerActivity extends AppCompatActivity {
@@ -72,36 +74,32 @@ public class CustomLayoutManagerActivity extends AppCompatActivity {
 
 
 
-//        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.Callback() {
-//            @Override
-//            public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
-//                return makeMovementFlags(ItemTouchHelper.UP | ItemTouchHelper.DOWN
-//                        | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT, ItemTouchHelper.UP | ItemTouchHelper.DOWN);
-//            }
-//
-//            @Override
-//            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder holder, @NonNull RecyclerView.ViewHolder holder1) {
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.Callback() {
+            @Override
+            public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                return makeMovementFlags(0, ItemTouchHelper.UP | ItemTouchHelper.DOWN);
+            }
+
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder holder, @NonNull RecyclerView.ViewHolder holder1) {
 //                int from = holder.getAdapterPosition();
 //                int to = holder.getAdapterPosition();
 //                Collections.swap(items, from, to);
 //                adapter.notifyItemMoved(from, to);
 //                return true;
-//            }
-//
-//            @Override
-//            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-//                int pos = viewHolder.getAdapterPosition();
-//                items.remove(pos);
-//                adapter.notifyItemRemoved(pos);
-//            }
-//        });
-//        itemTouchHelper.attachToRecyclerView(recyclerView);
+                return false;
+            }
 
-
-
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
+                int pos = viewHolder.getAdapterPosition();
+                items.remove(pos);
+                layoutManager.removeItem(pos);
+            }
+        });
+        itemTouchHelper.attachToRecyclerView(recyclerView);
 
         final int maxV = ViewConfiguration.get(this).getScaledMaximumFlingVelocity();
-
 
         mBottomBar = findViewById(R.id.bottom_bar);
         mBottomBar.setOnTouchListener(new View.OnTouchListener() {
@@ -120,11 +118,12 @@ public class CustomLayoutManagerActivity extends AppCompatActivity {
                 mTracker.addMovement(event);
 
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-
                     mDownX = event.getRawX();
                     mDownY = event.getRawY();
                     mX = event.getX();
                     mY = event.getY() + mBottomBar.getTop();
+                    isUp = false;
+                    isSwipe = false;
                 } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
                     float deltaX = event.getRawX() - mDownX;
                     float deltaY = event.getRawY() - mDownY;
@@ -172,7 +171,8 @@ public class CustomLayoutManagerActivity extends AppCompatActivity {
                     }
                     mTracker.recycle();
                     mTracker = null;
-
+                    isUp = false;
+                    isSwipe = false;
                 }
                 return true;
             }
@@ -214,30 +214,25 @@ public class CustomLayoutManagerActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onBindViewHolder(@NonNull CustomViewHolder holder, int i) {
+        public void onBindViewHolder(@NonNull final CustomViewHolder holder, int i) {
             holder.mTvText.setText(items.get(i));
-            holder.mTvText.setTag(i);
 //            holder.itemView.setScaleX(0.8f);
 //            holder.itemView.setScaleY(0.8f);
 
             holder.mTvText.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    int pos = (int) v.getTag();
-//                    snapHelper.attachToRecyclerView(null);
-
-
-//                    mCurrentPosition = pos;
+                    int pos = holder.getLayoutPosition();
 
                     layoutManager.setTargetPosition(pos);
 
                     if (layoutManager.isExpand()) {
                         layoutManager.idle();
                     } else {
-                        layoutManager.expand(pos);
+                        layoutManager.expand();
                     }
 
-                    Toast.makeText(CustomLayoutManagerActivity.this, "click " + pos, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(CustomLayoutManagerActivity.this, "click pos=" + pos, Toast.LENGTH_SHORT).show();
 
                 }
             });

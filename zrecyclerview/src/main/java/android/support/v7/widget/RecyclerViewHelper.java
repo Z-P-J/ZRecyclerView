@@ -104,4 +104,22 @@ public class RecyclerViewHelper {
         }
     }
 
+    public static void offsetPositionRecordsForRemove(RecyclerView recyclerView, int positionStart, int itemCount, boolean applyToPreLayout) {
+        int positionEnd = positionStart + itemCount;
+        int childCount = recyclerView.mChildHelper.getUnfilteredChildCount();
+
+        for(int i = 0; i < childCount; ++i) {
+            RecyclerView.ViewHolder holder = getChildViewHolderInt(recyclerView.mChildHelper.getUnfilteredChildAt(i));
+            if (holder != null && !holder.shouldIgnore()) {
+                if (holder.mPosition >= positionEnd) {
+                    holder.offsetPosition(-itemCount, applyToPreLayout);
+                } else if (holder.mPosition >= positionStart) {
+                    holder.flagRemovedAndOffsetPosition(positionStart - 1, -itemCount, applyToPreLayout);
+                }
+            }
+        }
+
+        recyclerView.mRecycler.offsetPositionRecordsForRemove(positionStart, itemCount, applyToPreLayout);
+    }
+
 }
