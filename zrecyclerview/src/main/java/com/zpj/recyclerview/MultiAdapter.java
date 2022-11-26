@@ -157,6 +157,16 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         }
     }
 
+    protected int getRealPosition(int position) {
+        if (headerView != null) {
+            position--;
+        }
+        if (mRefreshHeader != null) {
+            position--;
+        }
+        return position;
+    }
+
     @Override
     protected void onLoadMore() {
         if (mIsLoading) { //  || !isBottom()
@@ -173,42 +183,41 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         if (firstChild == null) {
             return;
         }
-        View lastChild = mRecyclerView.getChildAt(mRecyclerView.getLayoutManager().getChildCount() - 1);
+        RecyclerView.LayoutManager layoutManager = mRecyclerView.getLayoutManager();
+        if (layoutManager == null) {
+            return;
+        }
+        View lastChild = mRecyclerView.getChildAt(layoutManager.getChildCount() - 1);
         if (lastChild == null) {
             return;
         }
-        int start = mRecyclerView.getLayoutManager().getPosition(firstChild);
-        int position = mRecyclerView.getLayoutManager().getPosition(lastChild);
-        Log.d(TAG, "onLoadMore start=" + start + " pos=" + position);
+        int start = getRealPosition(mRecyclerView.getLayoutManager().getPosition(firstChild));
+        int end = getRealPosition(mRecyclerView.getLayoutManager().getPosition(lastChild));
+        Log.d(TAG, "onLoadMore start=" + start + " end=" + end);
 
         MultiData<?> multiData = null;
-        int count = 0;
+        int offset = 0;
         for (int i = 0; i < list.size(); i++) {
-            MultiData<?> data = list.get(i);
-
-            if (position >= count && start < count + data.getCount()) {
-                if (data.hasMore() && data.load(this)) {
-                    multiData = data;
-                    Log.d(TAG, "onLoadMore multiData=" + multiData);
-                }
-            } else if (position < count) {
+            if (end < offset) {
                 break;
             }
-            count  += data.getCount();
+            MultiData<?> data = list.get(i);
+            int max = offset + data.getCount();
+
+            if (max <= start) {
+                offset = max;
+                continue;
+            }
+
+            if (data.hasMore() && data.load(Math.max(0, start - offset), end - offset, this)) {
+                multiData = data;
+                Log.d(TAG, "onLoadMore multiData=" + multiData);
+            }
+            offset = max;
         }
 
-
-
-
-
-//        MultiData<?> multiData = null;
-//        for (MultiData<?> data : list) {
-//            if (data.hasMore()) {
-//                multiData = data;
-//                break;
-//            }
-//        }
         if (multiData != null) { //  && multiData.load(this)
+            Log.e(TAG, "onLoadMore---------hasMore=" + multiData.hasMore());
             if (footerViewHolder != null) {
                 footerViewHolder.onShowLoading();
             }

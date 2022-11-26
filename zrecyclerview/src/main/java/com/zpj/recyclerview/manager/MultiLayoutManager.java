@@ -13,7 +13,6 @@ import android.support.v7.widget.LinearSmoothScroller;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerViewHelper;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
@@ -22,6 +21,7 @@ import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 
 import com.zpj.recyclerview.EasyViewHolder;
+import com.zpj.recyclerview.GroupMultiData;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.layouter.AbsLayouter;
@@ -59,6 +59,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
     private float mDownX = -1;
     private float mDownY = -1;
 
+    private MultiData<?> mTopMultiData = null;
     private int mTopMultiDataIndex;
     private int mTopPosition;
     private int mTopOffset;
@@ -132,11 +133,13 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                         mOverScrollAnimator.pause();
                         mOverScrollAnimator = null;
                     }
-                    for (int i = 0; i < multiDataList.size(); i++) {
+
+                    List<MultiData<?>> dataList = getAllMultiData(multiDataList);
+                    for (int i = 0; i < dataList.size(); i++) {
                         if (i < mTopMultiDataIndex) {
                             continue;
                         }
-                        MultiData<?> multiData = multiDataList.get(i);
+                        MultiData<?> multiData = dataList.get(i);
                         Layouter layouter = multiData.getLayouter();
                         if (mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
                             Log.d(TAG, "onInterceptTouchEvent mDownX=" + mDownX + " mDownY=" + mDownY + " layouter=" + layouter);
@@ -146,6 +149,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                             }
                         }
                     }
+//                    onTouchDown(multiDataList);
                 } else if (MotionEvent.ACTION_MOVE == action) {
                     if (mScrollDirection == DIRECTION_NONE) {
                         float deltaX = Math.abs(event.getX() - mDownX);
@@ -208,6 +212,30 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
             public void onRequestDisallowInterceptTouchEvent(boolean b) {
 
             }
+
+            private void onTouchDown(List<MultiData<?>> dataList) {
+                for (int i = 0; i < dataList.size(); i++) {
+                    if (dataList == multiDataList && i < mTopMultiDataIndex) {
+                        continue;
+                    }
+                    MultiData<?> multiData = dataList.get(i);
+
+                    if (multiData instanceof GroupMultiData && multiData.getCount() > 0) {
+                        onTouchDown(dataList);
+                        continue;
+                    }
+
+                    Layouter layouter = multiData.getLayouter();
+                    if (mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
+                        Log.d(TAG, "onInterceptTouchEvent mDownX=" + mDownX + " mDownY=" + mDownY + " layouter=" + layouter);
+                        if (layouter.onTouchDown(multiData, mDownX, mDownY)) {
+                            mMultiData = multiData;
+                            break;
+                        }
+                    }
+                }
+            }
+
         });
 
         recycler.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -330,13 +358,19 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
         int positionOffset = 0;
         int topPosition = mTopPosition;
 
+
         Layouter last = null;
-        for (int i = 0; i < multiDataList.size(); i++) {
-            MultiData<?> multiData = multiDataList.get(i);
+        List<MultiData<?>> dataList = getAllMultiData(multiDataList);
+        boolean flag = mTopMultiData == null;
+        for (int i = 0; i < dataList.size(); i++) {
+            MultiData<?> multiData = dataList.get(i);
             Layouter layouter = multiData.getLayouter();
             layouter.setPositionOffset(positionOffset);
             layouter.setLayoutManager(this);
-            if (i >= mTopMultiDataIndex) {
+            if (!flag && multiData == mTopMultiData) {
+                flag = true;
+            }
+            if (flag) {
                 if (last != null) {
                     Log.d(TAG, "onLayoutChildren bottom=" + last.getBottom() + " i=" + i);
                     layouter.setTop(last.getBottom());
@@ -420,11 +454,26 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
     }
 
+    private List<MultiData<?>> getAllMultiData(List<MultiData<?>> dataList) {
+        List<MultiData<?>> list = new ArrayList<>();
+        for (MultiData<?> data : dataList) {
+            if (data instanceof GroupMultiData) {
+                if (data.getCount() > 0) {
+                    list.addAll(getAllMultiData(((GroupMultiData) data).getData()));
+                }
+            } else {
+                list.add(data);
+            }
+        }
+        return list;
+    }
+
     private void initStickyInfoStack(int position) {
         stickyInfoStack.clear();
         int offset = 0;
-        for (int i = 0; i < multiDataList.size(); i++) {
-            MultiData<?> multiData = multiDataList.get(i);
+        List<MultiData<?>> dataList = getAllMultiData(multiDataList);
+        for (int i = 0; i < dataList.size(); i++) {
+            MultiData<?> multiData = dataList.get(i);
             int count = getCount(multiData);
             for (int pos = offset; pos < offset + count; pos++) {
                 if (multiData.isStickyPosition(pos - offset)) {
@@ -485,6 +534,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
         if (multiDataList == null) {
             return 0;
         }
+        List<MultiData<?>> dataList = getAllMultiData(multiDataList);
 
         if (isOverScrolling) {
             overScrollDistance += dy;
@@ -548,10 +598,10 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
             Layouter layouter = multiData.getLayouter();
             Log.d(TAG, "scrollVerticallyBy firstChildPosition=" + getPosition(view));
             consumed -= layouter.fillVertical(view, dy - consumed, multiData);
-            i = multiDataList.indexOf(multiData);
+            i = dataList.indexOf(multiData);
             while (consumed > dy && i > 0) {
                 int top = layouter.getTop();
-                multiData = multiDataList.get(--i);
+                multiData = dataList.get(--i);
                 layouter = multiData.getLayouter();
                 layouter.setBottom(top);
                 Log.d(TAG, "scrollVerticallyBy layouter=" + layouter);
@@ -579,11 +629,11 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
             Layouter layouter = multiData.getLayouter();
             Log.w(TAG, "scrollVerticallyBy layouter=" + layouter);
             consumed += layouter.fillVertical(view, dy - consumed, multiData);
-            i = multiDataList.indexOf(multiData);
+            i = dataList.indexOf(multiData);
             Log.w(TAG, "scrollVerticallyBy consumedLast=" + consumed + " i=" + i + " lastPosition=" + getPosition(view));
-            while (consumed < dy && i < multiDataList.size() - 1) {
+            while (consumed < dy && i < dataList.size() - 1) {
                 int bottom = layouter.getBottom();
-                multiData = multiDataList.get(++i);
+                multiData = dataList.get(++i);
                 layouter = multiData.getLayouter();
                 Log.w(TAG, "scrollVerticallyBy layouter=" + layouter + " consumed=" + consumed);
                 layouter.setTop(bottom);
@@ -835,11 +885,14 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
         int positionOffset = 0;
 
-        for (int i = 0; i < multiDataList.size(); i++) {
-            MultiData<?> multiData = multiDataList.get(i);
+        List<MultiData<?>> dataList = getAllMultiData(multiDataList);
+        for (int i = 0; i < dataList.size(); i++) {
+            MultiData<?> multiData = dataList.get(i);
             int count = getCount(multiData);
             if (position >= positionOffset && position < positionOffset + count) {
                 mTopMultiDataIndex = i;
+                // TODO group
+                mTopMultiData = multiData;
                 mTopPosition = position - positionOffset;
                 mTopOffset = offset;
                 break;
@@ -915,15 +968,20 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
     private void saveState() {
         View firstView = getChildAt(0);
+        if (firstView == null) {
+            return;
+        }
         MultiData<?> data = getMultiData(firstView);
 
         if (data == null) {
             mTopMultiDataIndex = 0;
+            mTopMultiData = null;
             mTopPosition = 0;
             mTopOffset = 0;
         } else {
             Layouter layouter = data.getLayouter();
             mTopMultiDataIndex = multiDataList.indexOf(data);
+            mTopMultiData = data;
             mTopPosition = getPosition(firstView) - layouter.getPositionOffset();
 //            mTopOffset = layouter.getDecoratedTop(firstView);
             mTopOffset = 0;
