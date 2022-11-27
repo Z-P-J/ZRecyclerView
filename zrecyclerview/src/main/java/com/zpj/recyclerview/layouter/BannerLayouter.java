@@ -1,12 +1,11 @@
 package com.zpj.recyclerview.layouter;
 
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
 
-public class BannerLayouter extends ViewPagerLayouter {
+public class BannerLayouter extends PagerLayouter {
 
     private static final String TAG = "BannerLayouter";
 

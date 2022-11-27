@@ -21,23 +21,28 @@ public class ContainerLayouter extends AbsLayouter {
     private static final String TAG = "ContainerLayouter";
 
     @NonNull
-    private final AbsLayouter mLayouter;
+    private final Layouter mLayouter;
 
-    private final BaseMultiLayoutManager layoutManager = new ContainerLayoutManager(this);
+    protected final BaseMultiLayoutManager mContainerLayoutManager = new ContainerLayoutManager(this);
 
     public ContainerLayouter(@NonNull AbsLayouter layouter) {
         this.mLayouter = layouter;
     }
 
-    public AbsLayouter getLayouter() {
+    public Layouter getLayouter() {
         return mLayouter;
     }
 
     @Override
     public void setLayoutManager(BaseMultiLayoutManager manager) {
         super.setLayoutManager(manager);
-        layoutManager.attachRecycler(manager.getRecycler());
-        mLayouter.setLayoutManager(layoutManager);
+        mContainerLayoutManager.attachRecycler(manager.getRecycler());
+        mLayouter.setLayoutManager(mContainerLayoutManager);
+    }
+
+    @Override
+    protected ContainerLayoutHelper createLayoutHelper(BaseMultiLayoutManager manager) {
+        return new ContainerLayoutHelper(this, manager);
     }
 
     @Override
@@ -77,11 +82,6 @@ public class ContainerLayouter extends AbsLayouter {
     }
 
     @Override
-    public void offsetChildLeftAndRight(@NonNull View child, int offset) {
-        super.offsetChildLeftAndRight(child, offset);
-    }
-
-    @Override
     public void setPositionOffset(int offset) {
         super.setPositionOffset(offset);
         mLayouter.setPositionOffset(offset + 1);
@@ -97,32 +97,6 @@ public class ContainerLayouter extends AbsLayouter {
     public void addView(View child, int index) {
         ContainerLayout containerLayout = (ContainerLayout) findViewByPosition(mPositionOffset);
         containerLayout.addView(child, index);
-    }
-
-    @Override
-    public void scrapOrRecycleView(BaseMultiLayoutManager manager, int index, View view) {
-
-        for (int i = layoutManager.getChildCount() - 1; i >= 0; --i) {
-            View child = layoutManager.getChildAt(i);
-            mLayouter.scrapOrRecycleView(layoutManager, i, child);
-        }
-        Log.d(TAG, "scrapOrRecycleView index=" + index + " childCount=" + layoutManager.getChildCount());
-        super.scrapOrRecycleView(manager, index, view);
-    }
-
-    @Override
-    public void addViewToRecycler(View view) {
-        Log.d(TAG, "addViewToRecycler pos=" + getPosition(view));
-        offsetChildLeftAndRight(view, Integer.MAX_VALUE);
-        getLayoutManager().recycleViews.add(view);
-
-
-        for (int i = layoutManager.getChildCount() - 1; i >= 0; --i) {
-            View child = layoutManager.getChildAt(i);
-            mLayouter.scrapOrRecycleView(layoutManager, i, child);
-        }
-
-        Log.d(TAG, "addViewToRecycler childCount=" + layoutManager.getChildCount());
     }
 
     @Override
@@ -551,6 +525,37 @@ public class ContainerLayouter extends AbsLayouter {
 
         }
 
+
+    }
+
+    public static class ContainerLayoutHelper extends LayoutHelper {
+
+        protected final Layouter mChildLayouter;
+
+        public ContainerLayoutHelper(ContainerLayouter containerLayouter, BaseMultiLayoutManager layoutManager) {
+            super(layoutManager);
+            mChildLayouter = containerLayouter.mLayouter;
+        }
+
+        @Override
+        public void scrapOrRecycleView(int index, View view) {
+            scrapOrRecycleAllViews();
+            super.scrapOrRecycleView(index, view);
+        }
+
+        @Override
+        public void addViewToRecycler(View view) {
+            super.addViewToRecycler(view);
+            scrapOrRecycleAllViews();
+        }
+
+        protected void scrapOrRecycleAllViews() {
+            LayoutHelper helper = mChildLayouter.getLayoutHelper();
+            for (int i = helper.getChildCount() - 1; i >= 0; --i) {
+                View child = helper.getChildAt(i);
+                helper.scrapOrRecycleView(i, child);
+            }
+        }
 
     }
 }

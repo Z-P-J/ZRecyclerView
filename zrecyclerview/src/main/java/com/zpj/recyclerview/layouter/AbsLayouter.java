@@ -19,7 +19,7 @@ public abstract class AbsLayouter implements Layouter {
 
     private static final String TAG = "AbsLayouter";
 
-    private BaseMultiLayoutManager mManager;
+    private LayoutHelper mHelper;
     protected Flinger mFlinger;
 
     protected int mLeft;
@@ -34,7 +34,7 @@ public abstract class AbsLayouter implements Layouter {
 
     @Override
     public void layoutChildren(MultiData<?> multiData, int currentPosition) {
-        if (getLayoutManager() == null || getCount(multiData) == 0 || mTop > getHeight()) {
+        if (getLayoutHelper() == null || getCount(multiData) == 0 || mTop > getHeight()) {
             mBottom = mTop;
             return;
         }
@@ -116,12 +116,16 @@ public abstract class AbsLayouter implements Layouter {
 
     @Override
     public void setLayoutManager(BaseMultiLayoutManager manager) {
-        this.mManager = manager;
+        mHelper = createLayoutHelper(manager);
+    }
+
+    protected LayoutHelper createLayoutHelper(BaseMultiLayoutManager manager) {
+        return new LayoutHelper(manager);
     }
 
     @Override
-    public BaseMultiLayoutManager getLayoutManager() {
-        return mManager;
+    public LayoutHelper getLayoutHelper() {
+        return mHelper;
     }
 
     @Override
@@ -188,17 +192,6 @@ public abstract class AbsLayouter implements Layouter {
         }
     }
 
-    @Override
-    public void scrapOrRecycleView(BaseMultiLayoutManager manager, int index, View view) {
-        RecyclerViewHelper.scrapOrRecycleView(manager, index, view);
-    }
-
-    public void offsetChildLeftAndRight(@NonNull View child, int offset) {
-        if (offset != 0) {
-            child.offsetLeftAndRight(offset);
-        }
-    }
-
     protected void onAttached() {
 
     }
@@ -213,42 +206,33 @@ public abstract class AbsLayouter implements Layouter {
             mFlinger.stop();
         }
     }
-
-    @Override
-    public int getPosition(@NonNull View child) {
-        return getLayoutManager().getPosition(child);
+    
+    protected int getPosition(@NonNull View child) {
+        return mHelper.getPosition(child);
     }
 
-    @Override
-    public View findViewByPosition(int position) {
-        return getLayoutManager().findViewByPosition(position);
+    protected View findViewByPosition(int position) {
+        return mHelper.findViewByPosition(position);
     }
 
-    @Override
-    public int getDecoratedLeft(@NonNull View child) {
-        return getLayoutManager().getDecoratedLeft(child);
+    protected int getDecoratedLeft(@NonNull View child) {
+        return mHelper.getDecoratedLeft(child);
     }
 
-    @Override
-    public int getDecoratedTop(@NonNull View child) {
-        return getLayoutManager().getDecoratedTop(child);
+    protected int getDecoratedTop(@NonNull View child) {
+        return mHelper.getDecoratedTop(child);
     }
 
-    @Override
-    public int getDecoratedRight(@NonNull View child) {
-        return getLayoutManager().getDecoratedRight(child);
+    protected int getDecoratedRight(@NonNull View child) {
+        return mHelper.getDecoratedRight(child);
     }
 
-    @Override
-    public int getDecoratedBottom(@NonNull View child) {
-        return getLayoutManager().getDecoratedBottom(child);
+    protected int getDecoratedBottom(@NonNull View child) {
+        return mHelper.getDecoratedBottom(child);
     }
-
-    @Override
-    public void layoutDecorated(@NonNull View child, int left, int top, int right, int bottom) {
-        if (mManager != null) {
-            mManager.layoutDecorated(child, left, top, right, bottom);
-        }
+    
+    protected void layoutDecorated(@NonNull View child, int left, int top, int right, int bottom) {
+        mHelper.layoutDecorated(child, left, top, right, bottom);
     }
 
     @Override
@@ -262,18 +246,18 @@ public abstract class AbsLayouter implements Layouter {
     protected abstract int fillVerticalBottom(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom);
 
     public View getViewForPosition(int position) {
-        return getLayoutManager().getViewForPosition(position);
+        return  mHelper.getViewForPosition(position);
     }
 
     public View getViewForPosition(int position, MultiData<?> multiData) {
         View view = null;
         if (multiData.isStickyPosition(position - mPositionOffset)) {
-            view  = getLayoutManager().findViewByPosition(position);
+            view  =  mHelper.findViewByPosition(position);
         }
         if (view == null) {
             view = getViewForPosition(position);
         } else {
-            getLayoutManager().detachAndScrapView(view);
+             mHelper.detachAndScrapView(view);
         }
         MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
         params.setMultiData(multiData);
@@ -307,88 +291,88 @@ public abstract class AbsLayouter implements Layouter {
     }
 
     public void measureChild(@NonNull View child, int widthUsed, int heightUsed) {
-        getLayoutManager().measureChild(child, widthUsed, heightUsed);
+       mHelper.measureChild(child, widthUsed, heightUsed);
     }
 
     public void addView(View child) {
-        getLayoutManager().addView(child);
+         mHelper.addView(child);
     }
 
     public void addView(View child, int index) {
-        getLayoutManager().addView(child, index);
+         mHelper.addView(child, index);
     }
 
     public int getDecoratedMeasuredWidth(@NonNull View child) {
-        return getLayoutManager().getDecoratedMeasuredWidth(child);
+        return  mHelper.getDecoratedMeasuredWidth(child);
     }
 
     public int getDecoratedMeasuredHeight(@NonNull View child) {
-        return getLayoutManager().getDecoratedMeasuredHeight(child);
+        return  mHelper.getDecoratedMeasuredHeight(child);
     }
 
     @Px
     public int getWidth() {
-        return getLayoutManager().getWidth();
+        return  mHelper.getWidth();
     }
 
     @Px
     public int getHeight() {
-        return getLayoutManager().getHeight();
+        return  mHelper.getHeight();
     }
 
     @Px
     public int getPaddingLeft() {
-        return getLayoutManager().getPaddingLeft();
+        return  mHelper.getPaddingLeft();
     }
 
     @Px
     public int getPaddingTop() {
-        return getLayoutManager().getPaddingTop();
+        return  mHelper.getPaddingTop();
     }
 
     @Px
     public int getPaddingRight() {
-        return getLayoutManager().getPaddingRight();
+        return  mHelper.getPaddingRight();
     }
 
     @Px
     public int getPaddingBottom() {
-        return getLayoutManager().getPaddingBottom();
+        return  mHelper.getPaddingBottom();
     }
 
     @Px
     public int getPaddingStart() {
-        return getLayoutManager().getPaddingStart();
+        return  mHelper.getPaddingStart();
     }
 
     @Px
     public int getPaddingEnd() {
-        return getLayoutManager().getPaddingEnd();
+        return  mHelper.getPaddingEnd();
     }
 
     public int getChildCount() {
-        return getLayoutManager().getChildCount();
+        return  mHelper.getChildCount();
     }
 
     @Nullable
     public View getChildAt(int index) {
-        return getLayoutManager().getChildAt(index);
+        return  mHelper.getChildAt(index);
     }
 
     public MultiData<?> getMultiData(View child) {
-        return getLayoutManager().getMultiData(child);
+        return  mHelper.getMultiData(child);
     }
 
     public Layouter getLayouter(View child) {
-        return getLayoutManager().getLayouter(child);
+        return  mHelper.getLayouter(child);
     }
 
     public int indexOfChild(View child) {
-        return getLayoutManager().indexOfChild(child);
+        return  mHelper.indexOfChild(child);
     }
 
     public MultiRecycler getRecycler() {
-        return getLayoutManager().getRecycler();
+        return  mHelper.getRecycler();
     }
 
     public Context getContext() {
@@ -396,7 +380,7 @@ public abstract class AbsLayouter implements Layouter {
     }
 
     public int getCount(MultiData<?> multiData) {
-        return getLayoutManager().getCount(multiData);
+        return  mHelper.getCount(multiData);
     }
 
     @Override
@@ -434,22 +418,6 @@ public abstract class AbsLayouter implements Layouter {
         return false;
     }
 
-    @Override
-    public boolean shouldRecycleChildViewHorizontally(View view, int consumed) {
-        return getDecoratedRight(view) - consumed < 0 || getDecoratedLeft(view) - consumed > getWidth();
-    }
-
-    @Override
-    public boolean shouldRecycleChildViewVertically(View view, int consumed) {
-        return getDecoratedBottom(view) - consumed < 0 || getDecoratedTop(view) - consumed > getHeight();
-    }
-
-    @Override
-    public void addViewToRecycler(View view) {
-        offsetChildLeftAndRight(view, Integer.MAX_VALUE);
-        getLayoutManager().recycleViews.add(view);
-    }
-
     public void onFlingFinished() {
         isStopOverScrolling = false;
     }
@@ -474,6 +442,7 @@ public abstract class AbsLayouter implements Layouter {
     protected int mFirstPosition = 0;
     protected int mFirstOffset;
 
+    @Override
     public int scrollHorizontallyBy(int dx, MultiData<?> scrollMultiData) {
         if (scrollMultiData == null) {
             return 0;
@@ -509,7 +478,7 @@ public abstract class AbsLayouter implements Layouter {
                                 break;
                             }
                             Log.d(TAG, "scrollHorizontallyBy i=" + i);
-                            offsetChildLeftAndRight(child, -overScroll);
+                            mHelper.offsetChildLeftAndRight(child, -overScroll);
                         }
 
                         int firstPosition = getPosition(view);
@@ -581,10 +550,10 @@ public abstract class AbsLayouter implements Layouter {
                     continue;
                 }
 
-                if (shouldRecycleChildViewHorizontally(view, consumed)) {
-                    addViewToRecycler(view);
+                if (mHelper.shouldRecycleChildViewHorizontally(view, consumed)) {
+                    mHelper.addViewToRecycler(view);
                 } else {
-                    offsetChildLeftAndRight(view, -consumed);
+                    mHelper.offsetChildLeftAndRight(view, -consumed);
                     index = i;
                 }
             }
@@ -597,16 +566,16 @@ public abstract class AbsLayouter implements Layouter {
                     continue;
                 }
 
-                if (shouldRecycleChildViewHorizontally(view, consumed)) {
-                    addViewToRecycler(view);
+                if (mHelper.shouldRecycleChildViewHorizontally(view, consumed)) {
+                    mHelper.addViewToRecycler(view);
                 } else {
                     assert view != null;
-                    offsetChildLeftAndRight(view, -consumed);
+                    mHelper.offsetChildLeftAndRight(view, -consumed);
                 }
             }
         }
 
-        getLayoutManager().recycleViews();
+         mHelper.recycleViews();
 
 
         for (int i = 0; i < getChildCount(); i++) {
@@ -642,7 +611,7 @@ public abstract class AbsLayouter implements Layouter {
             for (int i = 0; i < getChildCount(); i++) {
                 View view = getChildAt(i);
                 if (getMultiData(view) == scrollMultiData) {
-                    offsetChildLeftAndRight(view, -overScroll);
+                    mHelper.offsetChildLeftAndRight(view, -overScroll);
                 }
             }
             consumed = dx;
@@ -676,7 +645,7 @@ public abstract class AbsLayouter implements Layouter {
             mFlinger.stop();
             if (overScrollDirection <= OVER_SCROLL_UP) {
                 if (overScrollDirection == OVER_SCROLL_DOWN) {
-                    final View firstChild = getLayoutManager().getFirstChild();
+                    final View firstChild =  mHelper.getFirstChild();
                     if (firstChild != null) {
                         final int firstTop = getDecoratedTop(firstChild);
                         if (firstTop > 0) {
@@ -684,7 +653,7 @@ public abstract class AbsLayouter implements Layouter {
                         }
                     }
                 } else if (overScrollDirection == OVER_SCROLL_UP) {
-                    View lastChild = getLayoutManager().getLastChild();
+                    View lastChild =  mHelper.getLastChild();
                     if (lastChild != null) {
                         final int bottom = getDecoratedBottom(lastChild);
                         if (bottom < getHeight()) {

@@ -13,7 +13,6 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.zpj.recycler.demo.mutildata.BaseHeaderMultiData;
-import com.zpj.recycler.demo.mutildata.TestContainerMultiData;
 import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
@@ -24,7 +23,7 @@ import com.zpj.recyclerview.layouter.GridLayouter;
 import com.zpj.recyclerview.layouter.HorizontalLayouter;
 import com.zpj.recyclerview.layouter.StaggeredGridLayouter;
 import com.zpj.recyclerview.layouter.VerticalLayouter;
-import com.zpj.recyclerview.layouter.ViewPagerLayouter;
+import com.zpj.recyclerview.layouter.PagerLayouter;
 import com.zpj.recyclerview.manager.MultiLayoutManager;
 import com.zpj.recyclerview.refresh.IRefresher;
 import com.zpj.recyclerview.refresh.SimpleRefresher;
@@ -157,11 +156,11 @@ public class LayoutManagerActivity extends AppCompatActivity {
             }
         });
 
-        final ViewPagerLayouter viewPagerLayouter = new ViewPagerLayouter();
-        viewPagerLayouter.setPageTransformer(new ViewPagerLayouter.PageTransformer() {
+        final PagerLayouter pagerLayouter = new PagerLayouter();
+        pagerLayouter.setPageTransformer(new PagerLayouter.PageTransformer() {
             @Override
             public void transformPage(@NonNull View page, float position) {
-                Log.d(TAG, "transformPage pos=" + viewPagerLayouter.getPosition(page) + " position=" + position);
+                Log.d(TAG, "transformPage pos=" + pagerLayouter.getLayoutHelper().getPosition(page) + " position=" + position);
                 if (position < -1) {
                     page.setAlpha(0f);
                 } else if (position <= 1) {
@@ -174,7 +173,7 @@ public class LayoutManagerActivity extends AppCompatActivity {
                 }
             }
         });
-        viewPagerLayouter.addOnPageChangeListener(new ViewPagerLayouter.OnPageChangeListener() {
+        pagerLayouter.addOnPageChangeListener(new PagerLayouter.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float offset, int offsetPixels) {
                 Log.d(TAG, "onPageScrolled position=" + position + " offset=" + offset + " offsetPixels=" + offsetPixels);
@@ -195,7 +194,7 @@ public class LayoutManagerActivity extends AppCompatActivity {
                 Log.d(TAG, "onPageScrollStateChanged state=" + state);
             }
         });
-        multiDataList.add(new LayouterMultiData(list, viewPagerLayouter) {
+        multiDataList.add(new LayouterMultiData(list, pagerLayouter) {
             @Override
             public int getLayoutId() {
                 return R.layout.item_banner;

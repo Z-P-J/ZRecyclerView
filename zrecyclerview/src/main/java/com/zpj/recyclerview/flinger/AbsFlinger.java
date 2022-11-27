@@ -38,7 +38,7 @@ public abstract class AbsFlinger implements Flinger, Runnable, Interpolator {
         }
         if (flag) {
             flag = false;
-            RecyclerViewHelper.startInterceptRequestLayout(mLayouter.getLayoutManager());
+            mLayouter.getLayoutHelper().startInterceptRequestLayout();
         }
         if (mScroller.computeScrollOffset()) {
             int x = mScroller.getCurrX();
@@ -122,7 +122,7 @@ public abstract class AbsFlinger implements Flinger, Runnable, Interpolator {
         mLayouter.onFlingFinished();
         if (!flag) {
             flag = true;
-            RecyclerViewHelper.stopInterceptRequestLayout(mLayouter.getLayoutManager());
+            mLayouter.getLayoutHelper().stopInterceptRequestLayout();
         }
     }
 
@@ -131,7 +131,7 @@ public abstract class AbsFlinger implements Flinger, Runnable, Interpolator {
         mLayouter.onFlingStopped();
         if (!flag) {
             flag = true;
-            RecyclerViewHelper.stopInterceptRequestLayout(mLayouter.getLayoutManager());
+            mLayouter.getLayoutHelper().stopInterceptRequestLayout();
         }
     }
 

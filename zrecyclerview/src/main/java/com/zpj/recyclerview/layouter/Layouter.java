@@ -11,7 +11,7 @@ public interface Layouter {
 
     void setLayoutManager(BaseMultiLayoutManager manager);
 
-    BaseMultiLayoutManager getLayoutManager();
+    LayoutHelper getLayoutHelper();
 
     void setLeft(int left);
 
@@ -41,19 +41,19 @@ public interface Layouter {
 
     int getChildOffset();
 
-    int getPosition(@NonNull View child);
-
-    View findViewByPosition(int position);
-
-    int getDecoratedLeft(@NonNull View child);
-
-    int getDecoratedTop(@NonNull View child);
-
-    int getDecoratedRight(@NonNull View child);
-
-    int getDecoratedBottom(@NonNull View child);
-
-    void layoutDecorated(@NonNull View child, int left, int top, int right, int bottom);
+//    int getPosition(@NonNull View child);
+//
+//    View findViewByPosition(int position);
+//
+//    int getDecoratedLeft(@NonNull View child);
+//
+//    int getDecoratedTop(@NonNull View child);
+//
+//    int getDecoratedRight(@NonNull View child);
+//
+//    int getDecoratedBottom(@NonNull View child);
+//
+//    void layoutDecorated(@NonNull View child, int left, int top, int right, int bottom);
 
     boolean canScrollHorizontally();
 
@@ -69,6 +69,8 @@ public interface Layouter {
 
     int fillHorizontal(View anchorView, int dx, MultiData<?> multiData);
 
+    int scrollHorizontallyBy(int dx, MultiData<?> scrollMultiData);
+
     void saveState(int firstPosition, int firstOffset);
 
     boolean onTouchDown(MultiData<?> multiData, float downX, float downY);
@@ -77,12 +79,12 @@ public interface Layouter {
 
     boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY);
 
-    void scrapOrRecycleView(BaseMultiLayoutManager manager, int index, View view);
+//    void scrapOrRecycleView(BaseMultiLayoutManager manager, int index, View view);
 
-    boolean shouldRecycleChildViewVertically(View view, int consumed);
+//    boolean shouldRecycleChildViewVertically(View view, int consumed);
+//
+//    boolean shouldRecycleChildViewHorizontally(View view, int consumed);
 
-    boolean shouldRecycleChildViewHorizontally(View view, int consumed);
-
-    void addViewToRecycler(View view);
+//    void addViewToRecycler(View view);
 
 }

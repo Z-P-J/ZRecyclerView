@@ -5,7 +5,8 @@ import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.layouter.AbsLayouter;
-import com.zpj.recyclerview.layouter.ViewPagerLayouter;
+import com.zpj.recyclerview.layouter.LayoutHelper;
+import com.zpj.recyclerview.layouter.PagerLayouter;
 
 public abstract class ViewPagerFlinger extends HorizontalFlinger {
 
@@ -15,17 +16,18 @@ public abstract class ViewPagerFlinger extends HorizontalFlinger {
 
     @Override
     public void fling(float velocityX, float velocityY) {
-        if (mMultiData != null && mLayouter instanceof ViewPagerLayouter) {
+        if (mMultiData != null && mLayouter instanceof PagerLayouter) {
             stop();
 
-            ViewPagerLayouter layouter = (ViewPagerLayouter) mLayouter;
+            PagerLayouter layouter = (PagerLayouter) mLayouter;
+            LayoutHelper helper = layouter.getLayoutHelper();
             int tempCurrentItem = layouter.getCurrentItem();
-            View current = layouter.findViewByPosition(layouter.getCurrentPosition());
-            int position = layouter.getPosition(current);
+            View current = helper.findViewByPosition(layouter.getCurrentPosition());
+            int position = helper.getPosition(current);
             int item = position - layouter.getPositionOffset();
 
-            int left = layouter.getDecoratedLeft(current);
-            int right = layouter.getDecoratedRight(current);
+            int left = helper.getDecoratedLeft(current);
+            int right = helper.getDecoratedRight(current);
 
             this.mScroller.fling(0, 0, (int) velocityX, 0,
                     Integer.MIN_VALUE, Integer.MAX_VALUE, 0, 0);
