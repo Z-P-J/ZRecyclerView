@@ -18,8 +18,8 @@ public class GridLayouter extends AbsLayouter {
 
     public void setSpanCount(int spanCount) {
         this.mSpanCount = spanCount;
-        if (getLayoutManager() != null) {
-            getLayoutManager().requestLayout();
+        if (getLayoutHelper() != null) {
+            getLayoutHelper().requestLayout();
         }
     }
 

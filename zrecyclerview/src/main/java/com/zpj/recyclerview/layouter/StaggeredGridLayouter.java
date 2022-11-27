@@ -133,7 +133,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
 
     @Override
     public void layoutChildren(MultiData<?> multiData, int currentPosition) {
-        if (getLayoutManager() == null || getCount(multiData) == 0 || mTop > getHeight()) {
+        if (getLayoutHelper() == null || getCount(multiData) == 0 || mTop > getHeight()) {
             mBottom = mTop;
             return;
         }

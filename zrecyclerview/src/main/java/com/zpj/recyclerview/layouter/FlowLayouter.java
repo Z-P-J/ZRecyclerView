@@ -1,6 +1,7 @@
 package com.zpj.recyclerview.layouter;
 
 import android.support.annotation.NonNull;
+import android.support.v7.widget.BaseMultiLayoutManager;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
@@ -75,39 +76,8 @@ public class FlowLayouter extends AbsLayouter {
     }
 
     @Override
-    public int getDecoratedLeft(@NonNull View child) {
-//        ItemState itemState = states.get(getPosition(child) - mPositionOffset);
-//        if (itemState.offsetX == mSpaceLeft + mSpaceRight) {
-//            return 0;
-//        }
-        return super.getDecoratedLeft(child) - mSpaceLeft;
-    }
-
-    @Override
-    public int getDecoratedTop(@NonNull View child) {
-//        ItemState itemState = states.get(getPosition(child) - mPositionOffset);
-//        if (itemState.row == 0) {
-//            return super.getDecoratedTop(child) - mSpaceTop - mSpaceBottom;
-//        }
-        return super.getDecoratedTop(child) - mSpaceTop;
-    }
-
-    @Override
-    public int getDecoratedRight(@NonNull View child) {
-//        ItemState itemState = states.get(getPosition(child) - mPositionOffset);
-//        if (itemState != null) {
-//            return itemState.offsetX + itemState.width + mSpaceRight;
-//        }
-        return super.getDecoratedRight(child) + mSpaceRight;
-    }
-
-    @Override
-    public int getDecoratedBottom(@NonNull View child) {
-//        ItemState itemState = states.get(getPosition(child) - mPositionOffset);
-//        if (itemState.row == 0) {
-//            super.getDecoratedTop(child) + mSpaceTop + mSpaceBottom;
-//        }
-        return super.getDecoratedBottom(child) + mSpaceBottom;
+    protected FlowLayoutHelper createLayoutHelper(BaseMultiLayoutManager manager) {
+        return new FlowLayoutHelper(this, manager);
     }
 
     @Override
@@ -153,7 +123,7 @@ public class FlowLayouter extends AbsLayouter {
 
             offsetX += (childWidth + mSpaceLeft + mSpaceRight);
 
-            getLayoutManager().recycleView(view);
+            getLayoutHelper().recycleView(view);
 
             Log.d(TAG, "initStates item=" + item);
         }
@@ -252,6 +222,37 @@ public class FlowLayouter extends AbsLayouter {
     @Override
     public int fillHorizontal(View anchorView, int dx, MultiData<?> multiData) {
         return 0;
+    }
+
+    public static class FlowLayoutHelper extends LayoutHelper {
+
+        protected final FlowLayouter mLayouter;
+
+        public FlowLayoutHelper(FlowLayouter layouter, BaseMultiLayoutManager layoutManager) {
+            super(layoutManager);
+            mLayouter = layouter;
+        }
+
+        @Override
+        public int getDecoratedLeft(@NonNull View child) {
+            return super.getDecoratedLeft(child) - mLayouter.getSpaceLeft();
+        }
+
+        @Override
+        public int getDecoratedTop(@NonNull View child) {
+            return super.getDecoratedTop(child) - mLayouter.getSpaceTop();
+        }
+
+        @Override
+        public int getDecoratedRight(@NonNull View child) {
+            return super.getDecoratedRight(child) + mLayouter.getSpaceRight();
+        }
+
+        @Override
+        public int getDecoratedBottom(@NonNull View child) {
+            return super.getDecoratedBottom(child) + mLayouter.getSpaceBottom();
+        }
+
     }
 
 }

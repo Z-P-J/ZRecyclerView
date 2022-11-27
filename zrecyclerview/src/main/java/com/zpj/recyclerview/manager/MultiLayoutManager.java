@@ -349,7 +349,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
             View v = this.getChildAt(i);
             Layouter layouter = getLayouter(v);
             Log.d(TAG, "onLayoutChildren scrapOrRecycleView layouter=" + layouter);
-            layouter.scrapOrRecycleView(this, i, v);
+            layouter.getLayoutHelper().scrapOrRecycleView(i, v);
         }
 
         StickyInfo temp = stickyInfo;
@@ -506,7 +506,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
         if (multiDataList == null || scrollMultiData == null) {
             return 0;
         }
-        return ((AbsLayouter) scrollMultiData.getLayouter()).scrollHorizontallyBy(dx, scrollMultiData);
+        return scrollMultiData.getLayouter().scrollHorizontallyBy(dx, scrollMultiData);
     }
 
     @Override
@@ -666,8 +666,8 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                 if (handleSticky(data, view, i, consumed)) {
                     continue;
                 }
-                if (layouter.shouldRecycleChildViewVertically(view, consumed)) {
-                    layouter.addViewToRecycler(view);
+                if (layouter.getLayoutHelper().shouldRecycleChildViewVertically(view, consumed)) {
+                    layouter.getLayoutHelper().addViewToRecycler(view);
                 } else {
                     view.offsetTopAndBottom(-consumed);
                 }
@@ -727,8 +727,8 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
         Log.e(TAG, "scrollVerticallyBy");
         Log.e(TAG, "scrollVerticallyBy ================================start");
         Log.d(TAG, "scrollVerticallyBy i=" + i + " stickyPosition=" + position);
-        int decoratedTop = layouter.getDecoratedTop(view);
-        int decoratedBottom = layouter.getDecoratedBottom(view);
+        int decoratedTop = layouter.getLayoutHelper().getDecoratedTop(view);
+        int decoratedBottom = layouter.getLayoutHelper().getDecoratedBottom(view);
 //                        Log.d(TAG, "scrollVerticallyBy decoratedTop=" + decoratedTop
 //                                + " decoratedBottom=" + decoratedBottom + " height=" + getDecoratedMeasuredHeight(view)
 //                                + " consumed=" + consumed + " dy=" + dy
@@ -798,7 +798,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                             + " pos=" + position + " stickyPos=" + stickyInfo.position);
                     if (decoratedTop - consumed <= 0) {
                         stickyInfoStack.push(stickyInfo);
-                        layouter.addViewToRecycler(child);
+                        layouter.getLayoutHelper().addViewToRecycler(child);
                         if (stickyInfo != null) {
                             stickyInfo.multiData.onItemSticky(new EasyViewHolder(child), stickyInfo.position - stickyInfo.multiData.getLayouter().getPositionOffset(), false);
                         }
@@ -810,10 +810,11 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                     } else if (decoratedTop - consumed < getDecoratedMeasuredHeight(child)) {
                         child.offsetTopAndBottom(-consumed);
 //                                    currentStickyOffset = Math.min(layouter.getDecoratedTop(child), getDecoratedMeasuredHeight(child));
-                        if (layouter.getDecoratedTop(child) > 0) {
-                            child.offsetTopAndBottom(-layouter.getDecoratedTop(child));
+                        int top = layouter.getLayoutHelper().getDecoratedTop(child);
+                        if (top > 0) {
+                            child.offsetTopAndBottom(-top);
                         }
-                        currentStickyOffset = layouter.getDecoratedTop(child);
+                        currentStickyOffset = layouter.getLayoutHelper().getDecoratedTop(child);
                         Log.d(TAG, "scrollVerticallyBy 更改吸顶 child continue currentStickyOffset=" + currentStickyOffset + " position=" + position);
                     } else {
                         currentStickyOffset = 0;
@@ -822,10 +823,11 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                     if (decoratedBottom - consumed >= 0) {
                         child.offsetTopAndBottom(-consumed);
 //                                    currentStickyOffset = Math.min(layouter.getDecoratedTop(child), getDecoratedMeasuredHeight(child));
-                        if (layouter.getDecoratedTop(child) > 0) {
-                            child.offsetTopAndBottom(-layouter.getDecoratedTop(child));
+                        int top = layouter.getLayoutHelper().getDecoratedTop(child);
+                        if (top > 0) {
+                            child.offsetTopAndBottom(-top);
                         }
-                        currentStickyOffset = layouter.getDecoratedTop(child);
+                        currentStickyOffset = layouter.getLayoutHelper().getDecoratedTop(child);
 
                     } else if (decoratedBottom - consumed > getDecoratedMeasuredHeight(child)) {
 //                                    currentStickyOffset = decoratedTop - getDecoratedMeasuredHeight() - consumed;

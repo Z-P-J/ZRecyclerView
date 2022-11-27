@@ -4,20 +4,26 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.Px;
 import android.support.v7.widget.BaseMultiLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.RecyclerViewHelper;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.manager.MultiLayoutParams;
 
-public class LayouterHelper {
+public class LayoutHelper {
     
     protected final BaseMultiLayoutManager mLayoutManager;
 
-    public LayouterHelper(BaseMultiLayoutManager layoutManager) {
+    public LayoutHelper(BaseMultiLayoutManager layoutManager) {
         mLayoutManager = layoutManager;
     }
-    
+
+    public BaseMultiLayoutManager getLayoutManager() {
+        return mLayoutManager;
+    }
+
     public int getPosition(@NonNull View child) {
         return mLayoutManager.getPosition(child);
     }
@@ -64,6 +70,32 @@ public class LayouterHelper {
     public void measureChild(@NonNull View child, int widthUsed, int heightUsed) {
         mLayoutManager.measureChild(child, widthUsed, heightUsed);
     }
+
+//    public View addView(int position, MultiData<?> multiData) {
+//        View view = getViewForPosition(position, multiData);
+//        addView(view);
+//        return view;
+//    }
+//
+//    public View addView(int position, int index, MultiData<?> multiData) {
+//        View view = getViewForPosition(position, multiData);
+//        addView(view, index);
+//        return view;
+//    }
+//
+//    public View addViewAndMeasure(int position, MultiData<?> multiData) {
+//        View view = getViewForPosition(position, multiData);
+//        addView(view);
+//        measureChild(view, 0, 0);
+//        return view;
+//    }
+//
+//    public View addViewAndMeasure(int position, int index, MultiData<?> multiData) {
+//        View view = getViewForPosition(position, multiData);
+//        addView(view, index);
+//        measureChild(view, 0, 0);
+//        return view;
+//    }
 
     public void addView(View child) {
         mLayoutManager.addView(child);
@@ -160,6 +192,53 @@ public class LayouterHelper {
 
     public View getLastChild() {
         return getChildAt(getChildCount() - 1);
+    }
+
+    public void layoutDecorated(@NonNull View child, int left, int top, int right, int bottom) {
+        mLayoutManager.layoutDecorated(child, left, top, right, bottom);
+    }
+
+    public void offsetChildLeftAndRight(@NonNull View child, int offset) {
+        if (offset != 0) {
+            child.offsetLeftAndRight(offset);
+        }
+    }
+
+    public void scrapOrRecycleView(int index, View view) {
+        RecyclerViewHelper.scrapOrRecycleView(mLayoutManager, index, view);
+    }
+
+    public void detachAndScrapView(@NonNull View child) {
+        mLayoutManager.detachAndScrapView(child);
+    }
+
+    public boolean shouldRecycleChildViewHorizontally(View view, int consumed) {
+        return getDecoratedRight(view) - consumed < 0 || getDecoratedLeft(view) - consumed > getWidth();
+    }
+
+    public boolean shouldRecycleChildViewVertically(View view, int consumed) {
+        return getDecoratedBottom(view) - consumed < 0 || getDecoratedTop(view) - consumed > getHeight();
+    }
+
+    public void addViewToRecycler(View view) {
+        offsetChildLeftAndRight(view, Integer.MAX_VALUE);
+        mLayoutManager.recycleViews.add(view);
+    }
+
+    public void requestLayout() {
+        mLayoutManager.requestLayout();
+    }
+
+    public void startInterceptRequestLayout() {
+        RecyclerViewHelper.startInterceptRequestLayout(mLayoutManager);
+    }
+
+    public void stopInterceptRequestLayout() {
+        RecyclerViewHelper.stopInterceptRequestLayout(mLayoutManager);
+    }
+
+    public void recycleView(View view) {
+        mLayoutManager.recycleView(view);
     }
     
 }
