@@ -7,7 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import com.zpj.recycler.demo.mutildata.ExpandableMultiData;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
-import com.zpj.recyclerview.manager.MultiLayoutManager;
+import com.zpj.recyclerview.core.MultiLayoutManager;
 import com.zpj.statemanager.State;
 
 import java.util.ArrayList;

@@ -5,7 +5,7 @@ import android.util.SparseIntArray;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.manager.MultiLayoutParams;
+import com.zpj.recyclerview.core.MultiLayoutParams;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -133,8 +133,8 @@ public class StaggeredGridLayouter extends AbsLayouter {
 
     @Override
     public void layoutChildren(MultiData<?> multiData, int currentPosition) {
-        if (getLayoutHelper() == null || getCount(multiData) == 0 || mTop > getHeight()) {
-            mBottom = mTop;
+        if (getLayoutHelper() == null || getCount(multiData) == 0 || getTop() > getHeight()) {
+            setBottom(getTop());
             return;
         }
 
@@ -142,13 +142,13 @@ public class StaggeredGridLayouter extends AbsLayouter {
 
         if (this.mTops == null || this.mPositions == null) {
             this.mTops = new int[mSpanCount];
-            Arrays.fill(this.mTops, mTop);
+            Arrays.fill(this.mTops, getTop());
             fillVertical(null, 1, multiData);
         } else {
-            if (mTop > 0) {
-                Arrays.fill(this.mTops, mTop);
+            if (getTop() > 0) {
+                Arrays.fill(this.mTops, getTop());
             }
-            int maxBottom = mBottom;
+            int maxBottom = getBottom();
             for (int i = 0; i < mSpanCount; i++) {
 
                 Column column = columns[i];
@@ -157,7 +157,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
                 int bottom = fillColumnBottom(multiData, column, getHeight(), position, mTops[i]);
                 maxBottom = Math.max(bottom, maxBottom);
             }
-            mBottom = maxBottom;
+            setBottom(maxBottom);
         }
     }
 
@@ -172,18 +172,18 @@ public class StaggeredGridLayouter extends AbsLayouter {
             if (anchorView == null) {
 
 
-                int maxBottom = mTop;
+                int maxBottom = getTop();
                 for (int i = 0; i < mSpanCount; i++) {
 
                     Column column = columns[i];
 //                    int position = column.positions.get(0);
 
-                    int bottom = fillColumnBottom(multiData, column, dy, -1, mTop);
+                    int bottom = fillColumnBottom(multiData, column, dy, -1, getTop());
                     maxBottom = Math.max(bottom, maxBottom);
                 }
 
-                mBottom = maxBottom;
-                return Math.min(dy, maxBottom - mTop);
+                setBottom(maxBottom);
+                return Math.min(dy, maxBottom - getTop());
             } else {
 
 
@@ -225,7 +225,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
 
                 }
 
-                int maxBottom = mBottom;
+                int maxBottom = getBottom();
                 for (int i = 0; i < mSpanCount; i++) {
 
                     Column column = columns[i];
@@ -234,25 +234,25 @@ public class StaggeredGridLayouter extends AbsLayouter {
                     int bottom = fillColumnBottom(multiData, column, dy, position, bottoms[i]);
                     maxBottom = Math.max(bottom, maxBottom);
                 }
-                mBottom = maxBottom;
+                setBottom(maxBottom);
                 return Math.min(dy, maxBottom - getHeight());
             }
         } else {
             // 从上往下滑动
             if (anchorView == null) {
 
-                int minTop = mBottom;
+                int minTop = getBottom();
                 for (int i = 0; i < mSpanCount; i++) {
 
                     Column column = columns[i];
 //                    int position = column.getLast();
 
-                    int top = fillColumnTop(multiData, column, dy, -1, mBottom + column.bottom);
+                    int top = fillColumnTop(multiData, column, dy, -1, getBottom() + column.bottom);
                     minTop = Math.min(top, minTop);
                 }
 
-                mTop = minTop;
-                return Math.min(-dy, mBottom - minTop);
+                setTop(minTop);
+                return Math.min(-dy, getBottom() - minTop);
             } else {
 
                 int childWidth = getWidth() / mSpanCount;
@@ -304,7 +304,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
                     }
                 }
 
-                int minTop = mTop;
+                int minTop = getTop();
                 for (int i = 0; i < mSpanCount; i++) {
 
                     Column column = columns[i];
@@ -315,8 +315,8 @@ public class StaggeredGridLayouter extends AbsLayouter {
                     minTop = Math.min(top, minTop);
                 }
 
-                mTop = minTop;
-                Log.d(TAG, "fillVertical anchorBottom=" + anchorBottom + " mTop=" + mTop);
+                setTop(minTop);
+                Log.d(TAG, "fillVertical anchorBottom=" + anchorBottom + " top=" + minTop);
                 return Math.min(-dy, -minTop);
             }
         }

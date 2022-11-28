@@ -164,7 +164,7 @@ public class FlowLayouter extends AbsLayouter {
                 bottom = top - mSpaceBottom;
             }
         }
-        mTop = top;
+        setTop(top);
         return availableSpace;
     }
 
@@ -214,7 +214,7 @@ public class FlowLayouter extends AbsLayouter {
             }
 
         }
-        mBottom = Math.max(bottom, mTop);
+        setBottom(Math.max(bottom, getTop()));
         return availableSpace;
 
     }

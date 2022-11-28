@@ -9,12 +9,13 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerViewHelper;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
-import com.zpj.recyclerview.manager.MultiLayoutParams;
+import com.zpj.recyclerview.core.MultiLayoutParams;
 
 public class ContainerLayouter extends AbsLayouter {
 
@@ -110,18 +111,18 @@ public class ContainerLayouter extends AbsLayouter {
     }
 
     @Override
-    public boolean onTouchDown(MultiData<?> multiData, float downX, float downY) {
-        return mLayouter.onTouchDown(multiData, downX, downY);
+    public boolean onTouchDown(MultiData<?> multiData, float downX, float downY, MotionEvent event) {
+        return mLayouter.onTouchDown(multiData, downX, downY, event);
     }
 
     @Override
-    public boolean onTouchMove(MultiData<?> multiData, float x, float y, float downX, float downY) {
-        return mLayouter.onTouchMove(multiData, x, y, downX, downY);
+    public boolean onTouchMove(MultiData<?> multiData, float x, float y, float downX, float downY, MotionEvent event) {
+        return mLayouter.onTouchMove(multiData, x, y, downX, downY, event);
     }
 
     @Override
-    public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY) {
-        return mLayouter.onTouchUp(multiData, velocityX, velocityY);
+    public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY, MotionEvent event) {
+        return mLayouter.onTouchUp(multiData, velocityX, velocityY, event);
     }
 
     @Override
@@ -136,7 +137,7 @@ public class ContainerLayouter extends AbsLayouter {
         mLayouter.layoutChildren(multiData, currentPosition + 1);
         setRight(getWidth());
         int height = mLayouter.getBottom() - mLayouter.getTop();
-        mBottom = mTop + height;
+        setBottom(getTop() + height);
         container.measure(View.MeasureSpec.makeMeasureSpec(getWidth(), View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY));
         super.layoutDecorated(container, getLeft(), getTop(), getRight(), getBottom());
@@ -171,9 +172,9 @@ public class ContainerLayouter extends AbsLayouter {
 
         if (dy > 0) {
             // 从下往上滑动
-            mBottom = mTop + height;
+            setBottom(getTop() + height);
         } else {
-            mTop = mBottom - height;
+            setTop(getBottom() - height);
         }
 
         containerLayout.measure(View.MeasureSpec.makeMeasureSpec(getWidth(), View.MeasureSpec.EXACTLY),
@@ -187,19 +188,21 @@ public class ContainerLayouter extends AbsLayouter {
 
         if (dy > 0) {
             // 从下往上滑动
-            if (mBottom > getHeight()) {
-                if (mBottom - dy > getHeight()) {
+            int bottom = getBottom();
+            if (bottom > getHeight()) {
+                if (bottom - dy > getHeight()) {
                     return dy;
                 } else {
-                    return mBottom - getHeight();
+                    return bottom - getHeight();
                 }
             }
         } else {
-            if (mTop < 0) {
-                if (mTop - dy < 0) {
+            int top = getTop();
+            if (top < 0) {
+                if (top - dy < 0) {
                     return -dy;
                 } else {
-                    return -mTop;
+                    return -top;
                 }
             }
         }

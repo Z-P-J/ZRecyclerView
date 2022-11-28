@@ -1,6 +1,7 @@
 package com.zpj.recyclerview.layouter;
 
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
@@ -25,7 +26,7 @@ public class BannerLayouter extends PagerLayouter {
                         return;
                     }
                     int dx = getDecoratedLeft(current) - getWidth();
-                    Log.d(TAG, "mAutoRunnable mFirstOffset=" + mFirstOffset + " dx=" + dx + " mTop=" + mTop + " mBottom=" + mBottom);
+                    Log.d(TAG, "mAutoRunnable mFirstOffset=" + mFirstOffset + " dx=" + dx + " mTop=" + getTop() + " mBottom=" + getBottom());
                     mFlinger.fling(dx * 10, 0);
                 }
                 startAutoPlay();
@@ -100,16 +101,19 @@ public class BannerLayouter extends PagerLayouter {
     }
 
     @Override
-    public boolean onTouchDown(MultiData<?> multiData, float downX, float downY) {
+    public boolean onTouchDown(MultiData<?> multiData, float downX, float downY, MotionEvent event) {
+        if (!canHandleTouch(downX, downY)) {
+            return false;
+        }
         Log.d(TAG, "onTouchDown downX=" + downX + " downY=" + downY);
         stopAutoPlay();
-        return super.onTouchDown(multiData, downX, downY);
+        return super.onTouchDown(multiData, downX, downY, event);
     }
 
     @Override
-    public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY) {
+    public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY, MotionEvent event) {
         Log.d(TAG, "onTouchUp velocityX=" + velocityX + " velocityY=" + velocityY);
-        boolean result = super.onTouchUp(multiData, velocityX, velocityY);
+        boolean result = super.onTouchUp(multiData, velocityX, velocityY, event);
         startAutoPlay();
         return result;
     }

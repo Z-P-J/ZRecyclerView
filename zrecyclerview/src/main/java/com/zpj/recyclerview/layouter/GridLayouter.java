@@ -74,7 +74,7 @@ public class GridLayouter extends AbsLayouter {
                 }
             }
         }
-        mTop = top;
+        setTop(top);
         return availableSpace;
     }
 
@@ -120,7 +120,7 @@ public class GridLayouter extends AbsLayouter {
                 }
             }
         }
-        mBottom = bottom;
+        setBottom(bottom);
         return availableSpace;
     }
 

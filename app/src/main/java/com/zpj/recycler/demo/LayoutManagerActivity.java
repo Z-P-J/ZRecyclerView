@@ -24,7 +24,7 @@ import com.zpj.recyclerview.layouter.HorizontalLayouter;
 import com.zpj.recyclerview.layouter.StaggeredGridLayouter;
 import com.zpj.recyclerview.layouter.VerticalLayouter;
 import com.zpj.recyclerview.layouter.PagerLayouter;
-import com.zpj.recyclerview.manager.MultiLayoutManager;
+import com.zpj.recyclerview.core.MultiLayoutManager;
 import com.zpj.recyclerview.refresh.IRefresher;
 import com.zpj.recyclerview.refresh.SimpleRefresher;
 

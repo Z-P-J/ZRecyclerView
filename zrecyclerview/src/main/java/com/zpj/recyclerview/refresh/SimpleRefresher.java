@@ -4,14 +4,9 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
-import android.support.v7.widget.BaseMultiLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerViewHelper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewParent;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
@@ -37,18 +32,24 @@ public class SimpleRefresher extends AbsRefresher {
     @Override
     public void onMove(float delta) {
         super.onMove(delta);
+
+        int d = Math.min((int) (delta / 2), 3 * mHeight);
+
         ViewGroup.LayoutParams params = view.getLayoutParams();
-        params.height = Math.min((int) (delta / 2), 3 * mHeight);
+        params.height = d;
         view.setLayoutParams(params);
 
-//        ViewParent parent = view.getParent();
-//        Log.d("SimpleRefresher", "parent=" + parent);
+//        ViewParent parent = getView().getParent();
 //        if (parent instanceof RecyclerView) {
 //            RecyclerView.LayoutManager manager = ((RecyclerView) parent).getLayoutManager();
-//            if (manager instanceof BaseMultiLayoutManager) {
-//                RecyclerViewHelper.dispatchLayout((BaseMultiLayoutManager) manager);
+//            RecyclerViewHelper.startInterceptRequestLayout(manager);
+//
+//            if (manager instanceof MultiLayoutManager) {
+//                ((MultiLayoutManager) manager).layoutChildren();
 //            }
 //        }
+
+
         if (params.height < mHeight) {
             showText(R.string.text_pull_to_refresh);
         } else {
@@ -116,17 +117,31 @@ public class SimpleRefresher extends AbsRefresher {
         mAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-                ViewGroup.LayoutParams params = view.getLayoutParams();
-                params.height = (int) (animation.getAnimatedValue());
-                view.setLayoutParams(params);
-                mDelta = params.height * 2;
-//                ViewParent parent = view.getParent();
+//                ViewParent parent = getView().getParent();
 //                if (parent instanceof RecyclerView) {
 //                    RecyclerView.LayoutManager manager = ((RecyclerView) parent).getLayoutManager();
 //                    if (manager instanceof BaseMultiLayoutManager) {
-//                        RecyclerViewHelper.dispatchLayout((BaseMultiLayoutManager) manager);
+////                        RecyclerViewHelper.dispatchLayout((BaseMultiLayoutManager) manager);
+//                        RecyclerViewHelper.stopInterceptRequestLayout(manager);
 //                    }
 //                }
+                ViewGroup.LayoutParams params = view.getLayoutParams();
+                params.height = (int) (animation.getAnimatedValue());
+//                Log.e("SimpleRefresher", "height=" + params.height + " parent=" + parent);
+                view.setLayoutParams(params);
+                mDelta = params.height * 2;
+
+
+//                ViewParent parent = getView().getParent();
+//                if (parent instanceof RecyclerView) {
+//                    RecyclerView.LayoutManager manager = ((RecyclerView) parent).getLayoutManager();
+//                    if (manager instanceof MultiLayoutManager) {
+////                        RecyclerViewHelper.dispatchLayout((BaseMultiLayoutManager) manager);
+//                        RecyclerViewHelper.startInterceptRequestLayout(manager);
+//                        ((MultiLayoutManager) manager).layoutChildren();
+//                    }
+//                }
+
             }
         });
         mAnimator.addListener(new AnimatorListenerAdapter() {

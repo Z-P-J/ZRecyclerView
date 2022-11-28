@@ -1,8 +1,7 @@
 package com.zpj.recyclerview.layouter;
 
-import android.support.annotation.NonNull;
 import android.support.v7.widget.BaseMultiLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import android.view.MotionEvent;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
@@ -41,29 +40,11 @@ public interface Layouter {
 
     int getChildOffset();
 
-//    int getPosition(@NonNull View child);
-//
-//    View findViewByPosition(int position);
-//
-//    int getDecoratedLeft(@NonNull View child);
-//
-//    int getDecoratedTop(@NonNull View child);
-//
-//    int getDecoratedRight(@NonNull View child);
-//
-//    int getDecoratedBottom(@NonNull View child);
-//
-//    void layoutDecorated(@NonNull View child, int left, int top, int right, int bottom);
-
     boolean canScrollHorizontally();
-
-//    int scrollHorizontallyBy(int dx, RecyclerView.State state);
 
     boolean canScrollVertically();
 
     void layoutChildren(MultiData<?> multiData, int currentPosition);
-
-//    int scrollVerticallyBy(int dy, RecyclerView.State state);
 
     int fillVertical(View anchorView, int dy, MultiData<?> multiData);
 
@@ -73,18 +54,12 @@ public interface Layouter {
 
     void saveState(int firstPosition, int firstOffset);
 
-    boolean onTouchDown(MultiData<?> multiData, float downX, float downY);
+    boolean onTouchDown(MultiData<?> multiData, float downX, float downY, MotionEvent event);
 
-    boolean onTouchMove(MultiData<?> multiData, float x, float y, float downX, float downY);
+    boolean onTouchMove(MultiData<?> multiData, float x, float y, float downX, float downY, MotionEvent event);
 
-    boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY);
+    boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY, MotionEvent event);
 
-//    void scrapOrRecycleView(BaseMultiLayoutManager manager, int index, View view);
-
-//    boolean shouldRecycleChildViewVertically(View view, int consumed);
-//
-//    boolean shouldRecycleChildViewHorizontally(View view, int consumed);
-
-//    void addViewToRecycler(View view);
+    boolean isAttached();
 
 }

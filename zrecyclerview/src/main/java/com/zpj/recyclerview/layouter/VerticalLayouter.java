@@ -39,7 +39,7 @@ public class VerticalLayouter extends AbsLayouter {
 
             bottom = top;
         }
-        mTop = top;
+        setTop(top);
         return availableSpace;
     }
 
@@ -63,7 +63,7 @@ public class VerticalLayouter extends AbsLayouter {
 
             top = bottom;
         }
-        mBottom = bottom;
+        setBottom(bottom);
         return availableSpace;
     }
 
