@@ -8,7 +8,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 
 import com.zpj.recyclerview.footer.DefaultFooterViewHolder;
-import com.zpj.recyclerview.manager.MultiLayoutManager;
 
 import java.util.List;
 

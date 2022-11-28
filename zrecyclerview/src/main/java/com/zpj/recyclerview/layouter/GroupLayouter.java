@@ -2,6 +2,7 @@
 //
 //import android.support.annotation.NonNull;
 //import android.support.v7.widget.BaseMultiLayoutManager;
+//import android.util.Log;
 //import android.view.View;
 //
 //import com.zpj.recyclerview.GroupMultiData;
@@ -20,6 +21,46 @@
 //    }
 //
 //    private Layouter mTouchLayouter;
+//
+//
+//
+//    protected int mPositionOffset;
+//
+//    protected int mFirstPosition = 0;
+//    protected int mFirstOffset;
+//
+//
+//    @Override
+//    public void layoutChildren(MultiData<?> data, int currentPosition) {
+//        // TODO
+//        int positionOffset = getPositionOffset();
+//
+//        int firstPosition = currentPosition - positionOffset;
+//
+//        Layouter last = null;
+//        for (MultiData<?> multiData : mGroupData.getData()) {
+//            Layouter layouter = multiData.getLayouter();
+//            layouter.setPositionOffset(positionOffset);
+//
+//
+//            if (positionOffset >= currentPosition) {
+//
+//            }
+//
+//            if (last != null) {
+//                layouter.setTop(last.getBottom());
+//                layouter.layoutChildren(multiData, positionOffset);
+//            } else {
+//                layouter.setTop(layouter.getTop() + mTopOffset);
+//                mTopOffset = 0;
+//                layouter.layoutChildren(multiData, mTopPosition + positionOffset);
+//                topPosition = mTopPosition + positionOffset;
+//            }
+//            last = layouter;
+//            positionOffset += getLayoutHelper().getCount(multiData);
+//        }
+//    }
+//
 //
 //    @Override
 //    public boolean onTouchDown(MultiData<?> multiData, float downX, float downY) {
@@ -53,23 +94,11 @@
 //    }
 //
 //    @Override
-//    public void scrapOrRecycleView(BaseMultiLayoutManager manager, int index, View view) {
-//
-//    }
-//
-//    @Override
-//    public void addViewToRecycler(View view) {
-//
-//    }
-//
-//    @Override
 //    public void setLayoutManager(BaseMultiLayoutManager manager) {
-//
-//    }
-//
-//    @Override
-//    public BaseMultiLayoutManager getLayoutManager() {
-//        return null;
+//        for (MultiData<?> data : mGroupData.getData()) {
+//            Layouter layouter = data.getLayouter();
+//            layouter.setLayoutManager(manager);
+//        }
 //    }
 //
 //    @Override
@@ -129,12 +158,12 @@
 //
 //    @Override
 //    public void setPositionOffset(int offset) {
-//
+//        mPositionOffset = offset;
 //    }
 //
 //    @Override
 //    public int getPositionOffset() {
-//        return 0;
+//        return mPositionOffset;
 //    }
 //
 //    @Override
@@ -158,11 +187,6 @@
 //    }
 //
 //    @Override
-//    public void layoutChildren(MultiData<?> multiData, int currentPosition) {
-//
-//    }
-//
-//    @Override
 //    public int fillVertical(View anchorView, int dy, MultiData<?> multiData) {
 //        return 0;
 //    }
@@ -173,7 +197,13 @@
 //    }
 //
 //    @Override
-//    public void saveState(int firstPosition, int firstOffset) {
+//    public int scrollHorizontallyBy(int dx, MultiData<?> scrollMultiData) {
+//        return 0;
+//    }
 //
+//    @Override
+//    public void saveState(int firstPosition, int firstOffset) {
+//        this.mFirstPosition = Math.max(0, firstPosition - getPositionOffset());
+//        this.mFirstOffset = firstOffset;
 //    }
 //}

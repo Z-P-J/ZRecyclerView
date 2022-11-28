@@ -4,6 +4,7 @@
 package com.zpj.recyclerview.layouter;
 
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
@@ -131,9 +132,9 @@ public class HorizontalLayouter extends AbsLayouter {
             layoutDecorated(view, left, top, right, bottom);
             left = right;
         }
-        mTop = top;
+        setTop(top);
         // TODO 如果有多行，需要减去anchorTop
-        return Math.min(-dy, - mTop);
+        return Math.min(-dy, -top);
     }
 
     @Override
@@ -164,9 +165,9 @@ public class HorizontalLayouter extends AbsLayouter {
             layoutDecorated(view, left, top, right, bottom);
             left += measuredWidth;
         }
-        mBottom = bottom;
+        setBottom(bottom);
         Log.d(TAG, "fillVerticalBottom dy=" + dy + " anchorBottom=" + anchorBottom + " bottom=" + bottom);
-        return Math.min(dy, mBottom - anchorBottom);
+        return Math.min(dy, bottom - anchorBottom);
     }
 
     @Override
@@ -262,13 +263,13 @@ public class HorizontalLayouter extends AbsLayouter {
     }
 
     @Override
-    public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY) {
+    public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY, MotionEvent event) {
         if (isInfinite()) {
             if (canScrollHorizontally() && mFlinger != null) {
                 mFlinger.fling(velocityX, velocityY);
             }
             return false;
         }
-        return super.onTouchUp(multiData, velocityX, velocityY);
+        return super.onTouchUp(multiData, velocityX, velocityY, event);
     }
 }

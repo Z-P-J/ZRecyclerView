@@ -8,9 +8,9 @@ import com.zpj.recyclerview.layouter.AbsLayouter;
 import com.zpj.recyclerview.layouter.LayoutHelper;
 import com.zpj.recyclerview.layouter.PagerLayouter;
 
-public abstract class ViewPagerFlinger extends HorizontalFlinger {
+public abstract class PagerFlinger extends HorizontalFlinger {
 
-    public ViewPagerFlinger(AbsLayouter layouter, MultiData<?> multiData) {
+    public PagerFlinger(AbsLayouter layouter, MultiData<?> multiData) {
         super(layouter, multiData);
     }
 

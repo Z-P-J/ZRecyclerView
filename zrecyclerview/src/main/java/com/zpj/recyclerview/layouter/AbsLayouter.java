@@ -5,15 +5,15 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.Px;
 import android.support.v7.widget.BaseMultiLayoutManager;
-import android.support.v7.widget.RecyclerViewHelper;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.flinger.Flinger;
 import com.zpj.recyclerview.flinger.HorizontalFlinger;
-import com.zpj.recyclerview.manager.MultiLayoutParams;
+import com.zpj.recyclerview.core.MultiLayoutParams;
 
 public abstract class AbsLayouter implements Layouter {
 
@@ -22,10 +22,10 @@ public abstract class AbsLayouter implements Layouter {
     private LayoutHelper mHelper;
     protected Flinger mFlinger;
 
-    protected int mLeft;
-    protected int mTop;
-    protected int mRight;
-    protected int mBottom;
+    private int mLeft;
+    private int mTop;
+    private int mRight;
+    private int mBottom;
 
     protected int mPositionOffset;
     protected int mChildOffset;
@@ -34,11 +34,12 @@ public abstract class AbsLayouter implements Layouter {
 
     @Override
     public void layoutChildren(MultiData<?> multiData, int currentPosition) {
-        if (getLayoutHelper() == null || getCount(multiData) == 0 || mTop > getHeight()) {
-            mBottom = mTop;
+        int availableSpace = getHeight() - getTop();
+        if (getLayoutHelper() == null || getCount(multiData) == 0 || availableSpace < 0) {
+            setBottom(getTop());
             return;
         }
-        fillVerticalBottom(multiData, currentPosition, getHeight() - mTop, getTop());
+        fillVerticalBottom(multiData, currentPosition, availableSpace, getTop());
     }
 
     @Override
@@ -136,6 +137,7 @@ public abstract class AbsLayouter implements Layouter {
     @Override
     public void setTop(int top) {
         this.mTop = top;
+        checkAttach();
     }
 
     @Override
@@ -146,6 +148,7 @@ public abstract class AbsLayouter implements Layouter {
     @Override
     public void setBottom(int bottom) {
         this.mBottom = bottom;
+        checkAttach();
     }
 
 
@@ -179,7 +182,12 @@ public abstract class AbsLayouter implements Layouter {
     public void offsetTopAndBottom(int offset) {
         this.mTop += offset;
         this.mBottom += offset;
-        if (mBottom < 0 || mTop > getHeight()) {
+
+        checkAttach();
+    }
+
+    private void checkAttach() {
+        if (getBottom() < 0 || getTop() > getHeight()) {
             if (mAttached) {
                 mAttached = false;
                 onDetached();
@@ -205,6 +213,10 @@ public abstract class AbsLayouter implements Layouter {
         if (mFlinger != null) {
             mFlinger.stop();
         }
+    }
+
+    public boolean isAttached() {
+        return mAttached;
     }
     
     protected int getPosition(@NonNull View child) {
@@ -383,9 +395,17 @@ public abstract class AbsLayouter implements Layouter {
         return  mHelper.getCount(multiData);
     }
 
+    private float mLastX;
+    private float mLastY;
+
     @Override
-    public boolean onTouchDown(MultiData<?> multiData, float downX, float downY) {
+    public boolean onTouchDown(MultiData<?> multiData, float downX, float downY, MotionEvent event) {
+        if (!canHandleTouch(downX, downY)) {
+            return false;
+        }
         if (canScrollHorizontally()) {
+            mLastX = downX;
+            mLastY = downY;
 //            getRecycler().getRecyclerView().stopScroll();
             if (mFlinger != null) {
                 mFlinger.stop();
@@ -397,17 +417,26 @@ public abstract class AbsLayouter implements Layouter {
         return false;
     }
 
+    protected boolean canHandleTouch(float downX, float downY) {
+        return isAttached() && downY >= getTop() & downY <= getBottom();
+    }
+
     protected Flinger createFlinger(MultiData<?> multiData) {
         return new HorizontalFlinger(this, multiData);
     }
 
     @Override
-    public boolean onTouchMove(MultiData<?> multiData, float x, float y, float downX, float downY) {
+    public boolean onTouchMove(MultiData<?> multiData, float x, float y, float downX, float downY, MotionEvent event) {
+        if (canScrollHorizontally()) {
+            int dx = (int) (mLastX - x);
+            mLastX = x;
+            return scrollHorizontallyBy(dx, multiData) != 0;
+        }
         return false;
     }
 
     @Override
-    public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY) {
+    public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY, MotionEvent event) {
         if (canScrollHorizontally()) {
             if (isOverScrolling) {
                 onStopOverScroll(multiData);
@@ -444,7 +473,7 @@ public abstract class AbsLayouter implements Layouter {
 
     @Override
     public int scrollHorizontallyBy(int dx, MultiData<?> scrollMultiData) {
-        if (scrollMultiData == null) {
+        if (scrollMultiData == null || dx == 0) {
             return 0;
         }
 

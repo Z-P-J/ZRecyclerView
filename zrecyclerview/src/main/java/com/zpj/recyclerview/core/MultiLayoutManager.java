@@ -1,4 +1,4 @@
-package com.zpj.recyclerview.manager;
+package com.zpj.recyclerview.core;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -24,10 +24,9 @@ import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.GroupMultiData;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
-import com.zpj.recyclerview.layouter.AbsLayouter;
 import com.zpj.recyclerview.layouter.Layouter;
+import com.zpj.recyclerview.layouter.RefresherLayouter;
 import com.zpj.recyclerview.layouter.StaggeredGridLayouter;
-import com.zpj.recyclerview.layouter.VerticalLayouter;
 import com.zpj.recyclerview.refresh.IRefresher;
 
 import java.util.ArrayDeque;
@@ -60,7 +59,6 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
     private float mDownY = -1;
 
     private MultiData<?> mTopMultiData = null;
-    private int mTopMultiDataIndex;
     private int mTopPosition;
     private int mTopOffset;
 
@@ -101,7 +99,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
         return true;
     }
 
-    public void attachRecycler(MultiRecycler recycler) {
+    public void attachRecycler(final MultiRecycler recycler) {
         super.attachRecycler(recycler);
         this.multiDataList = recycler.getItems();
         if (recycler.getRefresher() != null) {
@@ -116,6 +114,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
             private VelocityTracker mTracker;
             private MultiData<?> mMultiData = null;
+            private RefresherMultiData mRefresherData;
 
             @Override
             public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent event) {
@@ -126,6 +125,8 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                 }
                 mTracker.addMovement(event);
                 if (MotionEvent.ACTION_DOWN == action) {
+                    mMultiData = null;
+                    mRefresherData = null;
                     mScrollDirection = DIRECTION_NONE;
                     mDownX = event.getX();
                     mDownY = event.getY();
@@ -136,20 +137,18 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
                     List<MultiData<?>> dataList = getAllMultiData(multiDataList);
                     for (int i = 0; i < dataList.size(); i++) {
-                        if (i < mTopMultiDataIndex) {
-                            continue;
-                        }
                         MultiData<?> multiData = dataList.get(i);
                         Layouter layouter = multiData.getLayouter();
-                        if (mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
-                            Log.d(TAG, "onInterceptTouchEvent mDownX=" + mDownX + " mDownY=" + mDownY + " layouter=" + layouter);
-                            if (layouter.onTouchDown(multiData, mDownX, mDownY)) {
+                        Log.d(TAG, "onInterceptTouchEvent mDownX=" + mDownX + " mDownY=" + mDownY + " layouter=" + layouter);
+                        if (layouter.onTouchDown(multiData, mDownX, mDownY, event)) {
+                            if (multiData instanceof RefresherMultiData && !isOverScrolling) {
+                                mRefresherData = (RefresherMultiData) multiData;
+                            } else {
                                 mMultiData = multiData;
                                 break;
                             }
                         }
                     }
-//                    onTouchDown(multiDataList);
                 } else if (MotionEvent.ACTION_MOVE == action) {
                     if (mScrollDirection == DIRECTION_NONE) {
                         float deltaX = Math.abs(event.getX() - mDownX);
@@ -171,10 +170,17 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                             mScrollDirection = DIRECTION_VERTICAL;
                         }
                     }
-                    if (mScrollDirection == DIRECTION_HORIZONTAL) {
-                        if (mMultiData != null) {
-                            mMultiData.getLayouter().onTouchMove(mMultiData, event.getX(), event.getY(), mDownX, mDownY);
+
+                    if (mScrollDirection == DIRECTION_VERTICAL) {
+                        if (mRefresherData != null) {
+                            mRefresherData.getLayouter().onTouchMove(mRefresherData, event.getX(), event.getY(), mDownX, mDownY, event);
+                            mMultiData = null;
                         }
+                    } else if (mScrollDirection == DIRECTION_HORIZONTAL) {
+                        if (mMultiData != null) {
+                            mMultiData.getLayouter().onTouchMove(mMultiData, event.getX(), event.getY(), mDownX, mDownY, event);
+                        }
+                        mRefresherData = null;
                     }
                 } else if (MotionEvent.ACTION_UP == action || MotionEvent.ACTION_CANCEL == action) {
 
@@ -188,16 +194,25 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                         onStopOverScroll();
                     }
 
-                    if (mScrollDirection == DIRECTION_HORIZONTAL) {
-                        mScrollDirection = DIRECTION_NONE;
+                    int direction = mScrollDirection;
+                    if (direction == DIRECTION_HORIZONTAL) {
+                        mScrollDirection = DIRECTION_VERTICAL;
                         velocityY = 0f;
-                    } else if (mScrollDirection == DIRECTION_VERTICAL) {
+                    } else if (direction == DIRECTION_VERTICAL) {
                         velocityX = 0f;
                     }
+
+                    boolean result = false;
                     if (mMultiData != null) {
-                        mMultiData.getLayouter().onTouchUp(mMultiData, velocityX, velocityY);
+                        mMultiData.getLayouter().onTouchUp(mMultiData, velocityX, velocityY, event);
                         mMultiData = null;
+                        result = direction == DIRECTION_HORIZONTAL;
                     }
+                    if (mRefresherData != null) {
+                        result |= mRefresherData.getLayouter().onTouchUp(mRefresherData, velocityX, velocityY, event);
+                        mRefresherData = null;
+                    }
+                    return result;
                 }
                 return false;
             }
@@ -211,29 +226,6 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
             @Override
             public void onRequestDisallowInterceptTouchEvent(boolean b) {
 
-            }
-
-            private void onTouchDown(List<MultiData<?>> dataList) {
-                for (int i = 0; i < dataList.size(); i++) {
-                    if (dataList == multiDataList && i < mTopMultiDataIndex) {
-                        continue;
-                    }
-                    MultiData<?> multiData = dataList.get(i);
-
-                    if (multiData instanceof GroupMultiData && multiData.getCount() > 0) {
-                        onTouchDown(dataList);
-                        continue;
-                    }
-
-                    Layouter layouter = multiData.getLayouter();
-                    if (mDownY >= layouter.getTop() && mDownY <= layouter.getBottom()) {
-                        Log.d(TAG, "onInterceptTouchEvent mDownX=" + mDownX + " mDownY=" + mDownY + " layouter=" + layouter);
-                        if (layouter.onTouchDown(multiData, mDownX, mDownY)) {
-                            mMultiData = multiData;
-                            break;
-                        }
-                    }
-                }
             }
 
         });
@@ -331,8 +323,8 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
     @Override
     public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
 
-        Log.d(TAG, "onLayoutChildren mTopMultiDataIndex=" + mTopMultiDataIndex
-                + " mTopPosition=" + mTopPosition + " mTopOffset=" + mTopOffset + " isPreLayout=" + state.isPreLayout());
+        Log.d(TAG, "onLayoutChildren mTopPosition=" + mTopPosition
+                + " mTopOffset=" + mTopOffset + " isPreLayout=" + state.isPreLayout());
         Log.d(TAG, "onLayoutChildren state=" + state);
 
         if (multiDataList == null) {
@@ -368,11 +360,12 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
             layouter.setPositionOffset(positionOffset);
             layouter.setLayoutManager(this);
             if (!flag && multiData == mTopMultiData) {
+                Log.e(TAG, "i=" + i + " mTopMultiData=" + mTopMultiData);
                 flag = true;
             }
             if (flag) {
                 if (last != null) {
-                    Log.d(TAG, "onLayoutChildren bottom=" + last.getBottom() + " i=" + i);
+                    Log.d(TAG, "onLayoutChildren i=" + i + " bottom=" + last.getBottom());
                     layouter.setTop(last.getBottom());
                     layouter.layoutChildren(multiData, positionOffset);
                 } else {
@@ -490,6 +483,11 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
     @Override
     public boolean canScrollHorizontally() {
+        return false;
+//        return mScrollDirection == DIRECTION_HORIZONTAL;
+    }
+
+    public boolean isScrollHorizontally() {
         return mScrollDirection == DIRECTION_HORIZONTAL;
     }
 
@@ -503,15 +501,15 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
     }
 
     public int scrollHorizontallyBy(int dx, MultiData<?> scrollMultiData) {
-        if (multiDataList == null || scrollMultiData == null) {
-            return 0;
-        }
-        return scrollMultiData.getLayouter().scrollHorizontallyBy(dx, scrollMultiData);
+        return 0;
+//        if (multiDataList == null || scrollMultiData == null) {
+//            return 0;
+//        }
+//        return scrollMultiData.getLayouter().scrollHorizontallyBy(dx, scrollMultiData);
     }
 
     @Override
     public void offsetChildrenVertical(int dy) {
-
         if (isOverScrolling && stickyInfo != null && overScrollDirection == OVER_SCROLL_UP) {
             for (int i = 0; i < getChildCount(); i++) {
                 View child = getChildAt(i);
@@ -892,7 +890,6 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
             MultiData<?> multiData = dataList.get(i);
             int count = getCount(multiData);
             if (position >= positionOffset && position < positionOffset + count) {
-                mTopMultiDataIndex = i;
                 // TODO group
                 mTopMultiData = multiData;
                 mTopPosition = position - positionOffset;
@@ -976,20 +973,15 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
         MultiData<?> data = getMultiData(firstView);
 
         if (data == null) {
-            mTopMultiDataIndex = 0;
             mTopMultiData = null;
             mTopPosition = 0;
             mTopOffset = 0;
         } else {
             Layouter layouter = data.getLayouter();
-            mTopMultiDataIndex = multiDataList.indexOf(data);
             mTopMultiData = data;
             mTopPosition = getPosition(firstView) - layouter.getPositionOffset();
 //            mTopOffset = layouter.getDecoratedTop(firstView);
             mTopOffset = 0;
-
-//            Log.d(TAG, "onLayoutChildren mTopMultiDataIndex=" + mTopMultiDataIndex
-//                    + " mTopPosition=" + mTopPosition + " mTopOffset=" + mTopOffset + " getPosition=" + getPosition(firstView));
         }
     }
 
@@ -998,7 +990,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
         private final IRefresher mRefresher;
 
         public RefresherMultiData(IRefresher mRefresher) {
-            super(new VerticalLayouter());
+            super(new RefresherLayouter(mRefresher));
             hasMore = false;
             this.mRefresher = mRefresher;
         }

@@ -3,13 +3,13 @@ package com.zpj.recyclerview.layouter;
 import android.support.annotation.NonNull;
 import android.support.annotation.Px;
 import android.support.v7.widget.BaseMultiLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.flinger.Flinger;
-import com.zpj.recyclerview.flinger.ViewPagerFlinger;
+import com.zpj.recyclerview.flinger.PagerFlinger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -143,9 +143,9 @@ public class PagerLayouter extends AbsLayouter {
 
             layoutDecorated(view, left, top, right, bottom);
         }
-        mTop = top;
+        setTop(top);
         // TODO 如果有多行，需要减去anchorTop
-        return Math.min(-dy, - mTop);
+        return Math.min(-dy, -top);
     }
 
     @Override
@@ -185,7 +185,7 @@ public class PagerLayouter extends AbsLayouter {
 
             layoutDecorated(view, left, top, right, bottom);
         }
-        mBottom = bottom;
+        setBottom(bottom);
         return Math.min(dy, - anchorBottom);
     }
 
@@ -298,7 +298,7 @@ public class PagerLayouter extends AbsLayouter {
 
     @Override
     protected Flinger createFlinger(final MultiData<?> multiData) {
-        return new ViewPagerFlinger(this, multiData) {
+        return new PagerFlinger(this, multiData) {
             @Override
             protected void onItemSelected(int item) {
                 mCurrentItem = item;
@@ -329,8 +329,8 @@ public class PagerLayouter extends AbsLayouter {
     }
 
     @Override
-    public boolean onTouchDown(MultiData<?> multiData, float downX, float downY) {
-        boolean result = super.onTouchDown(multiData, downX, downY);
+    public boolean onTouchDown(MultiData<?> multiData, float downX, float downY, MotionEvent event) {
+        boolean result = super.onTouchDown(multiData, downX, downY, event);
         if (result && mScrollState == SCROLL_STATE_SETTLING) {
             setScrollState(SCROLL_STATE_DRAGGING);
         }
@@ -338,17 +338,17 @@ public class PagerLayouter extends AbsLayouter {
     }
 
     @Override
-    public boolean onTouchMove(MultiData<?> multiData, float x, float y, float downX, float downY) {
+    public boolean onTouchMove(MultiData<?> multiData, float x, float y, float downX, float downY, MotionEvent event) {
         if (this.mScrollState != SCROLL_STATE_DRAGGING) {
             setScrollState(SCROLL_STATE_DRAGGING);
         }
-        return super.onTouchMove(multiData, x, y, downX, downY);
+        return super.onTouchMove(multiData, x, y, downX, downY, event);
     }
 
     @Override
-    public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY) {
+    public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY, MotionEvent event) {
         setScrollState(SCROLL_STATE_SETTLING);
-        return super.onTouchUp(multiData, velocityX, velocityY);
+        return super.onTouchUp(multiData, velocityX, velocityY, event);
     }
 
     @Override

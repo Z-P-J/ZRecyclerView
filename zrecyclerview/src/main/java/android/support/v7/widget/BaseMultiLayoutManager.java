@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.layouter.Layouter;
-import com.zpj.recyclerview.manager.MultiLayoutParams;
+import com.zpj.recyclerview.core.MultiLayoutParams;
 
 import java.util.LinkedHashSet;
 import java.util.List;
