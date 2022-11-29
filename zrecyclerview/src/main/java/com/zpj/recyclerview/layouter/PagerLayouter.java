@@ -56,15 +56,21 @@ public class PagerLayouter extends AbsLayouter {
         return true;
     }
 
+//    @Override
+//    public void saveState(int firstPosition, int firstOffset) {
+//        View current = findViewByPosition(getCurrentPosition());
+//        this.mFirstOffset = getDecoratedLeft(current);
+//    }
+
     @Override
-    public void saveState(int firstPosition, int firstOffset) {
+    public void saveState(View firstChild) {
         View current = findViewByPosition(getCurrentPosition());
-        this.mFirstOffset = getDecoratedLeft(current);
+        super.saveState(current);
     }
 
     @Override
-    public void layoutChildren(MultiData<?> multiData, int currentPosition) {
-        super.layoutChildren(multiData, getCurrentPosition());
+    public void layoutChildren(MultiData<?> multiData) {
+        super.layoutChildren(multiData);
         if (mFlinger == null) {
             mFlinger = createFlinger(multiData);
         }
@@ -137,7 +143,7 @@ public class PagerLayouter extends AbsLayouter {
             }
             View view = addViewAndMeasure(position, index++, multiData);
 
-            left = mFirstOffset + (i - currentPosition) * getWidth();
+            left = mAnchorInfo.x + (i - currentPosition) * getWidth();
             right = left + getWidth();
             top = bottom - getDecoratedMeasuredHeight(view);
 
@@ -179,7 +185,7 @@ public class PagerLayouter extends AbsLayouter {
             Log.d(TAG, "fillVerticalBottom position=" + position);
             View view = addViewAndMeasure(position, multiData);
 
-            left = mFirstOffset + (i - currentPosition) * getWidth();
+            left = mAnchorInfo.x + (i - currentPosition) * getWidth();
             right = left + getWidth();
             bottom = top + getDecoratedMeasuredHeight(view);
 
@@ -314,7 +320,6 @@ public class PagerLayouter extends AbsLayouter {
 
             @Override
             public void onFinished() {
-//                Log.d(TAG, "onFinishedScroll mCurrentPosition=" + mCurrentItem + " mFirstPosition=" + mFirstPosition + " mFirstOffset=" + mFirstOffset);
                 setScrollState(SCROLL_STATE_IDLE);
                 if (mOnPageChangeListeners != null) {
                     for(int i = 0; i < mOnPageChangeListeners.size(); ++i) {
@@ -356,8 +361,8 @@ public class PagerLayouter extends AbsLayouter {
         if (mFlinger != null) {
             mFlinger.stop();
         }
-        if (mFirstOffset != 0) {
-            mFirstOffset = 0;
+        if (mAnchorInfo.x != 0) {
+            mAnchorInfo.x = 0;
         }
     }
 
@@ -404,15 +409,16 @@ public class PagerLayouter extends AbsLayouter {
                 return;
             }
             int delta = mCurrentItem - item;
-            int dx = delta * getWidth() - mFirstOffset;
+            int dx = delta * getWidth() - mAnchorInfo.x;
             mFlinger.scroll(dx, 0);
         } else {
             if (mFlinger != null) {
                 mFlinger.stop();
             }
             mCurrentItem = item;
-            mFirstPosition = item;
-            mFirstOffset = 0;
+            mAnchorInfo.position = item;
+            mAnchorInfo.x = 0;
+            mAnchorInfo.y = getTop();
             if (getLayoutHelper() != null) {
                 getLayoutHelper().requestLayout();
             }

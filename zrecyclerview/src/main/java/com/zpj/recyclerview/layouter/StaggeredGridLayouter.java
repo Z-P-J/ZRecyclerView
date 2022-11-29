@@ -66,7 +66,13 @@ public class StaggeredGridLayouter extends AbsLayouter {
         this.mSpanCount = Math.max(mSpanCount, 1);
     }
 
-    public void saveState() {
+//    public void saveState() {
+//
+//
+//    }
+
+    @Override
+    public void saveState(View firstChild) {
         int childWidth = getWidth() / mSpanCount;
         boolean[] places = new boolean[mSpanCount];
 
@@ -118,7 +124,6 @@ public class StaggeredGridLayouter extends AbsLayouter {
 
         Log.d(TAG, "layoutChildren saveState mTops=" + Arrays.toString(mTops));
         Log.d(TAG, "layoutChildren saveState mPositions=" + Arrays.toString(mPositions));
-
     }
 
     @Override
@@ -132,7 +137,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
     }
 
     @Override
-    public void layoutChildren(MultiData<?> multiData, int currentPosition) {
+    public void layoutChildren(MultiData<?> multiData) {
         if (getLayoutHelper() == null || getCount(multiData) == 0 || getTop() > getHeight()) {
             setBottom(getTop());
             return;

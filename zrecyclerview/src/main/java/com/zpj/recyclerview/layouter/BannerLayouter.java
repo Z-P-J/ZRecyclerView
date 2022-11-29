@@ -26,7 +26,7 @@ public class BannerLayouter extends PagerLayouter {
                         return;
                     }
                     int dx = getDecoratedLeft(current) - getWidth();
-                    Log.d(TAG, "mAutoRunnable mFirstOffset=" + mFirstOffset + " dx=" + dx + " mTop=" + getTop() + " mBottom=" + getBottom());
+                    Log.d(TAG, "mAutoRunnable dx=" + dx + " mTop=" + getTop() + " mBottom=" + getBottom());
                     mFlinger.fling(dx * 10, 0);
                 }
                 startAutoPlay();
@@ -73,8 +73,8 @@ public class BannerLayouter extends PagerLayouter {
     }
 
     @Override
-    public void layoutChildren(MultiData<?> multiData, int currentPosition) {
-        super.layoutChildren(multiData, currentPosition);
+    public void layoutChildren(MultiData<?> multiData) {
+        super.layoutChildren(multiData);
         if (mAutoPlay) {
             if (mStart) {
                 return;
