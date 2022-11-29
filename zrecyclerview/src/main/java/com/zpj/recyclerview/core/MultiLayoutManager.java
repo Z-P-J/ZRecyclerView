@@ -24,6 +24,7 @@ import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.GroupMultiData;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
+import com.zpj.recyclerview.layouter.AbsLayouter;
 import com.zpj.recyclerview.layouter.Layouter;
 import com.zpj.recyclerview.layouter.RefresherLayouter;
 import com.zpj.recyclerview.layouter.StaggeredGridLayouter;
@@ -57,10 +58,6 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
     private float mDownX = -1;
     private float mDownY = -1;
-
-    private MultiData<?> mTopMultiData = null;
-    private int mTopPosition;
-    private int mTopOffset;
 
     private StickyInfo stickyInfo;
     private int currentStickyOffset = 0;
@@ -322,10 +319,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
     @Override
     public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
-
-        Log.d(TAG, "onLayoutChildren mTopPosition=" + mTopPosition
-                + " mTopOffset=" + mTopOffset + " isPreLayout=" + state.isPreLayout());
-        Log.d(TAG, "onLayoutChildren state=" + state);
+        Log.d(TAG, "onLayoutChildren state=" + state + " isPreLayout=" + state.isPreLayout());
 
         if (multiDataList == null) {
             return;
@@ -348,40 +342,28 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
         stickyInfo = null;
 
         int positionOffset = 0;
-        int topPosition = mTopPosition;
+        int topPosition = 0;
 
 
         Layouter last = null;
         List<MultiData<?>> dataList = getAllMultiData(multiDataList);
-        boolean flag = mTopMultiData == null;
         for (int i = 0; i < dataList.size(); i++) {
             MultiData<?> multiData = dataList.get(i);
-            Layouter layouter = multiData.getLayouter();
+            AbsLayouter layouter = (AbsLayouter) multiData.getLayouter();
             layouter.setPositionOffset(positionOffset);
-            layouter.setLayoutManager(this);
-            if (!flag && multiData == mTopMultiData) {
-                Log.e(TAG, "i=" + i + " mTopMultiData=" + mTopMultiData);
-                flag = true;
-            }
-            if (flag) {
+            if (layouter.getLayoutHelper() == null || layouter.isAttached()) {
+                layouter.setLayoutManager(this);
                 if (last != null) {
                     Log.d(TAG, "onLayoutChildren i=" + i + " bottom=" + last.getBottom());
                     layouter.setTop(last.getBottom());
-                    layouter.layoutChildren(multiData, positionOffset);
+                    layouter.layoutChildren(multiData);
                 } else {
-                    layouter.setTop(layouter.getTop() + mTopOffset);
-                    mTopOffset = 0;
-                    layouter.layoutChildren(multiData, mTopPosition + positionOffset);
-                    topPosition = mTopPosition + positionOffset;
+                    topPosition = layouter.mAnchorInfo.position + positionOffset;
+                    layouter.layoutChildren(multiData);
                 }
                 last = layouter;
             }
             positionOffset += getCount(multiData);
-        }
-
-
-        for (int i = 0; i < getChildCount(); i++) {
-            Log.d(TAG, "onLayoutChildren i=" + i + " psoition=" + getPosition(getChildAt(i)));
         }
 
         saveState();
@@ -423,9 +405,6 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                 stickyInfo.multiData.onItemSticky(new EasyViewHolder(child), stickyInfo.position - layouter.getPositionOffset(), true);
             }
         }
-
-
-
 
         MultiData<?> lastData = null;
         for (int i = 0; i < getChildCount(); i++) {
@@ -673,11 +652,11 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
         }
         recycleViews();
 
-        for (Layouter layouter : layouters) {
-            if (layouter instanceof StaggeredGridLayouter) {
-                ((StaggeredGridLayouter) layouter).saveState();
-            }
-        }
+//        for (Layouter layouter : layouters) {
+//            if (layouter instanceof StaggeredGridLayouter) {
+//                ((StaggeredGridLayouter) layouter).saveState();
+//            }
+//        }
 
         if (dy != consumed) {
             int overScroll = (int) ((consumed - dy) * 0.1f);
@@ -882,23 +861,16 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
     }
 
     public void scrollToPositionWithOffset(int position, int offset) {
-
-        int positionOffset = 0;
-
         List<MultiData<?>> dataList = getAllMultiData(multiDataList);
         for (int i = 0; i < dataList.size(); i++) {
             MultiData<?> multiData = dataList.get(i);
-            int count = getCount(multiData);
-            if (position >= positionOffset && position < positionOffset + count) {
-                // TODO group
-                mTopMultiData = multiData;
-                mTopPosition = position - positionOffset;
-                mTopOffset = offset;
-                break;
+            Layouter layouter = multiData.getLayouter();
+            if (position < layouter.getPositionOffset()) {
+                layouter.setLayoutManager(null);
+            } else if (!layouter.scrollToPositionWithOffset(multiData, position, offset)) {
+                layouter.setBottom(-1);
             }
-            positionOffset += count;
         }
-
         requestLayout();
     }
 
@@ -966,22 +938,20 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
     }
 
     private void saveState() {
-        View firstView = getChildAt(0);
-        if (firstView == null) {
-            return;
-        }
-        MultiData<?> data = getMultiData(firstView);
+        MultiData<?> last = null;
+        for (int i =0; i < getChildCount(); i++) {
+            View child = getChildAt(i);
+            if (child == null) {
+                continue;
+            }
+            MultiData<?> data = getMultiData(child);
+            if (last != data) {
+                last = data;
+                data.getLayouter().saveState(child);
 
-        if (data == null) {
-            mTopMultiData = null;
-            mTopPosition = 0;
-            mTopOffset = 0;
-        } else {
-            Layouter layouter = data.getLayouter();
-            mTopMultiData = data;
-            mTopPosition = getPosition(firstView) - layouter.getPositionOffset();
-//            mTopOffset = layouter.getDecoratedTop(firstView);
-            mTopOffset = 0;
+                Log.e(TAG, "saveState i=" + i + " mAnchorInfo=" + ((AbsLayouter) data.getLayouter()).mAnchorInfo);
+
+            }
         }
     }
 

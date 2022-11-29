@@ -6,6 +6,8 @@ import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
 
+import java.util.List;
+
 public interface Layouter {
 
     void setLayoutManager(BaseMultiLayoutManager manager);
@@ -44,7 +46,7 @@ public interface Layouter {
 
     boolean canScrollVertically();
 
-    void layoutChildren(MultiData<?> multiData, int currentPosition);
+    void layoutChildren(MultiData<?> multiData);
 
     int fillVertical(View anchorView, int dy, MultiData<?> multiData);
 
@@ -52,7 +54,9 @@ public interface Layouter {
 
     int scrollHorizontallyBy(int dx, MultiData<?> scrollMultiData);
 
-    void saveState(int firstPosition, int firstOffset);
+//    void saveState(int firstPosition, int firstOffset);
+
+    void saveState(View firstChild);
 
     boolean onTouchDown(MultiData<?> multiData, float downX, float downY, MotionEvent event);
 
@@ -61,5 +65,8 @@ public interface Layouter {
     boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY, MotionEvent event);
 
     boolean isAttached();
+
+    // TODO 交给Scene处理
+    boolean scrollToPositionWithOffset(MultiData<?> multiData, int position, int offset);
 
 }

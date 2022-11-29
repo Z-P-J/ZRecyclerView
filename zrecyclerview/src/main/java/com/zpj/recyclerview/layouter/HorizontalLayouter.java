@@ -31,14 +31,22 @@ public class HorizontalLayouter extends AbsLayouter {
         return mIsInfinite;
     }
 
+//    @Override
+//    public void saveState(int firstPosition, int firstOffset) {
+//        if (isInfinite()) {
+//            this.mFirstPosition = Math.max(0, firstPosition - mPositionOffset);
+//            this.mFirstOffset = Math.min(0, firstOffset);
+//        } else {
+//            Log.d(TAG, "saveState firstPosition=" + firstPosition + " firstOffset=" + firstOffset);
+//            super.saveState(firstPosition, firstOffset);
+//        }
+//    }
+
     @Override
-    public void saveState(int firstPosition, int firstOffset) {
+    public void saveState(View firstChild) {
+        super.saveState(firstChild);
         if (isInfinite()) {
-            this.mFirstPosition = Math.max(0, firstPosition - mPositionOffset);
-            this.mFirstOffset = Math.min(0, firstOffset);
-        } else {
-            Log.d(TAG, "saveState firstPosition=" + firstPosition + " firstOffset=" + firstOffset);
-            super.saveState(firstPosition, firstOffset);
+            mAnchorInfo.x = Math.min(0, mAnchorInfo.x);
         }
     }
 
@@ -51,11 +59,6 @@ public class HorizontalLayouter extends AbsLayouter {
         } else {
             super.onDetached();
         }
-    }
-
-    @Override
-    public void layoutChildren(MultiData<?> multiData, int currentPosition) {
-        super.layoutChildren(multiData, mFirstPosition + mPositionOffset);
     }
 
     @Override
@@ -73,7 +76,7 @@ public class HorizontalLayouter extends AbsLayouter {
         if (dy > 0) {
             // 从下往上滑动
             if (anchorView == null) {
-                return fillVerticalBottom(multiData, mFirstPosition + mPositionOffset, dy, getTop());
+                return fillVerticalBottom(multiData, mAnchorInfo.position + mPositionOffset, dy, getTop());
             } else {
                 // 如果占用两行则需要以下代码
                 int anchorBottom = getDecoratedBottom(anchorView);
@@ -86,7 +89,7 @@ public class HorizontalLayouter extends AbsLayouter {
         } else {
             // 从上往下滑动
             if (anchorView == null) {
-                return fillVerticalTop(multiData, mFirstPosition + mPositionOffset, dy, getBottom());
+                return fillVerticalTop(multiData, mAnchorInfo.position + mPositionOffset, dy, getBottom());
             } else {
                 // 如果占用两行则需要以下代码
                 int anchorTop = getDecoratedTop(anchorView);
@@ -102,7 +105,7 @@ public class HorizontalLayouter extends AbsLayouter {
     @Override
     protected int fillVerticalTop(MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
 
-        int left = mFirstOffset;
+        int left = mAnchorInfo.x;
         int top = anchorTop;
         int right = 0;
         int bottom = anchorTop;
@@ -140,7 +143,7 @@ public class HorizontalLayouter extends AbsLayouter {
     @Override
     protected int fillVerticalBottom(MultiData<?> multiData, int currentPosition, int dy, int anchorBottom) {
 
-        int left = mFirstOffset;
+        int left = mAnchorInfo.x;
         int top = anchorBottom;
         int right = 0;
         int bottom = anchorBottom;

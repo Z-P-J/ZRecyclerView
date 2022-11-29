@@ -126,7 +126,12 @@ public class ContainerLayouter extends AbsLayouter {
     }
 
     @Override
-    public void layoutChildren(MultiData<?> multiData, int currentPosition) {
+    public void saveState(View firstChild) {
+        mLayouter.saveState(getChildAt(0));
+    }
+
+    @Override
+    public void layoutChildren(MultiData<?> multiData) {
         View container = getViewForPosition(mPositionOffset, multiData);
 //        ContainerLayout containerLayout = (ContainerLayout) container;
 //        containerLayout.removeAllViews();
@@ -134,7 +139,7 @@ public class ContainerLayouter extends AbsLayouter {
         MultiLayoutParams params = (MultiLayoutParams) container.getLayoutParams();
         params.width = ViewGroup.LayoutParams.MATCH_PARENT;
         super.addView(container);
-        mLayouter.layoutChildren(multiData, currentPosition + 1);
+        mLayouter.layoutChildren(multiData);
         setRight(getWidth());
         int height = mLayouter.getBottom() - mLayouter.getTop();
         setBottom(getTop() + height);

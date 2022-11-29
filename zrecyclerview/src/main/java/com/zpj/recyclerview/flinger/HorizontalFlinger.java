@@ -20,9 +20,26 @@ public class HorizontalFlinger extends AbsFlinger {
 
         if (consumed != dx) {
             stop();
-            mLayouter.onStopOverScroll(mMultiData);
+            mLayouter.getRecycler().post(new Runnable() {
+                @Override
+                public void run() {
+                    mLayouter.onStopOverScroll(mMultiData);
+                }
+            });
             return false;
         }
         return true;
+    }
+
+    @Override
+    public void onStopped() {
+        super.onStopped();
+//        mLayouter.onStopOverScroll(mMultiData);
+    }
+
+    @Override
+    public void onFinished() {
+        super.onFinished();
+//        mLayouter.onStopOverScroll(mMultiData);
     }
 }
