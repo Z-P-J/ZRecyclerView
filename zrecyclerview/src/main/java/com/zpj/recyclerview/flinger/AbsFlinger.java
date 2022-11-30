@@ -3,7 +3,6 @@ package com.zpj.recyclerview.flinger;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.widget.RecyclerViewHelper;
-import android.util.Log;
 import android.view.animation.Interpolator;
 import android.widget.OverScroller;
 
@@ -52,11 +51,9 @@ public abstract class AbsFlinger implements Flinger, Runnable, Interpolator {
                 mLastY = y;
                 postOnAnimation();
             } else {
-                Log.e("AbsLayouter", "computeScrollOffset->onFinished");
-                onFinished();
+                finish();
             }
         } else {
-            Log.e("AbsLayouter", "->onFinished");
             onFinished();
         }
     }
@@ -113,15 +110,22 @@ public abstract class AbsFlinger implements Flinger, Runnable, Interpolator {
 
     @Override
     public void stop() {
+        mLastX = 0;
+        mLastY = 0;
         if (mScroller.isFinished()) {
             return;
         }
         mLayouter.getRecycler().removeCallbacks(this);
-        mScroller.abortAnimation();
+        mScroller.forceFinished(true);
+        onStopped();
+    }
+
+    protected void finish() {
+        mLayouter.getRecycler().removeCallbacks(this);
         mScroller.forceFinished(true);
         mLastX = 0;
         mLastY = 0;
-        onStopped();
+        onFinished();
     }
 
     @Override
