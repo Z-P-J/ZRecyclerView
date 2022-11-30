@@ -242,9 +242,10 @@ public abstract class AbsLayouter implements Layouter {
     }
 
     protected void onDetached() {
-        if (isStopOverScrolling) {
+        if (isOverScrolling) {
             mAnchorInfo.position = mOverScrollPosition;
             mAnchorInfo.x = mOverScrollOffset;
+            isOverScrolling = false;
         }
 
         if (mFlinger != null) {
@@ -255,7 +256,7 @@ public abstract class AbsLayouter implements Layouter {
     public boolean isAttached() {
         return mAttached;
     }
-    
+
     protected int getPosition(@NonNull View child) {
         return mHelper.getPosition(child);
     }
@@ -279,16 +280,10 @@ public abstract class AbsLayouter implements Layouter {
     protected int getDecoratedBottom(@NonNull View child) {
         return mHelper.getDecoratedBottom(child);
     }
-    
+
     protected void layoutDecorated(@NonNull View child, int left, int top, int right, int bottom) {
         mHelper.layoutDecorated(child, left, top, right, bottom);
     }
-
-//    @Override
-//    public void saveState(int firstPosition, int firstOffset) {
-//        this.mFirstPosition = Math.max(0, firstPosition - mPositionOffset);
-//        this.mFirstOffset = firstOffset;
-//    }
 
     @Override
     public void saveState(View firstChild) {
@@ -302,18 +297,18 @@ public abstract class AbsLayouter implements Layouter {
     protected abstract int fillVerticalBottom(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom);
 
     public View getViewForPosition(int position) {
-        return  mHelper.getViewForPosition(position);
+        return mHelper.getViewForPosition(position);
     }
 
     public View getViewForPosition(int position, MultiData<?> multiData) {
         View view = null;
         if (multiData.isStickyPosition(position - mPositionOffset)) {
-            view  =  mHelper.findViewByPosition(position);
+            view = mHelper.findViewByPosition(position);
         }
         if (view == null) {
             view = getViewForPosition(position);
         } else {
-             mHelper.detachAndScrapView(view);
+            mHelper.detachAndScrapView(view);
         }
         MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
         params.setMultiData(multiData);
@@ -347,88 +342,88 @@ public abstract class AbsLayouter implements Layouter {
     }
 
     public void measureChild(@NonNull View child, int widthUsed, int heightUsed) {
-       mHelper.measureChild(child, widthUsed, heightUsed);
+        mHelper.measureChild(child, widthUsed, heightUsed);
     }
 
     public void addView(View child) {
-         mHelper.addView(child);
+        mHelper.addView(child);
     }
 
     public void addView(View child, int index) {
-         mHelper.addView(child, index);
+        mHelper.addView(child, index);
     }
 
     public int getDecoratedMeasuredWidth(@NonNull View child) {
-        return  mHelper.getDecoratedMeasuredWidth(child);
+        return mHelper.getDecoratedMeasuredWidth(child);
     }
 
     public int getDecoratedMeasuredHeight(@NonNull View child) {
-        return  mHelper.getDecoratedMeasuredHeight(child);
+        return mHelper.getDecoratedMeasuredHeight(child);
     }
 
     @Px
     public int getWidth() {
-        return  mHelper.getWidth();
+        return mHelper.getWidth();
     }
 
     @Px
     public int getHeight() {
-        return  mHelper.getHeight();
+        return mHelper.getHeight();
     }
 
     @Px
     public int getPaddingLeft() {
-        return  mHelper.getPaddingLeft();
+        return mHelper.getPaddingLeft();
     }
 
     @Px
     public int getPaddingTop() {
-        return  mHelper.getPaddingTop();
+        return mHelper.getPaddingTop();
     }
 
     @Px
     public int getPaddingRight() {
-        return  mHelper.getPaddingRight();
+        return mHelper.getPaddingRight();
     }
 
     @Px
     public int getPaddingBottom() {
-        return  mHelper.getPaddingBottom();
+        return mHelper.getPaddingBottom();
     }
 
     @Px
     public int getPaddingStart() {
-        return  mHelper.getPaddingStart();
+        return mHelper.getPaddingStart();
     }
 
     @Px
     public int getPaddingEnd() {
-        return  mHelper.getPaddingEnd();
+        return mHelper.getPaddingEnd();
     }
 
     public int getChildCount() {
-        return  mHelper.getChildCount();
+        return mHelper.getChildCount();
     }
 
     @Nullable
     public View getChildAt(int index) {
-        return  mHelper.getChildAt(index);
+        return mHelper.getChildAt(index);
     }
 
     public MultiData<?> getMultiData(View child) {
-        return  mHelper.getMultiData(child);
+        return mHelper.getMultiData(child);
     }
 
     public Layouter getLayouter(View child) {
-        return  mHelper.getLayouter(child);
+        return mHelper.getLayouter(child);
     }
 
     public int indexOfChild(View child) {
-        return  mHelper.indexOfChild(child);
+        return mHelper.indexOfChild(child);
     }
 
     public MultiRecycler getRecycler() {
-        return  mHelper.getRecycler();
+        return mHelper.getRecycler();
     }
 
     public Context getContext() {
@@ -436,13 +431,11 @@ public abstract class AbsLayouter implements Layouter {
     }
 
     public int getCount(MultiData<?> multiData) {
-        return  mHelper.getCount(multiData);
+        return mHelper.getCount(multiData);
     }
 
     private float mLastX;
     private float mLastY;
-//    private boolean mTempIsOverScrolling;
-//    private boolean mTempIsStopOverScrolling;
 
     @Override
     public boolean onTouchDown(MultiData<?> multiData, float downX, float downY, MotionEvent event) {
@@ -452,12 +445,7 @@ public abstract class AbsLayouter implements Layouter {
         if (canScrollHorizontally()) {
             mLastX = downX;
             mLastY = downY;
-//            mTempIsOverScrolling = isOverScrolling;
-//            mTempIsStopOverScrolling = isStopOverScrolling;
-//            if (isStopOverScrolling) {
-//                isOverScrolling = true;
-//                isStopOverScrolling = false;
-//            }
+            isTouchUp = false;
             if (mFlinger != null) {
                 mFlinger.stop();
             } else {
@@ -476,6 +464,8 @@ public abstract class AbsLayouter implements Layouter {
         return new HorizontalFlinger(this, multiData);
     }
 
+    private boolean isTouchUp = true;
+
     @Override
     public boolean onTouchMove(MultiData<?> multiData, float x, float y, float downX, float downY, MotionEvent event) {
         if (canScrollHorizontally()) {
@@ -485,7 +475,6 @@ public abstract class AbsLayouter implements Layouter {
                 scrollHorizontallyBy(dx, multiData);
                 return true;
             }
-//            return scrollHorizontallyBy(dx, multiData) != 0;
         }
         return false;
     }
@@ -493,14 +482,11 @@ public abstract class AbsLayouter implements Layouter {
     @Override
     public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY, MotionEvent event) {
         if (canScrollHorizontally()) {
-            Log.w(TAG, "onStopOverScroll onTouchUp isOverScrolling=" + isOverScrolling
-                    + " isStopOverScrolling=" + isStopOverScrolling + " mAnchorInfo=" + mAnchorInfo + " overScrollDistance=" + overScrollDistance);
-            if (isOverScrolling || overScrollDistance != 0) {
-                Log.e(TAG, "onStopOverScroll onTouchUp");
-                isOverScrolling = true;
-                isStopOverScrolling = false;
-                onStopOverScroll(multiData);
+            isTouchUp = true;
+            if (tryToStopOverScroll()) {
+                return true;
             } else if (mFlinger != null) {
+                Log.e(TAG, "fling----------------vx=" + velocityX);
                 mFlinger.fling(velocityX, velocityY);
             }
         }
@@ -508,13 +494,11 @@ public abstract class AbsLayouter implements Layouter {
     }
 
     public void onFlingFinished() {
-        Log.e(TAG, "onFlingFinished");
-        isStopOverScrolling = false;
+        tryToStopOverScroll();
     }
 
     public void onFlingStopped() {
-        Log.e(TAG, "onFlingStopped");
-        isStopOverScrolling = false;
+        tryToStopOverScroll();
     }
 
     private static final int OVER_SCROLL_DOWN = 1;
@@ -525,7 +509,6 @@ public abstract class AbsLayouter implements Layouter {
     protected boolean isOverScrolling;
     private int overScrollDirection;
     private int overScrollDistance;
-    private boolean isStopOverScrolling;
 
     protected int mOverScrollPosition = 0;
     protected int mOverScrollOffset;
@@ -537,89 +520,59 @@ public abstract class AbsLayouter implements Layouter {
         }
 
         if (isOverScrolling) {
-            overScrollDistance += dx;
-
-            if (isStopOverScrolling) {
-                if (overScrollDirection == OVER_SCROLL_LEFT) {
-                    if (overScrollDistance <= 0) {
-                        isOverScrolling = false;
-                    }
-                } else if (overScrollDirection == OVER_SCROLL_RIGHT) {
-                    if (overScrollDistance >= 0) {
-                        isOverScrolling = false;
-                    }
-                }
-            } else {
-                if (overScrollDirection == OVER_SCROLL_LEFT) {
-                    if (overScrollDistance >= 0) {
-                        isOverScrolling = false;
-                    }
-                } else if (overScrollDirection == OVER_SCROLL_RIGHT) {
-                    if (overScrollDistance <= 0) {
-                        isOverScrolling = false;
-                    }
-                }
+            boolean hasResistance = true;
+            if (overScrollDirection == OVER_SCROLL_LEFT && dx > 0) {
+                hasResistance = false;
+            } else if (overScrollDirection == OVER_SCROLL_RIGHT && dx < 0) {
+                hasResistance = false;
             }
 
-            Log.w(TAG, "scrollHorizontallyBy overScrollDistance=" + overScrollDistance + " dx=" + dx + " isOverScrolling=" + isOverScrolling + " isStopOverScrolling=" + isStopOverScrolling + " overScrollDirection=" + overScrollDirection);
-
-            if (isOverScrolling) {
-
-
-
-                float maxWidth = getWidth() / 1.5f;
-                float overScrollRadio = Math.min(Math.abs(overScrollDistance), maxWidth) / maxWidth;
-                int overScroll;
-
-                if (isStopOverScrolling) {
-                    overScrollRadio = 0;
-                    overScroll = dx;
-                } else {
-                    overScroll = (int) ((0.68f - overScrollRadio / 2f) * dx);
-                }
-
-                Log.d(TAG, "scrollHorizontallyBy dx=" + dx + " overScrollRadio=" + overScrollRadio + " overScroll=" + overScroll + " isStopOverScrolling=" + isStopOverScrolling);
-
-                for (int i = 0; i < getChildCount(); i++) {
-                    View view = getChildAt(i);
-                    final MultiData<?> multiData = getMultiData(view);
-                    if (multiData == scrollMultiData) {
-                        for (int j = i; j < getChildCount(); j++) {
-                            View child = getChildAt(j);
-                            if (getMultiData(child) != scrollMultiData) {
-                                break;
-                            }
-                            Log.d(TAG, "scrollHorizontallyBy i=" + i);
-                            mHelper.offsetChildLeftAndRight(child, -overScroll);
-                        }
-                        saveState(view);
-                        break;
-                    }
-                }
-
+            float overScrollRadio;
+            int overScroll;
+            if (hasResistance) {
+                overScrollDistance += dx;
+                float maxWidth = getWidth();
                 if (overScrollDistance > maxWidth) {
                     overScrollDistance = (int) maxWidth;
                 } else if (overScrollDistance < -maxWidth) {
                     overScrollDistance = (int) -maxWidth;
                 }
-
-                if (overScrollRadio >= 1f) {
-//                    Log.d(TAG, "scrollHorizontallyBy dx=" + dx + " overScrollRadio=" + overScrollRadio + " overScroll=" + overScroll);
-                    Log.e(TAG, "scrollHorizontallyBy return 000");
-                    return 0;
-                }
-
-//                if (Math.abs(overScrollDistance) > maxWidth) {
-//                    return 0;
-//                }
-
-                Log.e(TAG, "scrollHorizontallyBy return dx=" + dx);
-                return dx;
-
+                overScrollRadio = Math.abs(overScrollDistance) / maxWidth;
+                overScroll = (int) ((0.72f - overScrollRadio / 2f) * dx);
+            } else {
+                overScrollRadio = 0;
+                overScroll = dx;
             }
+
+            for (int i = 0; i < getChildCount(); i++) {
+                View view = getChildAt(i);
+                final MultiData<?> multiData = getMultiData(view);
+                if (multiData == scrollMultiData) {
+                    for (int j = i; j < getChildCount(); j++) {
+                        View child = getChildAt(j);
+                        if (getMultiData(child) != scrollMultiData) {
+                            break;
+                        }
+                        mHelper.offsetChildLeftAndRight(child, -overScroll);
+                    }
+                    saveState(view);
+                    break;
+                }
+            }
+
+            checkOverScroll();
+
+
+            if (overScrollRadio >= 1f) {
+//                    Log.d(TAG, "scrollHorizontallyBy dx=" + dx + " overScrollRadio=" + overScrollRadio + " overScroll=" + overScroll);
+                Log.e(TAG, "scrollHorizontallyBy return 000");
+                return 0;
+            }
+
+            Log.e(TAG, "scrollHorizontallyBy return dx=" + dx);
+            return dx;
         }
 
-        isStopOverScrolling = false;
         overScrollDistance = 0;
 
         int consumed = 0;
@@ -692,7 +645,7 @@ public abstract class AbsLayouter implements Layouter {
             }
         }
 
-         mHelper.recycleViews();
+        mHelper.recycleViews();
 
 
         for (int i = 0; i < getChildCount(); i++) {
@@ -706,7 +659,6 @@ public abstract class AbsLayouter implements Layouter {
         firstChild = getChildAt(index);
 
         if (dx != consumed) {
-
             if (firstChild != null) {
                 int firstPosition = getPosition(firstChild);
                 int firstOffset = getDecoratedLeft(firstChild);
@@ -744,33 +696,45 @@ public abstract class AbsLayouter implements Layouter {
         return consumed;
     }
 
+    private boolean tryToStopOverScroll() {
+        if (isTouchUp && isOverScrolling) {
+            checkOverScroll();
+            Log.e(TAG, "tryToStopOverScroll overScrollDirection=" + overScrollDirection
+                    + " mOverScrollOffset=" + mOverScrollOffset
+                    + " anchorX=" + mAnchorInfo.x
+                    + " isOverScrolling=" + isOverScrolling);
+            if (isOverScrolling) {
+                for (int i = 0; i < getChildCount(); i++) {
+                    View view = getChildAt(i);
+                    final MultiData<?> multiData = getMultiData(view);
+                    if (multiData.getLayouter() == this) {
+                        onStopOverScroll(multiData);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
+    private void checkOverScroll() {
+        if (overScrollDirection == OVER_SCROLL_LEFT && mAnchorInfo.x <= mOverScrollOffset) {
+            isOverScrolling = false;
+            overScrollDistance = 0;
+        } else if (overScrollDirection == OVER_SCROLL_RIGHT && mAnchorInfo.x >= mOverScrollOffset) {
+            isOverScrolling = false;
+            overScrollDistance = 0;
+        }
+    }
 
-
-
-
-    // TODO 修复overScroll
     public void onStopOverScroll(final MultiData<?> scrollMultiData) {
         if (scrollMultiData == null) {
             return;
         }
-
-//        if (isStopOverScrolling) {
-//            return;
-//        }
-
-        Log.e(TAG, "onStopOverScroll isOverScrolling=" + isOverScrolling + " isStopOverScrolling=" + isStopOverScrolling);
-        isStopOverScrolling = false;
-//        if (isOverScrolling) {
-//            isOverScrolling = false;
-////            mFlinger.stop();
-//
-//        }
-
         if (isOverScrolling) {
             if (overScrollDirection <= OVER_SCROLL_UP) {
                 if (overScrollDirection == OVER_SCROLL_DOWN) {
-                    final View firstChild =  mHelper.getFirstChild();
+                    final View firstChild = mHelper.getFirstChild();
                     if (firstChild != null) {
                         final int firstTop = getDecoratedTop(firstChild);
                         if (firstTop > 0) {
@@ -778,7 +742,7 @@ public abstract class AbsLayouter implements Layouter {
                         }
                     }
                 } else if (overScrollDirection == OVER_SCROLL_UP) {
-                    View lastChild =  mHelper.getLastChild();
+                    View lastChild = mHelper.getLastChild();
                     if (lastChild != null) {
                         final int bottom = getDecoratedBottom(lastChild);
                         if (bottom < getHeight()) {
@@ -794,7 +758,6 @@ public abstract class AbsLayouter implements Layouter {
                             final int firstLeft = getDecoratedLeft(view);
                             Log.d(TAG, "onStopOverScroll firstLeft=" + firstLeft + " overScrollDistance=" + overScrollDistance);
                             if (firstLeft > 0) { //  && getPosition(view) == scrollMultiData.getLayouter().getPositionOffset()
-                                isStopOverScrolling = true;
                                 mFlinger.scroll(-firstLeft, 0, 500);
                             }
                             break;
@@ -807,7 +770,6 @@ public abstract class AbsLayouter implements Layouter {
                             final int right = getDecoratedRight(view);
                             Log.d(TAG, "onStopOverScroll right=" + right + " overScrollDistance=" + overScrollDistance);
                             if (right < getWidth()) { //  && getPosition(view) == scrollMultiData.getLayouter().getPositionOffset() + scrollgetCount(multiData) - 1
-                                isStopOverScrolling = true;
                                 mFlinger.scroll(getWidth() - right, 0, 500);
                             }
                             break;
@@ -816,7 +778,6 @@ public abstract class AbsLayouter implements Layouter {
                 }
             }
         }
-
 
 
     }

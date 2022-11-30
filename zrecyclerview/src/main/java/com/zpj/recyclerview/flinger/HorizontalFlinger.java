@@ -1,11 +1,11 @@
 package com.zpj.recyclerview.flinger;
 
-import android.support.v7.widget.RecyclerViewHelper;
-
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.layouter.AbsLayouter;
 
 public class HorizontalFlinger extends AbsFlinger {
+
+    private boolean stopOverScroll = false;
 
     public HorizontalFlinger(AbsLayouter layouter, MultiData<?> multiData) {
         super(layouter, multiData);
@@ -19,27 +19,18 @@ public class HorizontalFlinger extends AbsFlinger {
         int consumed = mLayouter.scrollHorizontallyBy(dx, mMultiData);
 
         if (consumed != dx) {
-            stop();
-            mLayouter.getRecycler().post(new Runnable() {
-                @Override
-                public void run() {
-                    mLayouter.onStopOverScroll(mMultiData);
-                }
-            });
+            stopOverScroll = true;
             return false;
         }
         return true;
     }
 
     @Override
-    public void onStopped() {
-        super.onStopped();
-//        mLayouter.onStopOverScroll(mMultiData);
-    }
-
-    @Override
     public void onFinished() {
         super.onFinished();
-//        mLayouter.onStopOverScroll(mMultiData);
+        if (stopOverScroll) {
+            stopOverScroll = false;
+            mLayouter.onStopOverScroll(mMultiData);
+        }
     }
 }
