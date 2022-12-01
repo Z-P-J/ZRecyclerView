@@ -7,6 +7,7 @@ import android.util.SparseArray;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
+import com.zpj.recyclerview.core.MultiScene;
 
 public class FlowLayouter extends AbsLayouter {
 
@@ -76,8 +77,8 @@ public class FlowLayouter extends AbsLayouter {
     }
 
     @Override
-    protected FlowLayoutHelper createLayoutHelper(BaseMultiLayoutManager manager) {
-        return new FlowLayoutHelper(this, manager);
+    protected FlowLayoutHelper createLayoutHelper(MultiScene multiScene) {
+        return new FlowLayoutHelper(this, multiScene);
     }
 
     @Override
@@ -228,8 +229,9 @@ public class FlowLayouter extends AbsLayouter {
 
         protected final FlowLayouter mLayouter;
 
-        public FlowLayoutHelper(FlowLayouter layouter, BaseMultiLayoutManager layoutManager) {
-            super(layoutManager);
+        public FlowLayoutHelper(FlowLayouter layouter,
+                                MultiScene multiScene) {
+            super(multiScene);
             mLayouter = layouter;
         }
 

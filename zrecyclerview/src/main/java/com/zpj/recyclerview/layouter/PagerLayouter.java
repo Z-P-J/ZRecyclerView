@@ -8,6 +8,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
+import com.zpj.recyclerview.core.MultiScene;
 import com.zpj.recyclerview.flinger.Flinger;
 import com.zpj.recyclerview.flinger.PagerFlinger;
 
@@ -42,8 +43,8 @@ public class PagerLayouter extends AbsLayouter {
     }
 
     @Override
-    protected PagerLayoutHelper createLayoutHelper(BaseMultiLayoutManager manager) {
-        return new PagerLayoutHelper(this, manager);
+    protected PagerLayoutHelper createLayoutHelper(MultiScene multiScene) {
+        return new PagerLayoutHelper(this, multiScene);
     }
 
     @Override
@@ -55,12 +56,6 @@ public class PagerLayouter extends AbsLayouter {
     public boolean canScrollVertically() {
         return true;
     }
-
-//    @Override
-//    public void saveState(int firstPosition, int firstOffset) {
-//        View current = findViewByPosition(getCurrentPosition());
-//        this.mFirstOffset = getDecoratedLeft(current);
-//    }
 
     @Override
     public void saveState(View firstChild) {
@@ -478,8 +473,9 @@ public class PagerLayouter extends AbsLayouter {
 
         protected final PagerLayouter mLayouter;
 
-        public PagerLayoutHelper(PagerLayouter layouter, BaseMultiLayoutManager layoutManager) {
-            super(layoutManager);
+        public PagerLayoutHelper(PagerLayouter layouter,
+                                 MultiScene multiScene) {
+            super(multiScene);
             mLayouter = layouter;
         }
 

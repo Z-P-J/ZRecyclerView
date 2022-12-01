@@ -12,6 +12,7 @@ import android.view.View;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.core.AnchorInfo;
+import com.zpj.recyclerview.core.MultiScene;
 import com.zpj.recyclerview.flinger.Flinger;
 import com.zpj.recyclerview.flinger.HorizontalFlinger;
 import com.zpj.recyclerview.core.MultiLayoutParams;
@@ -20,6 +21,7 @@ public abstract class AbsLayouter implements Layouter {
 
     private static final String TAG = "AbsLayouter";
 
+    protected MultiScene mScene;
     private LayoutHelper mHelper;
     protected Flinger mFlinger;
 
@@ -29,7 +31,6 @@ public abstract class AbsLayouter implements Layouter {
     private int mBottom;
 
     protected int mPositionOffset;
-    protected int mChildOffset;
 
     private boolean mAttached = false;
 
@@ -109,43 +110,40 @@ public abstract class AbsLayouter implements Layouter {
     }
 
     @Override
-    public void setChildOffset(int offset) {
-        this.mChildOffset = offset;
-    }
-
-    @Override
-    public int getChildOffset() {
-        return this.mChildOffset;
-    }
-
-    @Override
-    public void setLayoutManager(BaseMultiLayoutManager manager) {
-        if (manager == null) {
-            if (mFlinger != null) {
-                mFlinger.stop();
-                mFlinger = null;
-            }
-            mTop = 0;
-            mLeft = 0;
-            mRight = 0;
-            mBottom = 0;
-            mAttached = false;
-            mAnchorInfo.x = 0;
-            mAnchorInfo.y = 0;
-            mAnchorInfo.position = 0;
-            mHelper = null;
+    public void attach(MultiScene multiScene) {
+        BaseMultiLayoutManager manager = multiScene.getLayoutManager();
+        MultiData<?> multiData = multiScene.getMultiData();
+        if (manager == null || multiData == null) {
+            throw new IllegalArgumentException("attach error! LayoutManager or MultiData must not be null!");
         } else {
             if (mHelper != null && mHelper.getLayoutManager() != manager) {
                 mHelper = null;
             }
             if (mHelper == null) {
-                mHelper = createLayoutHelper(manager);
+                mHelper = createLayoutHelper(multiScene);
             }
         }
     }
 
-    protected LayoutHelper createLayoutHelper(BaseMultiLayoutManager manager) {
-        return new LayoutHelper(manager);
+    @Override
+    public void detach() {
+        if (mFlinger != null) {
+            mFlinger.stop();
+            mFlinger = null;
+        }
+        mTop = 0;
+        mLeft = 0;
+        mRight = 0;
+        mBottom = 0;
+        mAttached = false;
+        mAnchorInfo.x = 0;
+        mAnchorInfo.y = 0;
+        mAnchorInfo.position = 0;
+        mHelper = null;
+    }
+
+    protected LayoutHelper createLayoutHelper(MultiScene multiScene) {
+        return new LayoutHelper(multiScene);
     }
 
     @Override

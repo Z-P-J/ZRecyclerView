@@ -5,12 +5,13 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
-
-import java.util.List;
+import com.zpj.recyclerview.core.MultiScene;
 
 public interface Layouter {
 
-    void setLayoutManager(BaseMultiLayoutManager manager);
+    void attach(MultiScene multiScene);
+
+    void detach();
 
     LayoutHelper getLayoutHelper();
 
@@ -38,10 +39,6 @@ public interface Layouter {
 
     int getPositionOffset();
 
-    void setChildOffset(int offset);
-
-    int getChildOffset();
-
     boolean canScrollHorizontally();
 
     boolean canScrollVertically();
@@ -53,8 +50,6 @@ public interface Layouter {
     int fillHorizontal(View anchorView, int dx, MultiData<?> multiData);
 
     int scrollHorizontallyBy(int dx, MultiData<?> scrollMultiData);
-
-//    void saveState(int firstPosition, int firstOffset);
 
     void saveState(View firstChild);
 

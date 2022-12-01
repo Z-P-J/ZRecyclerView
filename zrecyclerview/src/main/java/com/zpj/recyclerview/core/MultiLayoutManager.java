@@ -352,7 +352,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
             AbsLayouter layouter = (AbsLayouter) multiData.getLayouter();
             layouter.setPositionOffset(positionOffset);
             if (layouter.getLayoutHelper() == null || layouter.isAttached()) {
-                layouter.setLayoutManager(this);
+                layouter.attach(new MultiScene(this, multiData));
                 if (last != null) {
                     Log.d(TAG, "onLayoutChildren i=" + i + " bottom=" + last.getBottom());
                     layouter.setTop(last.getBottom());
@@ -866,7 +866,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
             MultiData<?> multiData = dataList.get(i);
             Layouter layouter = multiData.getLayouter();
             if (position < layouter.getPositionOffset()) {
-                layouter.setLayoutManager(null);
+                layouter.detach();
             } else if (!layouter.scrollToPositionWithOffset(multiData, position, offset)) {
                 layouter.setBottom(-1);
             }
