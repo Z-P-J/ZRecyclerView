@@ -2,9 +2,13 @@ package com.zpj.recyclerview.core;
 
 import android.support.v7.widget.BaseMultiLayoutManager;
 
+import com.zpj.recyclerview.MultiData;
+import com.zpj.recyclerview.MultiRecycler;
+
 public class MultiScene {
-    
-    private final BaseMultiLayoutManager mLayoutManager;
+
+    protected final BaseMultiLayoutManager mLayoutManager;
+    protected final MultiData<?> mMultiData;
 
     protected int mLeft;
     protected int mTop;
@@ -13,10 +17,22 @@ public class MultiScene {
 
     private boolean mAttached = false;
 
-    public MultiScene(BaseMultiLayoutManager layoutManager) {
+    public MultiScene(BaseMultiLayoutManager layoutManager, MultiData<?> multiData) {
         mLayoutManager = layoutManager;
+        mMultiData = multiData;
     }
 
+    public MultiRecycler getRecycler() {
+        return mLayoutManager.getRecycler();
+    }
+
+    public BaseMultiLayoutManager getLayoutManager() {
+        return mLayoutManager;
+    }
+
+    public MultiData<?> getMultiData() {
+        return mMultiData;
+    }
 
     public void setLeft(int left) {
         mLeft = left;

@@ -10,17 +10,24 @@ import android.view.View;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.core.MultiLayoutParams;
+import com.zpj.recyclerview.core.MultiScene;
 
 public class LayoutHelper {
     
     protected final BaseMultiLayoutManager mLayoutManager;
+    protected final MultiData<?> mMultiData;
 
-    public LayoutHelper(BaseMultiLayoutManager layoutManager) {
-        mLayoutManager = layoutManager;
+    public LayoutHelper(MultiScene multiScene) {
+        mLayoutManager = multiScene.getLayoutManager();
+        mMultiData = multiScene.getMultiData();
     }
 
     public BaseMultiLayoutManager getLayoutManager() {
         return mLayoutManager;
+    }
+
+    public MultiData<?> getMultiData() {
+        return mMultiData;
     }
 
     public int getPosition(@NonNull View child) {

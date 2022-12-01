@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.core.MultiLayoutParams;
+import com.zpj.recyclerview.core.MultiScene;
 
 public class ContainerLayouter extends AbsLayouter {
 
@@ -26,6 +27,8 @@ public class ContainerLayouter extends AbsLayouter {
 
     protected final BaseMultiLayoutManager mContainerLayoutManager = new ContainerLayoutManager(this);
 
+    private MultiScene mContainerMultiScene;
+
     public ContainerLayouter(@NonNull AbsLayouter layouter) {
         this.mLayouter = layouter;
     }
@@ -35,15 +38,18 @@ public class ContainerLayouter extends AbsLayouter {
     }
 
     @Override
-    public void setLayoutManager(BaseMultiLayoutManager manager) {
-        super.setLayoutManager(manager);
-        mContainerLayoutManager.attachRecycler(manager.getRecycler());
-        mLayouter.setLayoutManager(mContainerLayoutManager);
+    public void attach(MultiScene multiScene) {
+        super.attach(multiScene);
+        if (mContainerMultiScene == null) {
+            mContainerMultiScene = new MultiScene(mContainerLayoutManager, multiScene.getMultiData());
+        }
+        mContainerLayoutManager.attachRecycler(multiScene.getRecycler());
+        mLayouter.attach(mContainerMultiScene);
     }
 
     @Override
-    protected ContainerLayoutHelper createLayoutHelper(BaseMultiLayoutManager manager) {
-        return new ContainerLayoutHelper(this, manager);
+    protected ContainerLayoutHelper createLayoutHelper(MultiScene multiScene) {
+        return new ContainerLayoutHelper(this, multiScene);
     }
 
     @Override
@@ -540,8 +546,9 @@ public class ContainerLayouter extends AbsLayouter {
 
         protected final Layouter mChildLayouter;
 
-        public ContainerLayoutHelper(ContainerLayouter containerLayouter, BaseMultiLayoutManager layoutManager) {
-            super(layoutManager);
+        public ContainerLayoutHelper(ContainerLayouter containerLayouter,
+                                     MultiScene multiScene) {
+            super(multiScene);
             mChildLayouter = containerLayouter.mLayouter;
         }
 
