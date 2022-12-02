@@ -17,6 +17,7 @@ import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.SingleTypeMultiData;
+import com.zpj.recyclerview.core.MultiScene;
 import com.zpj.recyclerview.layouter.BannerLayouter;
 import com.zpj.recyclerview.layouter.FlowLayouter;
 import com.zpj.recyclerview.layouter.GridLayouter;
@@ -53,7 +54,7 @@ public class LayoutManagerActivity extends AppCompatActivity {
         }
 
 
-        List<MultiData<?>> multiDataList = new ArrayList<>();
+        List<MultiScene> multiDataList = new ArrayList<>();
 
 //        final BannerLayouter bannerLayouter = new BannerLayouter();
 //        bannerLayouter.setAutoPlayDuration(5000);
@@ -133,21 +134,21 @@ public class LayoutManagerActivity extends AppCompatActivity {
 //            }
 //        });
 
-        multiDataList.add(new LayouterMultiData(list, new HorizontalLayouter(true)) {
+        multiDataList.add(new MultiScene(new LayouterMultiData(list) {
             @Override
             public int getLayoutId() {
                 return R.layout.item_text_grid;
             }
-        });
+        }, new HorizontalLayouter(true)));
 
-        multiDataList.add(new LayouterMultiData(list, new HorizontalLayouter()) {
+        multiDataList.add(new MultiScene(new LayouterMultiData(list) {
             @Override
             public int getLayoutId() {
                 return R.layout.item_text_grid;
             }
-        });
+        }, new HorizontalLayouter()));
 
-        multiDataList.add(new LayouterMultiData(list, new VerticalLayouter()));
+        multiDataList.add(new MultiScene(new LayouterMultiData(list)));
 
 //        multiDataList.add(new LayouterMultiData(list, new HorizontalLayouter()) {
 //            @Override
@@ -336,12 +337,12 @@ public class LayoutManagerActivity extends AppCompatActivity {
 
     public static class LayouterMultiData extends SingleTypeMultiData<Integer> {
 
-        public LayouterMultiData(com.zpj.recyclerview.layouter.Layouter layouter) {
-            super(layouter);
+        public LayouterMultiData() {
+            super();
         }
 
-        public LayouterMultiData(List<Integer> list, com.zpj.recyclerview.layouter.Layouter layouter) {
-            super(list, layouter);
+        public LayouterMultiData(List<Integer> list) {
+            super(list);
         }
 
         @Override
@@ -377,8 +378,8 @@ public class LayoutManagerActivity extends AppCompatActivity {
 
     public static class TestErrorStringMultiData extends LayouterMultiData {
 
-        public TestErrorStringMultiData(com.zpj.recyclerview.layouter.Layouter layouter) {
-            super(layouter);
+        public TestErrorStringMultiData() {
+            super();
             hasMore = false;
             showError();
         }
@@ -429,8 +430,8 @@ public class LayoutManagerActivity extends AppCompatActivity {
 //            super(title, layouter);
 //        }
 
-        public StringMultiData(String title, com.zpj.recyclerview.layouter.Layouter layouter) {
-            super(title, layouter);
+        public StringMultiData(String title) {
+            super(title);
             hasMore = false;
             showError();
         }

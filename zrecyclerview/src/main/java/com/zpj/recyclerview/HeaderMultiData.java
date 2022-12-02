@@ -19,14 +19,6 @@ public abstract class HeaderMultiData<T> extends StateMultiData<T> {
         super(list);
     }
 
-    public HeaderMultiData(Layouter layouter) {
-        super(layouter);
-    }
-
-    public HeaderMultiData(List<T> list, Layouter layouter) {
-        super(list, layouter);
-    }
-
     @Override
     public int getCount() {
         if (getState() == STATE_CONTENT) {

@@ -26,7 +26,7 @@ public class BannerLayouter extends PagerLayouter {
                         return;
                     }
                     int dx = getDecoratedLeft(current) - getWidth();
-                    Log.d(TAG, "mAutoRunnable dx=" + dx + " mTop=" + getTop() + " mBottom=" + getBottom());
+                    Log.d(TAG, "mAutoRunnable dx=" + dx + " mTop=" + mScene.getTop() + " mBottom=" + mScene.getBottom());
                     mFlinger.fling(dx * 10, 0);
                 }
                 startAutoPlay();
@@ -85,7 +85,7 @@ public class BannerLayouter extends PagerLayouter {
     }
 
     @Override
-    protected void onAttached() {
+    public void onAttached() {
         super.onAttached();
         if (!mStart) {
             startAutoPlay();
@@ -93,7 +93,7 @@ public class BannerLayouter extends PagerLayouter {
     }
 
     @Override
-    protected void onDetached() {
+    public void onDetached() {
         super.onDetached();
         if (mStart) {
             stopAutoPlay();

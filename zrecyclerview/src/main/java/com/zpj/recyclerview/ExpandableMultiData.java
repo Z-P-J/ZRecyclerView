@@ -6,6 +6,8 @@ import java.util.List;
 
 import static com.zpj.statemanager.State.STATE_CONTENT;
 
+import com.zpj.recyclerview.core.MultiScene;
+
 public abstract class ExpandableMultiData<T> extends HeaderMultiData<T> {
 
     private boolean isExpand = true;
@@ -73,7 +75,8 @@ public abstract class ExpandableMultiData<T> extends HeaderMultiData<T> {
             return;
         }
         int num = getStartCount();
-        for (MultiData<?> data : adapter.getData()) {
+        for (MultiScene scene : adapter.getData()) {
+            MultiData<?> data = scene.getMultiData();
             if (data == this) {
                 adapter.notifyItemRangeInserted(num + 1, getCount() - mLastCount); // mData.size()
                 break;
@@ -90,7 +93,8 @@ public abstract class ExpandableMultiData<T> extends HeaderMultiData<T> {
             return;
         }
         int num = getStartCount();
-        for (MultiData<?> data : adapter.getData()) {
+        for (MultiScene scene : adapter.getData()) {
+            MultiData<?> data = scene.getMultiData();
             if (data == this) {
                 adapter.notifyItemRangeRemoved(num + 1, mLastCount - getCount()); // mData.size()
                 break;

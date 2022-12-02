@@ -76,7 +76,7 @@ public class PagerLayouter extends AbsLayouter {
         if (dy > 0) {
             // 从下往上滑动
             if (anchorView == null) {
-                return fillVerticalBottom(multiData, getCurrentPosition(), dy, getTop());
+                return fillVerticalBottom(multiData, getCurrentPosition(), dy, mScene.getTop());
             } else {
                 // 如果占用两行则需要以下代码
                 int anchorBottom = getDecoratedTop(anchorView);
@@ -91,7 +91,7 @@ public class PagerLayouter extends AbsLayouter {
         } else {
             // 从上往下滑动
             if (anchorView == null) {
-                return fillVerticalTop(multiData, getCurrentPosition(), dy, getBottom());
+                return fillVerticalTop(multiData, getCurrentPosition(), dy, mScene.getBottom());
             } else {
                 // 如果占用两行则需要以下代码
                 int anchorTop = getDecoratedTop(anchorView);
@@ -144,7 +144,7 @@ public class PagerLayouter extends AbsLayouter {
 
             layoutDecorated(view, left, top, right, bottom);
         }
-        setTop(top);
+        mScene.setTop(top);
         // TODO 如果有多行，需要减去anchorTop
         return Math.min(-dy, -top);
     }
@@ -186,7 +186,7 @@ public class PagerLayouter extends AbsLayouter {
 
             layoutDecorated(view, left, top, right, bottom);
         }
-        setBottom(bottom);
+        mScene.setBottom(bottom);
         return Math.min(dy, - anchorBottom);
     }
 
@@ -352,7 +352,7 @@ public class PagerLayouter extends AbsLayouter {
     }
 
     @Override
-    protected void onDetached() {
+    public void onDetached() {
         if (mFlinger != null) {
             mFlinger.stop();
         }
@@ -413,7 +413,7 @@ public class PagerLayouter extends AbsLayouter {
             mCurrentItem = item;
             mAnchorInfo.position = item;
             mAnchorInfo.x = 0;
-            mAnchorInfo.y = getTop();
+            mAnchorInfo.y = mScene.getTop();
             if (getLayoutHelper() != null) {
                 getLayoutHelper().requestLayout();
             }

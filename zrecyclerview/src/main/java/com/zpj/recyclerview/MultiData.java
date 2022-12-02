@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.zpj.recyclerview.core.MultiScene;
 import com.zpj.recyclerview.layouter.Layouter;
 import com.zpj.recyclerview.layouter.VerticalLayouter;
 
@@ -28,8 +29,6 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
 
     protected int mLastCount = 0;
 
-    private Layouter mLayouter;
-
     public MultiData() {
         mData = new ArrayList<>();
     }
@@ -38,27 +37,6 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
         this();
         this.mData.addAll(mData);
         hasMore = false;
-    }
-
-    public MultiData(Layouter layouter) {
-        mData = new ArrayList<>();
-        this.mLayouter = layouter;
-    }
-
-    public MultiData(List<T> mData, Layouter layouter) {
-        this(layouter);
-        this.mData.addAll(mData);
-        hasMore = false;
-    }
-
-    public Layouter getLayouter() {
-        if (mLayouter == null) {
-            mLayouter = createLayouter();
-            if (mLayouter == null) {
-                throw new RuntimeException("You must create a nonnull layouter for this multidata!");
-            }
-        }
-        return mLayouter;
     }
 
     protected Layouter createLayouter() {
@@ -595,7 +573,8 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
         }
         if (isInMainThread()) {
             int num = getStartCount();
-            for (MultiData<?> data : mAdapter.getData()) {
+            for (MultiScene scene : mAdapter.getData()) {
+                MultiData<?> data = scene.getMultiData();
                 if (data == this) {
 //                    if (positionStart >= getCount()) {
 //                        return;
@@ -632,7 +611,8 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
 
     private int getPositionOffset() {
         int offset = getStartCount();
-        for (MultiData<?> data : mAdapter.getData()) {
+        for (MultiScene scene : mAdapter.getData()) {
+            MultiData<?> data = scene.getMultiData();
             if (data == this) {
                 return offset;
             } else if (data instanceof GroupMultiData) {

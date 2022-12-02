@@ -15,6 +15,7 @@ import com.zpj.recycler.demo.mutildata.TestErrorStringMultiData;
 import com.zpj.recyclerview.GroupMultiData;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
+import com.zpj.recyclerview.core.MultiScene;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +57,7 @@ public class MultiDataActivity extends AppCompatActivity {
         GroupMultiData groupMultiData = new GroupMultiData(list);
 
         MultiRecycler.with((RecyclerView) findViewById(R.id.recycler_view))
-                .setItems(groupMultiData)
+                .setItems(new MultiScene(groupMultiData))
 //                .setItems(list)
 //                .setHeaderView(LayoutInflater.from(this).inflate(R.layout.item_header, null, false))
 //                .setFooterViewBinder(new SimpleFooterViewHolder(R.layout.layout_loading_footer, R.layout.layout_error_footer) {

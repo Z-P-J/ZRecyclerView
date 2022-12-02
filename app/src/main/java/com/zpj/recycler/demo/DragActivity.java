@@ -11,6 +11,7 @@ import com.zpj.recycler.demo.mutildata.MyDragAndSwipeMultiData;
 import com.zpj.recycler.demo.mutildata.StringSingleTypeMultiData;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
+import com.zpj.recyclerview.core.MultiScene;
 import com.zpj.recyclerview.footer.SimpleFooterViewHolder;
 import com.zpj.recyclerview.refresh.IRefresher;
 import com.zpj.recyclerview.refresh.SimpleRefresher;
@@ -25,12 +26,12 @@ public class DragActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test);
 
-        List<MultiData<?>> list = new ArrayList<>();
+        List<MultiScene> list = new ArrayList<>();
 
-        list.add(new StringSingleTypeMultiData());
-        list.add(new MyDragAndSwipeMultiData());
-        list.add(new StringSingleTypeMultiData());
-        list.add(new MyDragAndSwipeMultiData() {
+        list.add(new MultiScene(new StringSingleTypeMultiData()));
+        list.add(new MultiScene(new MyDragAndSwipeMultiData()));
+        list.add(new MultiScene(new StringSingleTypeMultiData()));
+        list.add(new MultiScene(new MyDragAndSwipeMultiData() {
 
             @Override
             public int getColumnCount(int viewType) {
@@ -41,7 +42,7 @@ public class DragActivity extends AppCompatActivity {
             public int getMaxColumnCount() {
                 return 2;
             }
-        });
+        }));
 
         final RecyclerView recyclerView = findViewById(R.id.recycler_view);
         MultiRecycler.with(recyclerView)

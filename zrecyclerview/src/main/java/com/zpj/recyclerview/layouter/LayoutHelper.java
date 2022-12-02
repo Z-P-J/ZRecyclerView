@@ -13,11 +13,13 @@ import com.zpj.recyclerview.core.MultiLayoutParams;
 import com.zpj.recyclerview.core.MultiScene;
 
 public class LayoutHelper {
-    
+
+    protected final MultiScene mScene;
     protected final BaseMultiLayoutManager mLayoutManager;
     protected final MultiData<?> mMultiData;
 
     public LayoutHelper(MultiScene multiScene) {
+        mScene = multiScene;
         mLayoutManager = multiScene.getLayoutManager();
         mMultiData = multiScene.getMultiData();
     }
@@ -58,9 +60,9 @@ public class LayoutHelper {
         return mLayoutManager.getViewForPosition(position);
     }
 
-    public View getViewForPosition(int position, int offset, MultiData<?> multiData) {
+    public View getViewForPosition(int position, int offset) {
         View view = null;
-        if (multiData.isStickyPosition(position - offset)) {
+        if (mScene.getMultiData().isStickyPosition(position - offset)) {
             view  = mLayoutManager.findViewByPosition(position);
         }
         if (view == null) {
@@ -69,7 +71,7 @@ public class LayoutHelper {
             mLayoutManager.detachAndScrapView(view);
         }
         MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
-        params.setMultiData(multiData);
+        params.setScene(mScene);
         return view;
     }
 

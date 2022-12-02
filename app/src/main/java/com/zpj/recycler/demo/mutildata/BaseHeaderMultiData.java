@@ -24,16 +24,6 @@ public abstract class BaseHeaderMultiData<T> extends HeaderMultiData<T> {
         this.title = title;
     }
 
-    public BaseHeaderMultiData(String title, Layouter layouter) {
-        super(layouter);
-        this.title = title;
-    }
-
-    public BaseHeaderMultiData(String title, List<T> list, Layouter layouter) {
-        super(list, layouter);
-        this.title = title;
-    }
-
     @Override
     public int getHeaderLayoutId() {
         return R.layout.item_header;

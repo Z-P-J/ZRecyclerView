@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
+import com.zpj.recyclerview.core.MultiScene;
 import com.zpj.recyclerview.layouter.Layouter;
 import com.zpj.recyclerview.core.MultiLayoutParams;
 
@@ -79,19 +80,27 @@ public class BaseMultiLayoutManager extends RecyclerView.LayoutManager {
         return mRecycler;
     }
 
-    public MultiData<?> getMultiData(View child) {
+    public MultiScene getScene(View child) {
         if (child == null) {
             return null;
         }
-        return ((MultiLayoutParams) child.getLayoutParams()).getMultiData();
+        return ((MultiLayoutParams) child.getLayoutParams()).getScene();
     }
 
     public Layouter getLayouter(View child) {
-        MultiData<?> multiData = getMultiData(child);
-        if (multiData == null) {
+        MultiScene scene = getScene(child);
+        if (scene == null) {
             return null;
         }
-        return multiData.getLayouter();
+        return scene.getLayouter();
+    }
+
+    public MultiData<?> getMultiData(View child) {
+        MultiScene scene = getScene(child);
+        if (scene == null) {
+            return null;
+        }
+        return scene.getMultiData();
     }
 
     public View getFirstChild() {

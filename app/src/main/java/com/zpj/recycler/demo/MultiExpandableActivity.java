@@ -8,6 +8,7 @@ import com.zpj.recycler.demo.mutildata.ExpandableMultiData;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.core.MultiLayoutManager;
+import com.zpj.recyclerview.core.MultiScene;
 import com.zpj.statemanager.State;
 
 import java.util.ArrayList;
@@ -20,10 +21,10 @@ public class MultiExpandableActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test);
 
-        List<MultiData<?>> list = new ArrayList<>();
+        List<MultiScene> list = new ArrayList<>();
 
         for (int i = 0; i < 3; i++) {
-            list.add(new MyExpandMultiData("title_" + i));
+            list.add(new MultiScene(new MyExpandMultiData("title_" + i)));
         }
 
 
