@@ -75,7 +75,7 @@ public class StickyHeaderItemDecoration extends RecyclerView.ItemDecoration {
 
         int size = groupAdapter.getData().size();
         for (int i = 0; i < size; i++) {
-            MultiData<?> data = groupAdapter.getData().get(i);
+            MultiData<?> data = groupAdapter.getData().get(i).getMultiData();
             if (data.hasMore()) {
                 break;
             }

@@ -26,14 +26,6 @@ public abstract class ContainerMultiData<T> extends StateMultiData<T> {
         super(list);
     }
 
-    public ContainerMultiData(AbsLayouter layouter) {
-        super(new ContainerLayouter(layouter));
-    }
-
-    public ContainerMultiData(List<T> list, AbsLayouter layouter) {
-        super(list, new ContainerLayouter(layouter));
-    }
-
     @Override
     public View onCreateView(Context context, ViewGroup container, int viewType) {
         if (viewType == ContainerLayouter.ContainerLayout.class.hashCode()) {

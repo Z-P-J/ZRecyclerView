@@ -21,13 +21,11 @@ import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 
 import com.zpj.recyclerview.EasyViewHolder;
-import com.zpj.recyclerview.GroupMultiData;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.layouter.AbsLayouter;
 import com.zpj.recyclerview.layouter.Layouter;
 import com.zpj.recyclerview.layouter.RefresherLayouter;
-import com.zpj.recyclerview.layouter.StaggeredGridLayouter;
 import com.zpj.recyclerview.refresh.IRefresher;
 
 import java.util.ArrayDeque;
@@ -52,7 +50,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
     private final Deque<StickyInfo> stickyInfoStack = new ArrayDeque<>();
 
-    private List<MultiData<?>> multiDataList;
+    private List<MultiScene> mSceneList;
 
     private int mScrollDirection = DIRECTION_NONE;
 
@@ -70,18 +68,18 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
     private static class StickyInfo {
         int position;
-        MultiData<?> multiData;
+        MultiScene multiScene;
 
-        public StickyInfo(int position, MultiData<?> multiData) {
+        public StickyInfo(int position, MultiScene multiScene) {
             this.position = position;
-            this.multiData = multiData;
+            this.multiScene = multiScene;
         }
 
         @Override
         public String toString() {
             return "StickyInfo{" +
                     "position=" + position +
-                    ", multiData=" + multiData +
+                    ", multiScene=" + multiScene +
                     '}';
         }
     }
@@ -98,9 +96,10 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
     public void attachRecycler(final MultiRecycler recycler) {
         super.attachRecycler(recycler);
-        this.multiDataList = recycler.getItems();
+        mSceneList = recycler.getItems();
         if (recycler.getRefresher() != null) {
-            this.multiDataList.add(0, new RefresherMultiData(recycler.getRefresher()));
+            mSceneList.add(0, new MultiScene(new RefresherMultiData(recycler.getRefresher()),
+                    new RefresherLayouter(recycler.getRefresher())));
         }
         recycler.getRecyclerView().setOverScrollMode(View.OVER_SCROLL_NEVER);
         final int touchSlop = ViewConfiguration.get(mRecycler.getContext()).getScaledTouchSlop();
@@ -110,8 +109,9 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
             private static final String TAG = "OnItemTouchListener";
 
             private VelocityTracker mTracker;
-            private MultiData<?> mMultiData = null;
-            private RefresherMultiData mRefresherData;
+
+            private MultiScene mTouchedScene;
+            private MultiScene mRefresherScene;
 
             @Override
             public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent event) {
@@ -122,8 +122,8 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                 }
                 mTracker.addMovement(event);
                 if (MotionEvent.ACTION_DOWN == action) {
-                    mMultiData = null;
-                    mRefresherData = null;
+                    mTouchedScene = null;
+                    mRefresherScene = null;
                     mScrollDirection = DIRECTION_NONE;
                     mDownX = event.getX();
                     mDownY = event.getY();
@@ -132,16 +132,14 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                         mOverScrollAnimator = null;
                     }
 
-                    List<MultiData<?>> dataList = getAllMultiData(multiDataList);
-                    for (int i = 0; i < dataList.size(); i++) {
-                        MultiData<?> multiData = dataList.get(i);
-                        Layouter layouter = multiData.getLayouter();
-                        Log.d(TAG, "onInterceptTouchEvent mDownX=" + mDownX + " mDownY=" + mDownY + " layouter=" + layouter);
-                        if (layouter.onTouchDown(multiData, mDownX, mDownY, event)) {
-                            if (multiData instanceof RefresherMultiData && !isOverScrolling) {
-                                mRefresherData = (RefresherMultiData) multiData;
+                    for (MultiScene scene : mSceneList) {
+                        if (scene.onTouchDown(mDownX, mDownY, event)) {
+                            if (scene.getMultiData() instanceof RefresherMultiData) {
+                                if (!isOverScrolling) {
+                                    mRefresherScene = scene;
+                                }
                             } else {
-                                mMultiData = multiData;
+                                mTouchedScene = scene;
                                 break;
                             }
                         }
@@ -169,15 +167,15 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                     }
 
                     if (mScrollDirection == DIRECTION_VERTICAL) {
-                        if (mRefresherData != null) {
-                            mRefresherData.getLayouter().onTouchMove(mRefresherData, event.getX(), event.getY(), mDownX, mDownY, event);
-                            mMultiData = null;
+                        if (mRefresherScene != null) {
+                            mRefresherScene.onTouchMove(event.getX(), event.getY(), mDownX, mDownY, event);
+                            mTouchedScene = null;
                         }
                     } else if (mScrollDirection == DIRECTION_HORIZONTAL) {
-                        if (mMultiData != null) {
-                            mMultiData.getLayouter().onTouchMove(mMultiData, event.getX(), event.getY(), mDownX, mDownY, event);
+                        if (mTouchedScene != null) {
+                            mTouchedScene.onTouchMove(event.getX(), event.getY(), mDownX, mDownY, event);
                         }
-                        mRefresherData = null;
+                        mRefresherScene = null;
                     }
                 } else if (MotionEvent.ACTION_UP == action || MotionEvent.ACTION_CANCEL == action) {
 
@@ -200,14 +198,14 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                     }
 
                     boolean result = false;
-                    if (mMultiData != null) {
-                        mMultiData.getLayouter().onTouchUp(mMultiData, velocityX, velocityY, event);
-                        mMultiData = null;
+                    if (mTouchedScene != null) {
+                        mTouchedScene.onTouchUp(velocityX, velocityY, event);
+                        mTouchedScene = null;
                         result = direction == DIRECTION_HORIZONTAL;
                     }
-                    if (mRefresherData != null) {
-                        result |= mRefresherData.getLayouter().onTouchUp(mRefresherData, velocityX, velocityY, event);
-                        mRefresherData = null;
+                    if (mRefresherScene != null) {
+                        result |= mRefresherScene.onTouchUp(velocityX, velocityY, event);
+                        mRefresherScene = null;
                     }
                     return result;
                 }
@@ -321,7 +319,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
     public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
         Log.d(TAG, "onLayoutChildren state=" + state + " isPreLayout=" + state.isPreLayout());
 
-        if (multiDataList == null) {
+        if (mSceneList == null) {
             return;
         }
 
@@ -345,23 +343,23 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
         int topPosition = 0;
 
 
-        Layouter last = null;
-        List<MultiData<?>> dataList = getAllMultiData(multiDataList);
-        for (int i = 0; i < dataList.size(); i++) {
-            MultiData<?> multiData = dataList.get(i);
-            AbsLayouter layouter = (AbsLayouter) multiData.getLayouter();
+        MultiScene lastScene = null;
+        for (MultiScene scene : mSceneList) {
+            MultiData<?> multiData = scene.getMultiData();
+            scene.setPositionOffset(positionOffset);
+            AbsLayouter layouter = (AbsLayouter) scene.getLayouter();
             layouter.setPositionOffset(positionOffset);
-            if (layouter.getLayoutHelper() == null || layouter.isAttached()) {
-                layouter.attach(new MultiScene(this, multiData));
-                if (last != null) {
-                    Log.d(TAG, "onLayoutChildren i=" + i + " bottom=" + last.getBottom());
-                    layouter.setTop(last.getBottom());
-                    layouter.layoutChildren(multiData);
-                } else {
+
+            if (scene.getLayoutManager() == null || scene.isAttached()) {
+                scene.attach(this);
+
+                if (lastScene == null) {
                     topPosition = layouter.mAnchorInfo.position + positionOffset;
-                    layouter.layoutChildren(multiData);
+                } else {
+                    scene.setTop(lastScene.getBottom());
                 }
-                last = layouter;
+                scene.layoutChildren();
+                lastScene = scene;
             }
             positionOffset += getCount(multiData);
         }
@@ -396,27 +394,27 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                     detachAndScrapView(child, recycler);
                 }
                 MultiLayoutParams params = (MultiLayoutParams) child.getLayoutParams();
-                params.setMultiData(stickyInfo.multiData);
+                params.setScene(stickyInfo.multiScene);
                 super.addView(child, getChildCount());
                 measureChild(child, 0, 0);
                 layoutDecorated(child, 0, currentStickyOffset, getWidth(), currentStickyOffset + getDecoratedMeasuredHeight(child));
 
-                Layouter layouter = stickyInfo.multiData.getLayouter();
-                stickyInfo.multiData.onItemSticky(new EasyViewHolder(child), stickyInfo.position - layouter.getPositionOffset(), true);
+                Layouter layouter = stickyInfo.multiScene.getLayouter();
+                stickyInfo.multiScene.getMultiData().onItemSticky(new EasyViewHolder(child), stickyInfo.position - layouter.getPositionOffset(), true);
             }
         }
 
-        MultiData<?> lastData = null;
+        lastScene = null;
         for (int i = 0; i < getChildCount(); i++) {
             View view = getChildAt(i);
-            final MultiData<?> data = getMultiData(view);
-            if (data != lastData) {
-                lastData = data;
-                if (data.hasMore()) {
+            final MultiScene scene = getScene(view);
+            if (scene != lastScene) {
+                lastScene = scene;
+                if (scene.getMultiData().hasMore()) {
                     mRecycler.post(new Runnable() {
                         @Override
                         public void run() {
-                            data.load(mRecycler.getAdapter());
+                            scene.getMultiData().load(mRecycler.getAdapter());
                         }
                     });
                 }
@@ -426,31 +424,30 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
     }
 
-    private List<MultiData<?>> getAllMultiData(List<MultiData<?>> dataList) {
-        List<MultiData<?>> list = new ArrayList<>();
-        for (MultiData<?> data : dataList) {
-            if (data instanceof GroupMultiData) {
-                if (data.getCount() > 0) {
-                    list.addAll(getAllMultiData(((GroupMultiData) data).getData()));
-                }
-            } else {
-                list.add(data);
-            }
-        }
-        return list;
-    }
+//    private List<MultiData<?>> getAllMultiData(List<MultiData<?>> dataList) {
+//        List<MultiData<?>> list = new ArrayList<>();
+//        for (MultiData<?> data : dataList) {
+//            if (data instanceof GroupMultiData) {
+//                if (data.getCount() > 0) {
+//                    list.addAll(getAllMultiData(((GroupMultiData) data).getData()));
+//                }
+//            } else {
+//                list.add(data);
+//            }
+//        }
+//        return list;
+//    }
 
     private void initStickyInfoStack(int position) {
         stickyInfoStack.clear();
         int offset = 0;
-        List<MultiData<?>> dataList = getAllMultiData(multiDataList);
-        for (int i = 0; i < dataList.size(); i++) {
-            MultiData<?> multiData = dataList.get(i);
-            int count = getCount(multiData);
+
+        for (MultiScene scene : mSceneList) {
+            int count = scene.getItemCount();
             for (int pos = offset; pos < offset + count; pos++) {
-                if (multiData.isStickyPosition(pos - offset)) {
+                if (scene.getMultiData().isStickyPosition(pos - offset)) {
                     Log.d(TAG, "stickyInfo111 pos=" + pos);
-                    stickyInfoStack.push(new StickyInfo(pos, multiData));
+                    stickyInfoStack.push(new StickyInfo(pos, scene));
                 }
                 if (pos >= position) {
                     return;
@@ -472,20 +469,22 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
     @Override
     public int scrollHorizontallyBy(int dx, RecyclerView.Recycler recycler, RecyclerView.State state) {
-        return scrollHorizontallyBy(dx, getTouchMultiData(mDownX, mDownY));
+        return 0;
+//        return scrollHorizontallyBy(dx, getTouchMultiData(mDownX, mDownY));
     }
 
     public int scrollHorizontallyBy(int dx) {
-        return scrollHorizontallyBy(dx, getTouchMultiData(mDownX, mDownY));
+        return 0;
+//        return scrollHorizontallyBy(dx, getTouchMultiData(mDownX, mDownY));
     }
 
-    public int scrollHorizontallyBy(int dx, MultiData<?> scrollMultiData) {
-        return 0;
-//        if (multiDataList == null || scrollMultiData == null) {
-//            return 0;
-//        }
-//        return scrollMultiData.getLayouter().scrollHorizontallyBy(dx, scrollMultiData);
-    }
+//    public int scrollHorizontallyBy(int dx, MultiData<?> scrollMultiData) {
+//        return 0;
+////        if (multiDataList == null || scrollMultiData == null) {
+////            return 0;
+////        }
+////        return scrollMultiData.getLayouter().scrollHorizontallyBy(dx, scrollMultiData);
+//    }
 
     @Override
     public void offsetChildrenVertical(int dy) {
@@ -508,10 +507,10 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
     @Override
     public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state) {
-        if (multiDataList == null) {
+        if (mSceneList == null) {
             return 0;
         }
-        List<MultiData<?>> dataList = getAllMultiData(multiDataList);
+
 
         if (isOverScrolling) {
             overScrollDistance += dy;
@@ -554,10 +553,11 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
         Log.d(TAG, "\n============================================scrollVerticallyBy dy=" + dy);
 
+
         if (dy < 0) {
             // 从上往下滑动
             int i = 0;
-            MultiData<?> multiData = null;
+            MultiScene multiScene = null;
             View view;
             do {
                 view = getChildAt(i);
@@ -569,26 +569,26 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                     continue;
                 }
 //                view.setTag(i);
-                multiData = getMultiData(view);
+                multiScene = getScene(view);
                 i++;
-            } while (multiData == null);
-            Layouter layouter = multiData.getLayouter();
+            } while (multiScene == null);
+            Layouter layouter = multiScene.getLayouter();
             Log.d(TAG, "scrollVerticallyBy firstChildPosition=" + getPosition(view));
-            consumed -= layouter.fillVertical(view, dy - consumed, multiData);
-            i = dataList.indexOf(multiData);
+            consumed -= layouter.fillVertical(view, dy - consumed, multiScene.getMultiData());
+            i = mSceneList.indexOf(multiScene);
             while (consumed > dy && i > 0) {
-                int top = layouter.getTop();
-                multiData = dataList.get(--i);
-                layouter = multiData.getLayouter();
-                layouter.setBottom(top);
+                int top = multiScene.getTop();
+                multiScene = mSceneList.get(--i);
+                layouter = multiScene.getLayouter();
+                multiScene.setBottom(top);
                 Log.d(TAG, "scrollVerticallyBy layouter=" + layouter);
-                consumed -= layouter.fillVertical(null, dy - consumed, multiData);
+                consumed -= layouter.fillVertical(null, dy - consumed, multiScene.getMultiData());
             }
         } else {
             // 从下往上滑动
 
             int i = getChildCount() - 1;
-            MultiData<?> multiData = null;
+            MultiScene multiScene = null;
             View view;
             do {
                 view = getChildAt(i);
@@ -600,27 +600,27 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                     continue;
                 }
 //                view.setTag(i);
-                multiData = getMultiData(view);
+                multiScene = getScene(view);
                 i--;
-            } while (multiData == null);
-            Layouter layouter = multiData.getLayouter();
+            } while (multiScene == null);
+            Layouter layouter = multiScene.getLayouter();
             Log.w(TAG, "scrollVerticallyBy layouter=" + layouter);
-            consumed += layouter.fillVertical(view, dy - consumed, multiData);
-            i = dataList.indexOf(multiData);
+            consumed += layouter.fillVertical(view, dy - consumed, multiScene.getMultiData());
+            i = mSceneList.indexOf(multiScene);
             Log.w(TAG, "scrollVerticallyBy consumedLast=" + consumed + " i=" + i + " lastPosition=" + getPosition(view));
-            while (consumed < dy && i < dataList.size() - 1) {
-                int bottom = layouter.getBottom();
-                multiData = dataList.get(++i);
-                layouter = multiData.getLayouter();
+            while (consumed < dy && i < mSceneList.size() - 1) {
+                int bottom = multiScene.getBottom();
+                multiScene = mSceneList.get(++i);
+                layouter = multiScene.getLayouter();
                 Log.w(TAG, "scrollVerticallyBy layouter=" + layouter + " consumed=" + consumed);
-                layouter.setTop(bottom);
-                consumed += layouter.fillVertical(null, dy - consumed, multiData);
+                multiScene.setTop(bottom);
+                consumed += layouter.fillVertical(null, dy - consumed, multiScene.getMultiData());
             }
         }
 
         Log.d(TAG, "scrollVerticallyBy consumed=" + consumed);
 
-        MultiData<?> last = null;
+        MultiScene last = null;
         handleSticky = true;
         List<Layouter> layouters = new ArrayList<>();
         for (int i = 0; i < getChildCount(); i++) {
@@ -628,19 +628,19 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
             if (view == null) {
                 continue;
             }
-            MultiData<?> data = getMultiData(view);
-            if (data == null) {
+            MultiScene scene = getScene(view);
+            if (scene == null) {
                 Log.d(TAG, "scrollVerticallyBy i=" + i + " position=" + getPosition(view));
                 continue;
             }
-            Layouter layouter = data.getLayouter();
-            if (data != last) {
+            Layouter layouter = scene.getLayouter();
+            if (scene != last) {
                 layouters.add(layouter);
-                layouter.offsetTopAndBottom(-consumed);
-                last = data;
+                scene.offsetTopAndBottom(-consumed);
+                last = scene;
             }
             if (layouter.canScrollVertically()) {
-                if (handleSticky(data, view, i, consumed)) {
+                if (handleSticky(scene, view, i, consumed)) {
                     continue;
                 }
                 if (layouter.getLayoutHelper().shouldRecycleChildViewVertically(view, consumed)) {
@@ -676,14 +676,14 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                 detachAndScrapView(child, recycler);
             }
             MultiLayoutParams params = (MultiLayoutParams) child.getLayoutParams();
-            params.setMultiData(stickyInfo.multiData);
+            params.setScene(stickyInfo.multiScene);
             super.addView(child, getChildCount());
             measureChild(child, 0, 0);
             Log.e(TAG, "scrollVerticallyBy currentStickyOffset=" + currentStickyOffset);
             layoutDecorated(child, 0, currentStickyOffset, getWidth(), currentStickyOffset + getDecoratedMeasuredHeight(child));
 
-            Layouter layouter = stickyInfo.multiData.getLayouter();
-            stickyInfo.multiData.onItemSticky(new EasyViewHolder(child), stickyInfo.position - layouter.getPositionOffset(), true);
+            Layouter layouter = stickyInfo.multiScene.getLayouter();
+            stickyInfo.multiScene.getMultiData().onItemSticky(new EasyViewHolder(child), stickyInfo.position - layouter.getPositionOffset(), true);
         }
 
         Log.d(TAG, "scrollVerticallyBy getChildCount=" + getChildCount() + " \n");
@@ -692,11 +692,11 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
     private boolean handleSticky;
 
-    private boolean handleSticky(MultiData<?> data, View view, int i, int consumed) {
+    private boolean handleSticky(MultiScene data, View view, int i, int consumed) {
         Layouter layouter = data.getLayouter();
         int position = getPosition(view);
 
-        boolean isStickyPosition = data.isStickyPosition(position - layouter.getPositionOffset());
+        boolean isStickyPosition = data.getMultiData().isStickyPosition(position - layouter.getPositionOffset());
         if (!isStickyPosition) {
             return false;
         }
@@ -720,7 +720,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
             if (i != getChildCount() - 1 && decoratedTop - consumed >= 0) { //  && decoratedTop - consumed >= 0
 //                            currentStickyOffset = decoratedTop - getDecoratedMeasuredHeight(view) - consumed;
                 if (stickyInfo != null) {
-                    stickyInfo.multiData.onItemSticky(new EasyViewHolder(view), stickyInfo.position - stickyInfo.multiData.getLayouter().getPositionOffset(), false);
+                    stickyInfo.multiScene.getMultiData().onItemSticky(new EasyViewHolder(view), stickyInfo.position - stickyInfo.multiScene.getLayouter().getPositionOffset(), false);
                 }
                 if (stickyInfoStack.isEmpty()) {
                     stickyInfo = null;
@@ -736,7 +736,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                         measureChild(child, 0, 0);
                     }
                     MultiLayoutParams params = (MultiLayoutParams) child.getLayoutParams();
-                    params.setMultiData(stickyInfo.multiData);
+                    params.setScene(stickyInfo.multiScene);
 
                     currentStickyOffset = decoratedTop - getDecoratedMeasuredHeight(child) - consumed;
                 }
@@ -766,7 +766,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                     measureChild(child, 0, 0);
                 }
                 MultiLayoutParams params = (MultiLayoutParams) child.getLayoutParams();
-                params.setMultiData(stickyInfo.multiData);
+                params.setScene(stickyInfo.multiScene);
                 Log.d(TAG, "scrollVerticallyBy 有吸顶 stickyInfo=" + stickyInfo + " position=" + position);
 
                 if (position > stickyInfo.position) {
@@ -777,7 +777,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                         stickyInfoStack.push(stickyInfo);
                         layouter.getLayoutHelper().addViewToRecycler(child);
                         if (stickyInfo != null) {
-                            stickyInfo.multiData.onItemSticky(new EasyViewHolder(child), stickyInfo.position - stickyInfo.multiData.getLayouter().getPositionOffset(), false);
+                            stickyInfo.multiScene.getMultiData().onItemSticky(new EasyViewHolder(child), stickyInfo.position - stickyInfo.multiScene.getLayouter().getPositionOffset(), false);
                         }
                         stickyInfo = new StickyInfo(position, data);
                         currentStickyOffset = 0;
@@ -809,7 +809,10 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                     } else if (decoratedBottom - consumed > getDecoratedMeasuredHeight(child)) {
 //                                    currentStickyOffset = decoratedTop - getDecoratedMeasuredHeight() - consumed;
                         if (stickyInfo != null) {
-                            stickyInfo.multiData.onItemSticky(new EasyViewHolder(child), stickyInfo.position - stickyInfo.multiData.getLayouter().getPositionOffset(), false);
+                            stickyInfo.multiScene.getMultiData()
+                                    .onItemSticky(new EasyViewHolder(child),
+                                            stickyInfo.position - stickyInfo.multiScene.getLayouter().getPositionOffset(),
+                                            false);
                         }
                         if (stickyInfoStack.isEmpty()) {
                             stickyInfo = null;
@@ -825,7 +828,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                                 measureChild(child, 0, 0);
                             }
                             params = (MultiLayoutParams) child.getLayoutParams();
-                            params.setMultiData(stickyInfo.multiData);
+                            params.setScene(stickyInfo.multiScene);
 
                             currentStickyOffset = Math.min(0, decoratedTop - getDecoratedMeasuredHeight(child) - consumed);
                         }
@@ -861,14 +864,12 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
     }
 
     public void scrollToPositionWithOffset(int position, int offset) {
-        List<MultiData<?>> dataList = getAllMultiData(multiDataList);
-        for (int i = 0; i < dataList.size(); i++) {
-            MultiData<?> multiData = dataList.get(i);
-            Layouter layouter = multiData.getLayouter();
-            if (position < layouter.getPositionOffset()) {
-                layouter.detach();
-            } else if (!layouter.scrollToPositionWithOffset(multiData, position, offset)) {
-                layouter.setBottom(-1);
+
+        for (MultiScene scene : mSceneList) {
+            if (position < scene.getPositionOffset()) {
+                scene.detach();
+            } else if (!scene.scrollToPositionWithOffset(position, offset)) {
+                scene.setBottom(-1);
             }
         }
         requestLayout();
@@ -911,25 +912,25 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
     }
 
-    private MultiData<?> getTouchMultiData(float downX, float downY) {
-        MultiData<?> tempMultiData = null;
-        for (int i = getChildCount() - 1; i >= 0; i--) {
-            View view = getChildAt(i);
-            if (view == null) {
-                continue;
-            }
-            MultiData<?> multiData = getMultiData(view);
-            if (multiData == null || multiData == tempMultiData) {
-                continue;
-            }
-            tempMultiData = multiData;
-            Layouter layouter = multiData.getLayouter();
-            if (layouter.canScrollHorizontally() && downY >= layouter.getTop() && downY <= layouter.getBottom()) {
-                return multiData;
-            }
-        }
-        return null;
-    }
+//    private MultiData<?> getTouchMultiData(float downX, float downY) {
+//        MultiData<?> tempMultiData = null;
+//        for (int i = getChildCount() - 1; i >= 0; i--) {
+//            View view = getChildAt(i);
+//            if (view == null) {
+//                continue;
+//            }
+//            MultiData<?> multiData = getMultiData(view);
+//            if (multiData == null || multiData == tempMultiData) {
+//                continue;
+//            }
+//            tempMultiData = multiData;
+//            Layouter layouter = multiData.getLayouter();
+//            if (layouter.canScrollHorizontally() && downY >= layouter.getTop() && downY <= layouter.getBottom()) {
+//                return multiData;
+//            }
+//        }
+//        return null;
+//    }
 
     @Override
     public void recycleViews() {
@@ -938,19 +939,17 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
     }
 
     private void saveState() {
-        MultiData<?> last = null;
+        MultiScene last = null;
         for (int i =0; i < getChildCount(); i++) {
             View child = getChildAt(i);
             if (child == null) {
                 continue;
             }
-            MultiData<?> data = getMultiData(child);
-            if (last != data) {
-                last = data;
-                data.getLayouter().saveState(child);
-
-                Log.e(TAG, "saveState i=" + i + " mAnchorInfo=" + ((AbsLayouter) data.getLayouter()).mAnchorInfo);
-
+            MultiScene scene = getScene(child);
+            if (last != scene) {
+                last = scene;
+                scene.saveState(child);
+                Log.e(TAG, "saveState i=" + i + " mAnchorInfo=" + ((AbsLayouter) scene.getLayouter()).mAnchorInfo);
             }
         }
     }
@@ -960,7 +959,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
         private final IRefresher mRefresher;
 
         public RefresherMultiData(IRefresher mRefresher) {
-            super(new RefresherLayouter(mRefresher));
+            super();
             hasMore = false;
             this.mRefresher = mRefresher;
         }

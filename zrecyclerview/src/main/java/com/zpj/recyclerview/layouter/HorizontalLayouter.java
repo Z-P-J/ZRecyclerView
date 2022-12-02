@@ -51,7 +51,7 @@ public class HorizontalLayouter extends AbsLayouter {
     }
 
     @Override
-    protected void onDetached() {
+    public void onDetached() {
         if (isInfinite()) {
             if (mFlinger != null) {
                 mFlinger.stop();
@@ -76,7 +76,7 @@ public class HorizontalLayouter extends AbsLayouter {
         if (dy > 0) {
             // 从下往上滑动
             if (anchorView == null) {
-                return fillVerticalBottom(multiData, mAnchorInfo.position + mPositionOffset, dy, getTop());
+                return fillVerticalBottom(multiData, mAnchorInfo.position + mPositionOffset, dy, mScene.getTop());
             } else {
                 // 如果占用两行则需要以下代码
                 int anchorBottom = getDecoratedBottom(anchorView);
@@ -89,7 +89,7 @@ public class HorizontalLayouter extends AbsLayouter {
         } else {
             // 从上往下滑动
             if (anchorView == null) {
-                return fillVerticalTop(multiData, mAnchorInfo.position + mPositionOffset, dy, getBottom());
+                return fillVerticalTop(multiData, mAnchorInfo.position + mPositionOffset, dy, mScene.getBottom());
             } else {
                 // 如果占用两行则需要以下代码
                 int anchorTop = getDecoratedTop(anchorView);
@@ -135,7 +135,7 @@ public class HorizontalLayouter extends AbsLayouter {
             layoutDecorated(view, left, top, right, bottom);
             left = right;
         }
-        setTop(top);
+        mScene.setTop(top);
         // TODO 如果有多行，需要减去anchorTop
         return Math.min(-dy, -top);
     }
@@ -168,7 +168,7 @@ public class HorizontalLayouter extends AbsLayouter {
             layoutDecorated(view, left, top, right, bottom);
             left += measuredWidth;
         }
-        setBottom(bottom);
+        mScene.setBottom(bottom);
         Log.d(TAG, "fillVerticalBottom dy=" + dy + " anchorBottom=" + anchorBottom + " bottom=" + bottom);
         return Math.min(dy, bottom - anchorBottom);
     }

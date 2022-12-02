@@ -9,14 +9,14 @@ import com.zpj.recyclerview.MultiData;
 
 public class MultiLayoutParams extends RecyclerView.LayoutParams {
 
-    private MultiData<?> multiData;
+    private MultiScene mScene;
 
-    public void setMultiData(MultiData<?> multiData) {
-        this.multiData = multiData;
+    public void setScene(MultiScene mScene) {
+        this.mScene = mScene;
     }
 
-    public MultiData<?> getMultiData() {
-        return multiData;
+    public MultiScene getScene() {
+        return mScene;
     }
 
     public MultiLayoutParams(Context c, AttributeSet attrs) {

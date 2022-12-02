@@ -25,25 +25,18 @@ public abstract class AbsLayouter implements Layouter {
     private LayoutHelper mHelper;
     protected Flinger mFlinger;
 
-    private int mLeft;
-    private int mTop;
-    private int mRight;
-    private int mBottom;
-
     protected int mPositionOffset;
-
-    private boolean mAttached = false;
 
     public final AnchorInfo mAnchorInfo = new AnchorInfo();
 
     @Override
     public void layoutChildren(MultiData<?> multiData) {
-        int availableSpace = getHeight() - getTop();
+        int availableSpace = getHeight() - mScene.getTop();
         if (getLayoutHelper() == null || getCount(multiData) == 0 || availableSpace < 0) {
-            setBottom(getTop());
+            mScene.setBottom(mScene.getTop());
             return;
         }
-        fillVerticalBottom(multiData, mAnchorInfo.position + mPositionOffset, availableSpace, getTop());
+        fillVerticalBottom(multiData, mAnchorInfo.position + mPositionOffset, availableSpace, mScene.getTop());
     }
 
     @Override
@@ -52,7 +45,7 @@ public abstract class AbsLayouter implements Layouter {
         if (dy > 0) {
             // 从下往上滑动
             if (anchorView == null) {
-                int result = fillVerticalBottom(multiData, mPositionOffset, dy, getTop());
+                int result = fillVerticalBottom(multiData, mPositionOffset, dy, mScene.getTop());
                 Log.e(TAG, "fillVertical111 result=" + result + " return=" + Math.min(dy, dy - result));
                 return Math.min(dy, dy - result);
             } else {
@@ -76,7 +69,7 @@ public abstract class AbsLayouter implements Layouter {
             // 从上往下滑动
             if (anchorView == null) {
                 int result = fillVerticalTop(multiData, mPositionOffset + getCount(multiData) - 1,
-                        -dy, getBottom());
+                        -dy, mScene.getBottom());
                 Log.e(TAG, "fillVertical111 result=" + result + " return=" + Math.min(-dy, -dy - result));
                 return Math.min(-dy, -dy - result);
             } else {
@@ -123,6 +116,7 @@ public abstract class AbsLayouter implements Layouter {
                 mHelper = createLayoutHelper(multiScene);
             }
         }
+        mScene = multiScene;
     }
 
     @Override
@@ -131,11 +125,6 @@ public abstract class AbsLayouter implements Layouter {
             mFlinger.stop();
             mFlinger = null;
         }
-        mTop = 0;
-        mLeft = 0;
-        mRight = 0;
-        mBottom = 0;
-        mAttached = false;
         mAnchorInfo.x = 0;
         mAnchorInfo.y = 0;
         mAnchorInfo.position = 0;
@@ -151,64 +140,64 @@ public abstract class AbsLayouter implements Layouter {
         return mHelper;
     }
 
-    @Override
-    public void setLeft(int left) {
-        this.mLeft = left;
-    }
+//    @Override
+//    public void setLeft(int left) {
+//        this.mLeft = left;
+//    }
+//
+//    @Override
+//    public void setTop(int top) {
+//        this.mTop = top;
+//        mBottom = Math.max(mBottom, mTop);
+//        checkAttach();
+//    }
+//
+//    @Override
+//    public void setRight(int right) {
+//        this.mRight = right;
+//    }
+//
+//    @Override
+//    public void setBottom(int bottom) {
+//        this.mBottom = bottom;
+//        mTop = Math.min(mTop, mBottom);
+//        checkAttach();
+//    }
 
-    @Override
-    public void setTop(int top) {
-        this.mTop = top;
-        mBottom = Math.max(mBottom, mTop);
-        checkAttach();
-    }
 
-    @Override
-    public void setRight(int right) {
-        this.mRight = right;
-    }
+//    @Override
+//    public int getLeft() {
+//        return mLeft;
+//    }
+//
+//    @Override
+//    public int getTop() {
+//        return mTop;
+//    }
+//
+//    @Override
+//    public int getRight() {
+//        return mRight;
+//    }
+//
+//    @Override
+//    public int getBottom() {
+//        return mBottom;
+//    }
 
-    @Override
-    public void setBottom(int bottom) {
-        this.mBottom = bottom;
-        mTop = Math.min(mTop, mBottom);
-        checkAttach();
-    }
-
-
-    @Override
-    public int getLeft() {
-        return mLeft;
-    }
-
-    @Override
-    public int getTop() {
-        return mTop;
-    }
-
-    @Override
-    public int getRight() {
-        return mRight;
-    }
-
-    @Override
-    public int getBottom() {
-        return mBottom;
-    }
-
-    @Override
-    public void offsetLeftAndRight(int offset) {
-        this.mLeft += offset;
-        this.mRight += offset;
-    }
-
-    @Override
-    public void offsetTopAndBottom(int offset) {
-        this.mTop += offset;
-        this.mBottom += offset;
-
-        checkAttach();
-    }
+//    @Override
+//    public void offsetLeftAndRight(int offset) {
+//        this.mLeft += offset;
+//        this.mRight += offset;
+//    }
+//
+//    @Override
+//    public void offsetTopAndBottom(int offset) {
+//        this.mTop += offset;
+//        this.mBottom += offset;
+//
+//        checkAttach();
+//    }
 
     @Override
     public boolean scrollToPositionWithOffset(MultiData<?> multiData, int position, int offset) {
@@ -221,25 +210,25 @@ public abstract class AbsLayouter implements Layouter {
         return false;
     }
 
-    private void checkAttach() {
-        if (getBottom() < 0 || getTop() > getHeight()) {
-            if (mAttached) {
-                mAttached = false;
-                onDetached();
-            }
-        } else {
-            if (!mAttached) {
-                mAttached = true;
-                onAttached();
-            }
-        }
+//    private void checkAttach() {
+//        if (getBottom() < 0 || getTop() > getHeight()) {
+//            if (mAttached) {
+//                mAttached = false;
+//                onDetached();
+//            }
+//        } else {
+//            if (!mAttached) {
+//                mAttached = true;
+//                onAttached();
+//            }
+//        }
+//    }
+
+    public void onAttached() {
+
     }
 
-    protected void onAttached() {
-
-    }
-
-    protected void onDetached() {
+    public void onDetached() {
         if (isOverScrolling) {
             mAnchorInfo.position = mOverScrollPosition;
             mAnchorInfo.x = mOverScrollOffset;
@@ -249,10 +238,6 @@ public abstract class AbsLayouter implements Layouter {
         if (mFlinger != null) {
             mFlinger.stop();
         }
-    }
-
-    public boolean isAttached() {
-        return mAttached;
     }
 
     protected int getPosition(@NonNull View child) {
@@ -309,7 +294,7 @@ public abstract class AbsLayouter implements Layouter {
             mHelper.detachAndScrapView(view);
         }
         MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
-        params.setMultiData(multiData);
+        params.setScene(mScene);
         return view;
     }
 
@@ -455,7 +440,7 @@ public abstract class AbsLayouter implements Layouter {
     }
 
     protected boolean canHandleTouch(float downX, float downY) {
-        return isAttached() && downY >= getTop() & downY <= getBottom();
+        return mScene.isAttached() && downY >= mScene.getTop() & downY <= mScene.getBottom();
     }
 
     protected Flinger createFlinger(MultiData<?> multiData) {
@@ -704,9 +689,8 @@ public abstract class AbsLayouter implements Layouter {
             if (isOverScrolling) {
                 for (int i = 0; i < getChildCount(); i++) {
                     View view = getChildAt(i);
-                    final MultiData<?> multiData = getMultiData(view);
-                    if (multiData.getLayouter() == this) {
-                        onStopOverScroll(multiData);
+                    if (getLayouter(view) == this) {
+                        onStopOverScroll();
                         return true;
                     }
                 }
@@ -725,10 +709,7 @@ public abstract class AbsLayouter implements Layouter {
         }
     }
 
-    public void onStopOverScroll(final MultiData<?> scrollMultiData) {
-        if (scrollMultiData == null) {
-            return;
-        }
+    public void onStopOverScroll() {
         if (isOverScrolling) {
             if (overScrollDirection <= OVER_SCROLL_UP) {
                 if (overScrollDirection == OVER_SCROLL_DOWN) {
@@ -752,7 +733,7 @@ public abstract class AbsLayouter implements Layouter {
                 if (overScrollDirection == OVER_SCROLL_LEFT) {
                     for (int i = 0; i < getChildCount(); i++) {
                         View view = getChildAt(i);
-                        if (getMultiData(view) == scrollMultiData) {
+                        if (getLayouter(view) == this) {
                             final int firstLeft = getDecoratedLeft(view);
                             Log.d(TAG, "onStopOverScroll firstLeft=" + firstLeft + " overScrollDistance=" + overScrollDistance);
                             if (firstLeft > 0) { //  && getPosition(view) == scrollMultiData.getLayouter().getPositionOffset()
@@ -764,7 +745,7 @@ public abstract class AbsLayouter implements Layouter {
                 } else if (overScrollDirection == OVER_SCROLL_RIGHT) {
                     for (int i = getChildCount() - 1; i >= 0; i--) {
                         View view = getChildAt(i);
-                        if (getMultiData(view) == scrollMultiData) {
+                        if (getLayouter(view) == this) {
                             final int right = getDecoratedRight(view);
                             Log.d(TAG, "onStopOverScroll right=" + right + " overScrollDistance=" + overScrollDistance);
                             if (right < getWidth()) { //  && getPosition(view) == scrollMultiData.getLayouter().getPositionOffset() + scrollgetCount(multiData) - 1

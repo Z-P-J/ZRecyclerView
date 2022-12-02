@@ -41,10 +41,16 @@ public class ContainerLayouter extends AbsLayouter {
     public void attach(MultiScene multiScene) {
         super.attach(multiScene);
         if (mContainerMultiScene == null) {
-            mContainerMultiScene = new MultiScene(mContainerLayoutManager, multiScene.getMultiData());
+            mContainerMultiScene = new MultiScene(multiScene.getMultiData());
+            mContainerMultiScene.attach(multiScene.getLayoutManager());
         }
         mContainerLayoutManager.attachRecycler(multiScene.getRecycler());
         mLayouter.attach(mContainerMultiScene);
+    }
+
+    @Override
+    public void detach() {
+        super.detach();
     }
 
     @Override
@@ -52,41 +58,41 @@ public class ContainerLayouter extends AbsLayouter {
         return new ContainerLayoutHelper(this, multiScene);
     }
 
-    @Override
-    public void setLeft(int left) {
-        super.setLeft(left);
-        mLayouter.setLeft(0); // add padding
-    }
-
-    @Override
-    public void setTop(int top) {
-        super.setTop(top);
-        mLayouter.setTop(top);
-    }
-
-    @Override
-    public void setRight(int right) {
-        super.setRight(right);
-        mLayouter.setRight(getWidth());
-    }
-
-    @Override
-    public void setBottom(int bottom) {
-        super.setBottom(bottom);
-        mLayouter.setBottom(bottom);
-    }
-
-    @Override
-    public void offsetLeftAndRight(int offset) {
-        super.offsetLeftAndRight(offset);
-        mLayouter.offsetLeftAndRight(offset);
-    }
-
-    @Override
-    public void offsetTopAndBottom(int offset) {
-        super.offsetTopAndBottom(offset);
-        mLayouter.offsetTopAndBottom(offset);
-    }
+//    @Override
+//    public void setLeft(int left) {
+//        super.setLeft(left);
+//        mLayouter.setLeft(0); // add padding
+//    }
+//
+//    @Override
+//    public void setTop(int top) {
+//        super.setTop(top);
+//        mLayouter.setTop(top);
+//    }
+//
+//    @Override
+//    public void setRight(int right) {
+//        super.setRight(right);
+//        mLayouter.setRight(getWidth());
+//    }
+//
+//    @Override
+//    public void setBottom(int bottom) {
+//        super.setBottom(bottom);
+//        mLayouter.setBottom(bottom);
+//    }
+//
+//    @Override
+//    public void offsetLeftAndRight(int offset) {
+//        super.offsetLeftAndRight(offset);
+//        mLayouter.offsetLeftAndRight(offset);
+//    }
+//
+//    @Override
+//    public void offsetTopAndBottom(int offset) {
+//        super.offsetTopAndBottom(offset);
+//        mLayouter.offsetTopAndBottom(offset);
+//    }
 
     @Override
     public void setPositionOffset(int offset) {
@@ -146,12 +152,12 @@ public class ContainerLayouter extends AbsLayouter {
         params.width = ViewGroup.LayoutParams.MATCH_PARENT;
         super.addView(container);
         mLayouter.layoutChildren(multiData);
-        setRight(getWidth());
-        int height = mLayouter.getBottom() - mLayouter.getTop();
-        setBottom(getTop() + height);
+        mScene.setRight(getWidth());
+        int height = mScene.getBottom() - mScene.getTop();
+        mScene.setBottom(mScene.getTop() + height);
         container.measure(View.MeasureSpec.makeMeasureSpec(getWidth(), View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY));
-        super.layoutDecorated(container, getLeft(), getTop(), getRight(), getBottom());
+        super.layoutDecorated(container, mScene.getLeft(), mScene.getTop(), mScene.getRight(), mScene.getBottom());
         Log.d(TAG, "layoutChildren childCount=" + ((ViewGroup) container).getChildCount());
     }
 
@@ -179,19 +185,19 @@ public class ContainerLayouter extends AbsLayouter {
         }
         int consumed = mLayouter.fillVertical(anchorView, dy, multiData);
 
-        int height = mLayouter.getBottom() - mLayouter.getTop();
+        int height = mScene.getBottom() - mScene.getTop();
 
         if (dy > 0) {
             // 从下往上滑动
-            setBottom(getTop() + height);
+            mScene.setBottom(mScene.getTop() + height);
         } else {
-            setTop(getBottom() - height);
+            mScene.setTop(mScene.getBottom() - height);
         }
 
         containerLayout.measure(View.MeasureSpec.makeMeasureSpec(getWidth(), View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY));
 
-        super.layoutDecorated(containerLayout, getLeft(), getTop(), getRight(), getBottom());
+        super.layoutDecorated(containerLayout, mScene.getLeft(), mScene.getTop(), mScene.getRight(), mScene.getBottom());
 
         if (isNewContainer) {
             return consumed;
@@ -199,7 +205,7 @@ public class ContainerLayouter extends AbsLayouter {
 
         if (dy > 0) {
             // 从下往上滑动
-            int bottom = getBottom();
+            int bottom = mScene.getBottom();
             if (bottom > getHeight()) {
                 if (bottom - dy > getHeight()) {
                     return dy;
@@ -208,7 +214,7 @@ public class ContainerLayouter extends AbsLayouter {
                 }
             }
         } else {
-            int top = getTop();
+            int top = mScene.getTop();
             if (top < 0) {
                 if (top - dy < 0) {
                     return -dy;

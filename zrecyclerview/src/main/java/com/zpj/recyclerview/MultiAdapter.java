@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.zpj.recyclerview.core.MultiScene;
 import com.zpj.recyclerview.refresh.IRefresher;
 import com.zpj.statemanager.IViewHolder;
 import com.zpj.statemanager.State;
@@ -18,11 +19,11 @@ import java.util.List;
 import static com.zpj.statemanager.State.STATE_CONTENT;
 import static com.zpj.statemanager.State.STATE_LOGIN;
 
-public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
+public class MultiAdapter extends EasyStateAdapter<MultiScene> {
 
     private static final String TAG = "MultiAdapter";
 
-    MultiAdapter(final Context context, List<MultiData<?>> list, final EasyStateConfig<?> config, IRefresher refresher) {
+    MultiAdapter(final Context context, List<MultiScene> list, final EasyStateConfig<?> config, IRefresher refresher) {
         super(context, list, 0, null, null,
                 null, null, null,
                 null, null, null, refresher, config);
@@ -60,14 +61,8 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
             return 1;
         }
         int count = 0;
-        for (MultiData<?> data : list) {
-//            if (data.hasMore()) {
-//                data.load(this);
-//            }
-            count += data.getCount();
-//            if (data.hasMore()) {
-//                break;
-//            }
+        for (MultiScene scene : list) {
+            count += scene.getItemCount();
         }
         boolean isMultiManager = getRecyclerView().getLayoutManager() instanceof BaseMultiLayoutManager;
         if (!isMultiManager && mRefreshHeader != null) {
@@ -147,13 +142,15 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
 
         position = getRealPosition(holder);
         int count = 0;
-        for (MultiData<?> data : list) {
-            if (position >= count && position < count + data.getCount()) {
+        for (MultiScene scene : list) {
+            int itemCount = scene.getItemCount();
+            MultiData<?> data = scene.getMultiData();
+            if (position >= count && position < count + itemCount) {
                 data.setAdapter(this);
                 data.onBindViewHolder(holder, position - count, payloads);
                 break;
             }
-            count  += data.getCount();
+            count  += itemCount;
         }
     }
 
@@ -195,13 +192,14 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         int end = getRealPosition(mRecyclerView.getLayoutManager().getPosition(lastChild));
         Log.d(TAG, "onLoadMore start=" + start + " end=" + end);
 
-        MultiData<?> multiData = null;
+        MultiScene multiScene = null;
         int offset = 0;
         for (int i = 0; i < list.size(); i++) {
             if (end < offset) {
                 break;
             }
-            MultiData<?> data = list.get(i);
+            MultiScene scene = list.get(i);
+            MultiData<?> data = scene.getMultiData();
             int max = offset + data.getCount();
 
             if (max <= start) {
@@ -210,14 +208,13 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
             }
 
             if (data.hasMore() && data.load(Math.max(0, start - offset), end - offset, this)) {
-                multiData = data;
-                Log.d(TAG, "onLoadMore multiData=" + multiData);
+                multiScene = scene;
+                Log.d(TAG, "onLoadMore scene=" + scene);
             }
             offset = max;
         }
 
-        if (multiData != null) { //  && multiData.load(this)
-            Log.e(TAG, "onLoadMore---------hasMore=" + multiData.hasMore());
+        if (multiScene != null) { //  && multiData.load(this)
             if (footerViewHolder != null) {
                 footerViewHolder.onShowLoading();
             }
@@ -247,12 +244,14 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
                         position--;
                     }
                     int count = 0;
-                    for (MultiData<?> data : list) {
-                        if (position >= count && position < count + data.getCount()) {
+                    for (MultiScene scene : list) {
+                        int itemCount = scene.getItemCount();
+                        MultiData<?> data = scene.getMultiData();
+                        if (position >= count && position < count + itemCount) {
                             int columnCount = data.getColumnCount(data.getViewType(position - count));
                             return gridManager.getSpanCount() / columnCount;
                         }
-                        count  += data.getCount();
+                        count  += itemCount;
                     }
                     return gridManager.getSpanCount();
                 }
@@ -260,19 +259,22 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         }
     }
 
-    public int onGetViewType(List<MultiData<?>> list, int position) {
+    public int onGetViewType(List<MultiScene> list, int position) {
         int count = 0;
-        for (MultiData<?> data : list) {
-            if (position >= count && position < count + data.getCount()) {
+        for (MultiScene scene : list) {
+            int itemCount = scene.getItemCount();
+            MultiData<?> data = scene.getMultiData();
+            if (position >= count && position < count + itemCount) {
                 return data.getViewType(position - count);
             }
-            count  += data.getCount();
+            count += itemCount;
         }
         return TYPE_CHILD;
     }
 
     public View onCreateView(Context context, ViewGroup container, int viewType) {
-        for (MultiData<?> data : list) {
+        for (MultiScene scene : list) {
+            MultiData<?> data = scene.getMultiData();
             if (data.hasViewType(viewType)) {
                 return data.onCreateView(context, container, viewType);
             }
@@ -280,40 +282,43 @@ public class MultiAdapter extends EasyStateAdapter<MultiData<?>> {
         return null;
     }
 
-    public void notifyDataSetChange(MultiData<?> data) {
+    public void notifyDataSetChange(MultiScene target) {
         int count = 0;
-        for (MultiData<?> multiData : list) {
-            if (multiData == data) {
-                notifyItemRangeChanged(count, data.getCount());
+        for (MultiScene scene : list) {
+            int itemCount = scene.getItemCount();
+            if (scene == target) {
+                notifyItemRangeChanged(count, itemCount);
             }
-            count  += multiData.getCount();
+            count  += itemCount;
         }
     }
 
-    public void notifyItemRangeInserted(MultiData<?> data) {
+    public void notifyItemRangeInserted(MultiScene target) {
         int count = 0;
-        for (MultiData<?> multiData : list) {
-            if (multiData == data) {
-                notifyItemRangeInserted(count, data.getCount());
+        for (MultiScene scene : list) {
+            int itemCount = scene.getItemCount();
+            if (scene == target) {
+                notifyItemRangeInserted(count, itemCount);
             }
-            count  += multiData.getCount();
+            count  += itemCount;
         }
     }
 
-    public void notifyItemRangeInserted(MultiData<?> data, int positionStart, int count) {
+    public void notifyItemRangeInserted(MultiScene multiScene, int positionStart, int count) {
         int num = 0;
-        for (MultiData<?> multiData : list) {
-            if (multiData == data) {
-                if (positionStart >= data.getCount()) {
+        for (MultiScene scene : list) {
+            int itemCount = scene.getItemCount();
+            if (scene == multiScene) {
+                if (positionStart >= itemCount) {
                     return;
                 }
-                if (positionStart + count > data.getCount()) {
-                    notifyItemRangeInserted(num + positionStart, data.getCount() - positionStart);
+                if (positionStart + count > itemCount) {
+                    notifyItemRangeInserted(num + positionStart, itemCount - positionStart);
                 } else {
                     notifyItemRangeInserted(num + positionStart, count);
                 }
             }
-            num  += multiData.getCount();
+            num  += itemCount;
         }
     }
 

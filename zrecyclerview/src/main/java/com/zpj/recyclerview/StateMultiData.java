@@ -31,15 +31,6 @@ public abstract class StateMultiData<T> extends MultiData<T> {
         super(list);
     }
 
-    public StateMultiData(Layouter layouter) {
-        super(layouter);
-        setState(STATE_LOADING);
-    }
-
-    public StateMultiData(List<T> list, Layouter layouter) {
-        super(list, layouter);
-    }
-
     public State getState() {
         return state;
     }

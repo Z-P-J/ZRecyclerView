@@ -30,7 +30,7 @@ public class HorizontalFlinger extends AbsFlinger {
         super.onFinished();
         if (stopOverScroll) {
             stopOverScroll = false;
-            mLayouter.onStopOverScroll(mMultiData);
+            mLayouter.onStopOverScroll();
         }
     }
 }

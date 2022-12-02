@@ -15,25 +15,25 @@ public interface Layouter {
 
     LayoutHelper getLayoutHelper();
 
-    void setLeft(int left);
+//    void setLeft(int left);
+//
+//    void setTop(int top);
+//
+//    void setRight(int right);
+//
+//    void setBottom(int bottom);
+//
+//    int getLeft();
+//
+//    int getTop();
+//
+//    int getRight();
+//
+//    int getBottom();
 
-    void setTop(int top);
-
-    void setRight(int right);
-
-    void setBottom(int bottom);
-
-    int getLeft();
-
-    int getTop();
-
-    int getRight();
-
-    int getBottom();
-
-    void offsetLeftAndRight(int offset);
-
-    void offsetTopAndBottom(int offset);
+//    void offsetLeftAndRight(int offset);
+//
+//    void offsetTopAndBottom(int offset);
 
     void setPositionOffset(int offset);
 
@@ -58,8 +58,6 @@ public interface Layouter {
     boolean onTouchMove(MultiData<?> multiData, float x, float y, float downX, float downY, MotionEvent event);
 
     boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY, MotionEvent event);
-
-    boolean isAttached();
 
     // TODO 交给Scene处理
     boolean scrollToPositionWithOffset(MultiData<?> multiData, int position, int offset);

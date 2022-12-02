@@ -17,14 +17,6 @@ public abstract class SingleTypeMultiData<T> extends StateMultiData<T> {
         super(list);
     }
 
-    public SingleTypeMultiData(Layouter layouter) {
-        super(layouter);
-    }
-
-    public SingleTypeMultiData(List<T> list, Layouter layouter) {
-        super(list, layouter);
-    }
-
     @Override
     public final int getMaxColumnCount() {
         return getColumnCount();

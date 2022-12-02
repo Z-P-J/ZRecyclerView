@@ -7,11 +7,12 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 
+import com.zpj.recyclerview.core.MultiScene;
 import com.zpj.recyclerview.footer.DefaultFooterViewHolder;
 
 import java.util.List;
 
-public class MultiRecycler extends BaseRecycler<MultiData<?>, MultiRecycler> {
+public class MultiRecycler extends BaseRecycler<MultiScene, MultiRecycler> {
 
     protected ItemTouchHelper mItemTouchHelper;
 
@@ -19,7 +20,7 @@ public class MultiRecycler extends BaseRecycler<MultiData<?>, MultiRecycler> {
         super(recyclerView);
     }
 
-    public MultiRecycler(@NonNull RecyclerView recyclerView, @NonNull List<MultiData<?>> dataSet) {
+    public MultiRecycler(@NonNull RecyclerView recyclerView, @NonNull List<MultiScene> dataSet) {
         super(recyclerView, dataSet);
     }
 
@@ -27,7 +28,7 @@ public class MultiRecycler extends BaseRecycler<MultiData<?>, MultiRecycler> {
         return new MultiRecycler(recyclerView);
     }
 
-    public static MultiRecycler with(@NonNull RecyclerView recyclerView, @NonNull List<MultiData<?>> dataSet) {
+    public static MultiRecycler with(@NonNull RecyclerView recyclerView, @NonNull List<MultiScene> dataSet) {
         return new MultiRecycler(recyclerView, dataSet);
     }
 
@@ -36,7 +37,8 @@ public class MultiRecycler extends BaseRecycler<MultiData<?>, MultiRecycler> {
         easyAdapter = adapter;
 
         int maxSpan = 1;
-        for (MultiData<?> data : getItems()) {
+        for (MultiScene scene : getItems()) {
+            MultiData<?> data = scene.getMultiData();
             maxSpan = lcm(data.getMaxColumnCount(), maxSpan);
             data.setAdapter(adapter);
             if (data instanceof IDragAndSwipe && mItemTouchHelper == null) {
@@ -45,13 +47,15 @@ public class MultiRecycler extends BaseRecycler<MultiData<?>, MultiRecycler> {
                     public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
                         int position = easyAdapter.getRealPosition(viewHolder);
                         int count = 0;
-                        for (MultiData<?> data : getItems()) {
-                            if (data instanceof IDragAndSwipe && position >= count && position < count + data.getCount()) {
+                        for (MultiScene scene : getItems()) {
+                            int itemCount = scene.getItemCount();
+                            MultiData<?> data = scene.getMultiData();
+                            if (data instanceof IDragAndSwipe && position >= count && position < count + itemCount) {
                                 IDragAndSwipe dragAndSwipeMultiData = (IDragAndSwipe) data;
                                 return makeMovementFlags(dragAndSwipeMultiData.getDragDirection(position),
                                         dragAndSwipeMultiData.getSwipeDirection(position));
                             }
-                            count  += data.getCount();
+                            count  += itemCount;
                         }
                         return 0;
                     }
@@ -61,13 +65,15 @@ public class MultiRecycler extends BaseRecycler<MultiData<?>, MultiRecycler> {
                         final int pos = easyAdapter.getRealPosition(viewHolder);
                         final int pos1 = easyAdapter.getRealPosition(viewHolder1);
                         int count = 0;
-                        for (MultiData<?> data : getItems()) {
-                            if (data instanceof IDragAndSwipe && pos >= count && pos < count + data.getCount()
-                                    && pos1 >= count && pos1 < count + data.getCount()) {
+                        for (MultiScene scene : getItems()) {
+                            int itemCount = scene.getItemCount();
+                            MultiData<?> data = scene.getMultiData();
+                            if (data instanceof IDragAndSwipe && pos >= count && pos < count + itemCount
+                                    && pos1 >= count && pos1 < count + itemCount) {
                                 IDragAndSwipe dragAndSwipeMultiData = (IDragAndSwipe) data;
                                 return dragAndSwipeMultiData.onMove(pos - count, pos1 - count);
                             }
-                            count  += data.getCount();
+                            count  += itemCount;
                         }
 
 
@@ -126,13 +132,15 @@ public class MultiRecycler extends BaseRecycler<MultiData<?>, MultiRecycler> {
                     public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, final int i) {
                         final int pos = easyAdapter.getRealPosition(viewHolder);
                         int count = 0;
-                        for (MultiData<?> data : getItems()) {
-                            if (data instanceof IDragAndSwipe && pos >= count && pos < count + data.getCount()) {
+                        for (MultiScene scene : getItems()) {
+                            int itemCount = scene.getItemCount();
+                            MultiData<?> data = scene.getMultiData();
+                            if (data instanceof IDragAndSwipe && pos >= count && pos < count + itemCount) {
                                 IDragAndSwipe dragAndSwipeMultiData = (IDragAndSwipe) data;
                                 dragAndSwipeMultiData.onSwiped(pos - count, i);
                                 break;
                             }
-                            count  += data.getCount();
+                            count  += itemCount;
                         }
                     }
 

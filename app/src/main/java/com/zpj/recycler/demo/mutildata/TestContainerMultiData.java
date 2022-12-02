@@ -13,8 +13,8 @@ import java.util.List;
 
 public class TestContainerMultiData extends ContainerMultiData<Integer> {
 
-    public TestContainerMultiData(List<Integer> list, AbsLayouter layouter) {
-        super(list, layouter);
+    public TestContainerMultiData(List<Integer> list) {
+        super(list);
     }
 
     @Override

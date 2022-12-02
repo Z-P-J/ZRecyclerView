@@ -9,6 +9,7 @@ import com.zpj.recycler.demo.mutildata.ExpandableMultiData;
 import com.zpj.recycler.demo.mutildata.TestErrorStringMultiData;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
+import com.zpj.recyclerview.core.MultiScene;
 import com.zpj.recyclerview.decoration.StickyHeaderItemDecoration;
 
 import java.util.ArrayList;
@@ -25,8 +26,8 @@ public class ExpandableActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test);
 
-        List<MultiData<?>> list = new ArrayList<>();
-        list.add(new TestErrorStringMultiData("StringMultiData0"));
+        List<MultiScene> list = new ArrayList<>();
+        list.add(new MultiScene(new TestErrorStringMultiData("StringMultiData0")));
 
         List<Integer> list1 = new ArrayList<>();
         for (int i = 0; i < 20; i++) {
@@ -38,16 +39,16 @@ public class ExpandableActivity extends AppCompatActivity {
             list2.add(i);
         }
 
-        list.add(new ExpandableMultiData("Expandable111", list1));
+        list.add(new MultiScene(new ExpandableMultiData("Expandable111", list1)));
         ExpandableMultiData expandableMultiData = new ExpandableMultiData("Expandable222", list2);
         expandableMultiData.setExpand(false);
-        list.add(expandableMultiData);
+        list.add(new MultiScene(expandableMultiData));
 
-        list.add(new ExpandableLoadMoreMultiData("IntExpandableMultiData1111111111111111111111"));
+        list.add(new MultiScene(new ExpandableLoadMoreMultiData("IntExpandableMultiData1111111111111111111111")));
 
         ExpandableLoadMoreMultiData expandableLoadMoreMultiData = new ExpandableLoadMoreMultiData("IntExpandableMultiData22222222222222222222");
         expandableLoadMoreMultiData.setExpand(false);
-        list.add(expandableLoadMoreMultiData);
+        list.add(new MultiScene(expandableLoadMoreMultiData));
 
 
         MultiRecycler.with((RecyclerView) findViewById(R.id.recycler_view))
