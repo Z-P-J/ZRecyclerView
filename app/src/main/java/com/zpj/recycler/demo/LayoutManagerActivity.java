@@ -13,21 +13,24 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.zpj.recycler.demo.mutildata.BaseHeaderMultiData;
+import com.zpj.recycler.demo.mutildata.TestContainerMultiData;
 import com.zpj.recyclerview.EasyViewHolder;
-import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
 import com.zpj.recyclerview.SingleTypeMultiData;
-import com.zpj.recyclerview.core.MultiScene;
-import com.zpj.recyclerview.layouter.BannerLayouter;
-import com.zpj.recyclerview.layouter.FlowLayouter;
-import com.zpj.recyclerview.layouter.GridLayouter;
-import com.zpj.recyclerview.layouter.HorizontalLayouter;
-import com.zpj.recyclerview.layouter.StaggeredGridLayouter;
-import com.zpj.recyclerview.layouter.VerticalLayouter;
-import com.zpj.recyclerview.layouter.PagerLayouter;
 import com.zpj.recyclerview.core.MultiLayoutManager;
+import com.zpj.recyclerview.core.MultiScene;
+import com.zpj.recyclerview.layouter.FlowLayouter;
+import com.zpj.recyclerview.layouter.HorizontalLayouter;
 import com.zpj.recyclerview.refresh.IRefresher;
 import com.zpj.recyclerview.refresh.SimpleRefresher;
+import com.zpj.recyclerview.scene.BannerScene;
+import com.zpj.recyclerview.scene.ContainerScene;
+import com.zpj.recyclerview.scene.FlowScene;
+import com.zpj.recyclerview.scene.GridScene;
+import com.zpj.recyclerview.scene.HorizontalScene;
+import com.zpj.recyclerview.scene.PagerScene;
+import com.zpj.recyclerview.scene.StaggeredGridScene;
+import com.zpj.recyclerview.scene.VerticalScene;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,7 +57,7 @@ public class LayoutManagerActivity extends AppCompatActivity {
         }
 
 
-        List<MultiScene> multiDataList = new ArrayList<>();
+        List<MultiScene> sceneList = new ArrayList<>();
 
 //        final BannerLayouter bannerLayouter = new BannerLayouter();
 //        bannerLayouter.setAutoPlayDuration(5000);
@@ -124,172 +127,40 @@ public class LayoutManagerActivity extends AppCompatActivity {
 
 
 
-
-//        final BannerLayouter bannerLayouter = new BannerLayouter();
-//        bannerLayouter.setAutoPlayDuration(5000);
-//        multiDataList.add(new LayouterMultiData(list, bannerLayouter) {
+//        BannerScene bannerScene = new BannerScene(new LayouterMultiData(list, bannerLayouter) {
 //            @Override
 //            public int getLayoutId() {
 //                return R.layout.item_banner;
 //            }
 //        });
+//        bannerScene.setAutoPlayDuration(5000);
+//
+//        multiDataList.add(bannerScene);
 
-        multiDataList.add(new MultiScene(new LayouterMultiData(list) {
+        sceneList.add(new HorizontalScene(new LayouterMultiData(list) {
             @Override
             public int getLayoutId() {
                 return R.layout.item_text_grid;
             }
-        }, new HorizontalLayouter(true)));
+        }, true));
 
-        multiDataList.add(new MultiScene(new LayouterMultiData(list) {
+        sceneList.add(new HorizontalScene(new LayouterMultiData(list) {
             @Override
             public int getLayoutId() {
                 return R.layout.item_text_grid;
             }
-        }, new HorizontalLayouter()));
+        }));
 
-        multiDataList.add(new MultiScene(new LayouterMultiData(list)));
+        sceneList.add(new VerticalScene(new LayouterMultiData(list)));
 
-//        multiDataList.add(new LayouterMultiData(list, new HorizontalLayouter()) {
-//            @Override
-//            public int getLayoutId() {
-//                return R.layout.item_text_grid;
-//            }
-//        });
-//
-//        final PagerLayouter pagerLayouter = new PagerLayouter();
-//        pagerLayouter.setPageTransformer(new PagerLayouter.PageTransformer() {
-//            @Override
-//            public void transformPage(@NonNull View page, float position) {
-//                Log.d(TAG, "transformPage pos=" + pagerLayouter.getLayoutHelper().getPosition(page) + " position=" + position);
-//                if (position < -1) {
-//                    page.setAlpha(0f);
-//                } else if (position <= 1) {
-//                    page.setAlpha(1f);
-//                    page.setPivotX(page.getWidth() / 2f);
-//                    page.setPivotY(page.getHeight());
-//                    page.setRotation(15 * position);
-//                } else {
-//                    page.setAlpha(0f);
-//                }
-//            }
-//        });
-//        pagerLayouter.addOnPageChangeListener(new PagerLayouter.OnPageChangeListener() {
-//            @Override
-//            public void onPageScrolled(int position, float offset, int offsetPixels) {
-//                Log.d(TAG, "onPageScrolled position=" + position + " offset=" + offset + " offsetPixels=" + offsetPixels);
-//            }
-//
-//            @Override
-//            public void onPageSelected(int position) {
-//                Log.d(TAG, "onPageSelected position=" + position);
-//            }
-//
-//            @Override
-//            public void onPageEnterEnd(int position) {
-//                Log.d(TAG, "onPageEnterEnd position=" + position);
-//            }
-//
-//            @Override
-//            public void onPageScrollStateChanged(int state) {
-//                Log.d(TAG, "onPageScrollStateChanged state=" + state);
-//            }
-//        });
-//        multiDataList.add(new LayouterMultiData(list, pagerLayouter) {
-//            @Override
-//            public int getLayoutId() {
-//                return R.layout.item_banner;
-//            }
-//        });
-//
-//        List<Integer> staggeredList = new ArrayList<>();
-//        for (int i = 0; i < 10; i++) {
-//            staggeredList.addAll(Arrays.asList(flowArray));
-//        }
-//        multiDataList.add(new LayouterMultiData(staggeredList, new StaggeredGridLayouter(4)) {
-//            @Override
-//            public int getLayoutId() {
-//                return R.layout.item_text_card;
-//            }
-//        });
-//
-//        multiDataList.add(new StringMultiData("测试", new VerticalLayouter()) {
-////            @Override
-////            public boolean isStickyItem(int position) {
-////                return false;
-////            }
-//        });
-//        multiDataList.add(new LayouterMultiData(list, new VerticalLayouter()) {
-//            @Override
-//            public boolean isStickyPosition(int position) {
-//                return position == 5 || position == 12 || position == 20;
-//            }
-//
-//            @Override
-//            public void onBindViewHolder(EasyViewHolder holder, List<Integer> list, int position, List<Object> payloads) {
-//                super.onBindViewHolder(holder, list, position, payloads);
-//                holder.getItemView().setBackgroundColor(Color.TRANSPARENT);
-//                ViewCompat.setElevation(holder.getItemView(), 0);
-//            }
-//
-//            @Override
-//            public void onItemSticky(EasyViewHolder holder, int position, final boolean isSticky) {
-//                super.onItemSticky(holder, position, isSticky);
-//                holder.getItemView().setBackgroundColor(isSticky ? Color.WHITE : Color.TRANSPARENT);
-//                ViewCompat.setElevation(holder.getItemView(), isSticky ? 20 : 0);
-//            }
-//        });
-//        multiDataList.add(new TestErrorStringMultiData(new VerticalLayouter()));
-//
-//
-//        List<Integer> flowList = new ArrayList<>();
-//        for (int i = 0; i < 100; i++) {
-//            flowList.addAll(Arrays.asList(flowArray));
-//        }
-//        multiDataList.add(new LayouterMultiData(flowList, new FlowLayouter(20)) {
-//            @Override
-//            public int getLayoutId() {
-//                return R.layout.item_flow;
-//            }
-//
-//            @Override
-//            public void onBindViewHolder(final EasyViewHolder holder, List<Integer> list, int position, List<Object> payloads) {
-//                holder.setText(R.id.tv_text, "第" + list.get(position) + "个");
-//                final int data = list.get(position);
-//                holder.setOnItemClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        Toast.makeText(holder.getContext(), "" + data, Toast.LENGTH_SHORT).show();
-//                    }
-//                });
-//            }
-//        });
-//
-//        multiDataList.add(new TestErrorStringMultiData(new GridLayouter(2)));
-//        multiDataList.add(new LayouterMultiData(list, new HorizontalLayouter()) {
-//            @Override
-//            public int getLayoutId() {
-//                return R.layout.item_text_grid;
-//            }
-//        });
-//        multiDataList.add(new LayouterMultiData(list, new VerticalLayouter()) {
-//            @Override
-//            public boolean isStickyPosition(int position) {
-//                return position == 0;
-//            }
-//        });
-//        multiDataList.add(new LayouterMultiData(list, new GridLayouter(2)));
-//        multiDataList.add(new LayouterMultiData(list, new HorizontalLayouter()) {
-//            @Override
-//            public int getLayoutId() {
-//                return R.layout.item_text_grid;
-//            }
-//        });
-//        multiDataList.add(new LayouterMultiData(list, new VerticalLayouter()));
-//        multiDataList.add(new LayouterMultiData(list, new GridLayouter(3)));
+
+//        sceneList.add(new ContainerScene(new TestContainerMultiData(list), new HorizontalLayouter()));
+
+//        addMoreScene(sceneList, list);
+
 
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
-        mRecycler = new MultiRecycler(recyclerView, multiDataList);
+        mRecycler = new MultiRecycler(recyclerView, sceneList);
         mRecycler.setLayoutManager(new MultiLayoutManager())
                 .onRefresh(new SimpleRefresher(), new IRefresher.OnRefreshListener() {
                     @Override
@@ -334,6 +205,148 @@ public class LayoutManagerActivity extends AppCompatActivity {
         });
 
     }
+
+
+    private void addMoreScene(List<MultiScene> sceneList, List<Integer> list) {
+        sceneList.add(new HorizontalScene(new LayouterMultiData(list) {
+            @Override
+            public int getLayoutId() {
+                return R.layout.item_text_grid;
+            }
+        }));
+
+        final PagerScene pagerScene = new PagerScene(new LayouterMultiData(list) {
+            @Override
+            public int getLayoutId() {
+                return R.layout.item_banner;
+            }
+        });
+        pagerScene.setPageTransformer(new PagerScene.PageTransformer() {
+            @Override
+            public void transformPage(@NonNull View page, float position) {
+                Log.d(TAG, "transformPage pos=" + pagerScene.getLayoutHelper().getPosition(page) + " position=" + position);
+                if (position < -1) {
+                    page.setAlpha(0f);
+                } else if (position <= 1) {
+                    page.setAlpha(1f);
+                    page.setPivotX(page.getWidth() / 2f);
+                    page.setPivotY(page.getHeight());
+                    page.setRotation(15 * position);
+                } else {
+                    page.setAlpha(0f);
+                }
+            }
+        });
+        pagerScene.addOnPageChangeListener(new PagerScene.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float offset, int offsetPixels) {
+                Log.d(TAG, "onPageScrolled position=" + position + " offset=" + offset + " offsetPixels=" + offsetPixels);
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                Log.d(TAG, "onPageSelected position=" + position);
+            }
+
+            @Override
+            public void onPageEnterEnd(int position) {
+                Log.d(TAG, "onPageEnterEnd position=" + position);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                Log.d(TAG, "onPageScrollStateChanged state=" + state);
+            }
+        });
+        sceneList.add(pagerScene);
+
+        List<Integer> staggeredList = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            staggeredList.addAll(Arrays.asList(flowArray));
+        }
+        sceneList.add(new StaggeredGridScene(new LayouterMultiData(staggeredList) {
+            @Override
+            public int getLayoutId() {
+                return R.layout.item_text_card;
+            }
+        }, 4));
+
+        sceneList.add(new VerticalScene(new StringMultiData("测试") {
+//            @Override
+//            public boolean isStickyItem(int position) {
+//                return false;
+//            }
+        }));
+        sceneList.add(new VerticalScene(new LayouterMultiData(list) {
+            @Override
+            public boolean isStickyPosition(int position) {
+                return position == 5 || position == 12 || position == 20;
+            }
+
+            @Override
+            public void onBindViewHolder(EasyViewHolder holder, List<Integer> list, int position, List<Object> payloads) {
+                super.onBindViewHolder(holder, list, position, payloads);
+                holder.getItemView().setBackgroundColor(Color.TRANSPARENT);
+                ViewCompat.setElevation(holder.getItemView(), 0);
+            }
+
+            @Override
+            public void onItemSticky(EasyViewHolder holder, int position, final boolean isSticky) {
+                super.onItemSticky(holder, position, isSticky);
+                holder.getItemView().setBackgroundColor(isSticky ? Color.WHITE : Color.TRANSPARENT);
+                ViewCompat.setElevation(holder.getItemView(), isSticky ? 20 : 0);
+            }
+        }));
+        sceneList.add(new VerticalScene(new TestErrorStringMultiData()));
+
+
+        List<Integer> flowList = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            flowList.addAll(Arrays.asList(flowArray));
+        }
+        sceneList.add(new FlowScene(new LayouterMultiData(flowList) {
+            @Override
+            public int getLayoutId() {
+                return R.layout.item_flow;
+            }
+
+            @Override
+            public void onBindViewHolder(final EasyViewHolder holder, List<Integer> list, int position, List<Object> payloads) {
+                holder.setText(R.id.tv_text, "第" + list.get(position) + "个");
+                final int data = list.get(position);
+                holder.setOnItemClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Toast.makeText(holder.getContext(), "" + data, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        }, new FlowLayouter(20)));
+
+        sceneList.add(new GridScene(new TestErrorStringMultiData(), 2));
+        sceneList.add(new HorizontalScene(new LayouterMultiData(list) {
+            @Override
+            public int getLayoutId() {
+                return R.layout.item_text_grid;
+            }
+        }));
+        sceneList.add(new VerticalScene(new LayouterMultiData(list) {
+            @Override
+            public boolean isStickyPosition(int position) {
+                return position == 0;
+            }
+        }));
+        sceneList.add(new GridScene(new LayouterMultiData(list), 2));
+        sceneList.add(new HorizontalScene(new LayouterMultiData(list) {
+            @Override
+            public int getLayoutId() {
+                return R.layout.item_text_grid;
+            }
+        }));
+        sceneList.add(new VerticalScene(new LayouterMultiData(list)));
+        sceneList.add(new GridScene(new LayouterMultiData(list), 3));
+    }
+
 
     public static class LayouterMultiData extends SingleTypeMultiData<Integer> {
 

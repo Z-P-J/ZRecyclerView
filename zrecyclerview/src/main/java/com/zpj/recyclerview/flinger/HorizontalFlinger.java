@@ -1,14 +1,15 @@
 package com.zpj.recyclerview.flinger;
 
-import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.layouter.AbsLayouter;
+import android.support.annotation.NonNull;
+
+import com.zpj.recyclerview.core.MultiScene;
 
 public class HorizontalFlinger extends AbsFlinger {
 
     private boolean stopOverScroll = false;
 
-    public HorizontalFlinger(AbsLayouter layouter, MultiData<?> multiData) {
-        super(layouter, multiData);
+    public HorizontalFlinger(@NonNull MultiScene scene) {
+        super(scene);
     }
 
     @Override
@@ -16,7 +17,7 @@ public class HorizontalFlinger extends AbsFlinger {
         if (dx == 0) {
             return true;
         }
-        int consumed = mLayouter.scrollHorizontallyBy(dx, mMultiData);
+        int consumed = mScene.scrollHorizontallyBy(dx);
 
         if (consumed != dx) {
             stopOverScroll = true;
@@ -30,7 +31,7 @@ public class HorizontalFlinger extends AbsFlinger {
         super.onFinished();
         if (stopOverScroll) {
             stopOverScroll = false;
-            mLayouter.onStopOverScroll();
+            mScene.onStopOverScroll();
         }
     }
 }

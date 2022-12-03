@@ -5,23 +5,22 @@ import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.StateMultiData;
+import com.zpj.recyclerview.core.AbsLayouter;
+import com.zpj.recyclerview.scene.GridScene;
 
-public class GridLayouter extends AbsLayouter {
+public class GridLayouter extends AbsLayouter<GridScene> {
 
     private static final String TAG = "GridLayouter";
 
-    private int mSpanCount;
-
-    public GridLayouter(int spanCount) {
-        this.mSpanCount = Math.max(spanCount, 1);
-    }
-
-    public void setSpanCount(int spanCount) {
-        this.mSpanCount = spanCount;
-        if (getLayoutHelper() != null) {
-            getLayoutHelper().requestLayout();
-        }
-    }
+//    private int mSpanCount;
+//
+//    public GridLayouter(int spanCount) {
+//        this.mSpanCount = Math.max(spanCount, 1);
+//    }
+//
+//    public void setSpanCount(int spanCount) {
+//        this.mSpanCount = spanCount;
+//    }
 
     @Override
     public boolean canScrollHorizontally() {
@@ -40,25 +39,27 @@ public class GridLayouter extends AbsLayouter {
         int right = 0;
         int bottom = anchorTop;
 
+        int positionOffset = mScene.getPositionOffset();
         if (multiData instanceof StateMultiData && ((StateMultiData<?>) multiData).getState() != com.zpj.statemanager.State.STATE_CONTENT) {
-            View view = addViewAndMeasure(mPositionOffset, 0, multiData);
+            View view = mScene.addViewAndMeasure(positionOffset, 0);
 
             int childHeight = getDecoratedMeasuredHeight(view);
             top = bottom - childHeight;
-            right = getWidth();
+            right = getRecyclerWidth();
             layoutDecorated(view, left, top, right, bottom);
             availableSpace -= childHeight;
         } else {
-            int childWidth = (getWidth() - getPaddingLeft() - getPaddingRight()) / mSpanCount;
+            int spanCount = mScene.getSpanCount();
+            int childWidth = (getRecyclerWidth() - mScene.getPaddingLeft() - mScene.getPaddingRight()) / spanCount;
             int childHeight = 0;
 
-            while (availableSpace > 0 && currentPosition >= mPositionOffset) {
-                int posInLine = (currentPosition - mPositionOffset) % mSpanCount;
+            while (availableSpace > 0 && currentPosition >= positionOffset) {
+                int posInLine = (currentPosition - positionOffset) % spanCount;
                 right = (posInLine + 1) * childWidth;
                 left = right - childWidth;
 
-                View view = addView(currentPosition--, 0, multiData);
-                measureChild(view, getWidth() - childWidth, 0);
+                View view = mScene.addView(currentPosition--, 0);
+                measureChild(view, getRecyclerWidth() - childWidth, 0);
 
                 if (childHeight <= 0) {
                     childHeight = getDecoratedMeasuredHeight(view);
@@ -85,25 +86,28 @@ public class GridLayouter extends AbsLayouter {
         int right = 0;
         int bottom = anchorBottom;
 
+        int positionOffset = mScene.getPositionOffset();
+        int itemCount = mScene.getItemCount();
         if (multiData instanceof StateMultiData && ((StateMultiData<?>) multiData).getState() != com.zpj.statemanager.State.STATE_CONTENT) {
-            View view = addViewAndMeasure(mPositionOffset, multiData);
+            View view = mScene.addViewAndMeasure(positionOffset);
 
             int childHeight = getDecoratedMeasuredHeight(view);
             bottom = top + childHeight;
-            right = getWidth();
+            right = getRecyclerWidth();
             layoutDecorated(view, left, top, right, bottom);
             availableSpace -= childHeight;
         } else {
-            int childWidth = (getWidth() - getPaddingLeft() - getPaddingRight()) / mSpanCount;
+            int spanCount = mScene.getSpanCount();
+            int childWidth = (getRecyclerWidth() - mScene.getPaddingLeft() - mScene.getPaddingRight()) / spanCount;
             int childHeight = 0;
-            while (availableSpace > 0 && currentPosition < getCount(multiData) + mPositionOffset) {
+            while (availableSpace > 0 && currentPosition < itemCount + positionOffset) {
 
-                int posInLine = (currentPosition - mPositionOffset) % mSpanCount;
+                int posInLine = (currentPosition - positionOffset) % spanCount;
                 left = posInLine * childWidth;
                 right = left + childWidth;
 
-                View view = addView(currentPosition++, multiData);
-                measureChild(view, getWidth() - childWidth, 0);
+                View view = mScene.addView(currentPosition++);
+                measureChild(view, getRecyclerWidth() - childWidth, 0);
 
                 if (childHeight <= 0) {
                     childHeight = getDecoratedMeasuredHeight(view);
@@ -113,7 +117,7 @@ public class GridLayouter extends AbsLayouter {
                 Log.d(TAG, "Grid onFillVertical2 currentPosition=" + currentPosition + " left=" + left + " right=" + right + " top=" + top + " bottom=" + bottom + " posInLine=" + posInLine);
                 layoutDecorated(view, left, top, right, bottom);
 
-                if (posInLine == mSpanCount - 1 || currentPosition == getCount(multiData) + mPositionOffset) {
+                if (posInLine == spanCount - 1 || currentPosition == itemCount + positionOffset) {
                     top = bottom;
                     availableSpace -= childHeight;
                     childHeight = 0;

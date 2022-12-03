@@ -1,30 +1,31 @@
 package com.zpj.recyclerview.flinger;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
 
-import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.layouter.AbsLayouter;
-import com.zpj.recyclerview.layouter.LayoutHelper;
+import com.zpj.recyclerview.core.MultiScene;
+import com.zpj.recyclerview.core.LayoutHelper;
 import com.zpj.recyclerview.layouter.PagerLayouter;
+import com.zpj.recyclerview.scene.PagerScene;
 
 public abstract class PagerFlinger extends HorizontalFlinger {
 
-    public PagerFlinger(AbsLayouter layouter, MultiData<?> multiData) {
-        super(layouter, multiData);
+    public PagerFlinger(@NonNull PagerScene scene) {
+        super(scene);
     }
 
     @Override
     public void fling(float velocityX, float velocityY) {
-        if (mMultiData != null && mLayouter instanceof PagerLayouter) {
+        if (mScene instanceof PagerScene) {
             stop();
 
-            PagerLayouter layouter = (PagerLayouter) mLayouter;
-            LayoutHelper helper = layouter.getLayoutHelper();
-            int tempCurrentItem = layouter.getCurrentItem();
-            View current = helper.findViewByPosition(layouter.getCurrentPosition());
+            PagerScene pagerScene = (PagerScene) mScene;
+            LayoutHelper helper = pagerScene.getLayoutHelper();
+            int tempCurrentItem = pagerScene.getCurrentItem();
+            View current = helper.findViewByPosition(pagerScene.getCurrentPosition());
             int position = helper.getPosition(current);
-            int item = position - layouter.getPositionOffset();
+            int item = position - pagerScene.getPositionOffset();
 
             int left = helper.getDecoratedLeft(current);
             int right = helper.getDecoratedRight(current);
@@ -37,19 +38,19 @@ public abstract class PagerFlinger extends HorizontalFlinger {
             int dx;
             int currentItem;
             if (velocityX > 0) {
-                if (left + finalX > layouter.getWidth()) {
-                    dx = layouter.getWidth() - left;
+                if (left + finalX > pagerScene.getWidth()) {
+                    dx = pagerScene.getWidth() - left;
                     currentItem = item - 1;
-                } else if (left < layouter.getWidth() / 2) {
+                } else if (left < pagerScene.getWidth() / 2) {
                     dx = -left;
                     currentItem = item;
                 } else {
-                    dx = layouter.getWidth() - left;
+                    dx = pagerScene.getWidth() - left;
                     currentItem = item - 1;
                 }
                 if (currentItem < 0) {
-                    if (layouter.isInfinite()) {
-                        currentItem = mLayouter.getCount(mMultiData) - 1;
+                    if (pagerScene.isInfinite()) {
+                        currentItem = mScene.getItemCount() - 1;
                     } else {
                         dx = -left;
                         currentItem = 0;
@@ -59,19 +60,20 @@ public abstract class PagerFlinger extends HorizontalFlinger {
                 if (right + finalX < 0) {
                     dx = -right;
                     currentItem = item + 1;
-                } else if (right > layouter.getWidth() / 2) {
-                    dx = layouter.getWidth() - right;
+                } else if (right > pagerScene.getWidth() / 2) {
+                    dx = pagerScene.getWidth() - right;
                     currentItem = item;
                 } else {
                     dx = -right;
                     currentItem = item - 1;
                 }
-                if (currentItem >= mLayouter.getCount(mMultiData)) {
-                    if (layouter.isInfinite()) {
+                int itemCount = mScene.getItemCount();
+                if (currentItem >= itemCount) {
+                    if (pagerScene.isInfinite()) {
                         currentItem = 0;
                     } else {
-                        dx = layouter.getWidth() - right;
-                        currentItem = mLayouter.getCount(mMultiData) - 1;
+                        dx = pagerScene.getWidth() - right;
+                        currentItem = itemCount - 1;
                     }
                 }
             }
@@ -80,9 +82,10 @@ public abstract class PagerFlinger extends HorizontalFlinger {
             }
 
             int count = 0;
-            for (int i = 0; i < layouter.getChildCount(); i++) {
-                View child = layouter.getChildAt(i);
-                if (layouter.getMultiData(child) == mMultiData) {
+            for (int i = 0; i < pagerScene.getChildCount(); i++) {
+                View child = pagerScene.getChildAt(i);
+
+                if (pagerScene.getMultiScene(child) == mScene) {
                     count++;
                 }
             }

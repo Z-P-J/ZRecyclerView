@@ -1,21 +1,18 @@
 package com.zpj.recyclerview;
 
+import static com.zpj.statemanager.State.STATE_CONTENT;
+
 import android.content.Context;
-import android.support.annotation.IntRange;
-import android.support.annotation.LayoutRes;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.zpj.recyclerview.layouter.AbsLayouter;
-import com.zpj.recyclerview.layouter.ContainerLayouter;
-import com.zpj.recyclerview.layouter.Layouter;
+import com.zpj.recyclerview.scene.ContainerScene;
 
 import java.util.List;
 
-import static com.zpj.statemanager.State.STATE_CONTENT;
-
+// TODO 采用代理MultiData的方式
 public abstract class ContainerMultiData<T> extends StateMultiData<T> {
 
     public ContainerMultiData() {
@@ -28,8 +25,8 @@ public abstract class ContainerMultiData<T> extends StateMultiData<T> {
 
     @Override
     public View onCreateView(Context context, ViewGroup container, int viewType) {
-        if (viewType == ContainerLayouter.ContainerLayout.class.hashCode()) {
-            return new ContainerLayouter.ContainerLayout(context);
+        if (viewType == ContainerScene.ContainerLayout.class.hashCode()) {
+            return new ContainerScene.ContainerLayout(context);
         }
         Log.d("ContainerMultiData", "onCreateView addView i=");
         return LayoutInflater.from(context).inflate(getLayoutId(viewType), container, false);
@@ -53,7 +50,7 @@ public abstract class ContainerMultiData<T> extends StateMultiData<T> {
     @Override
     public final int getViewType(int position) {
         if (position == 0) {
-            return ContainerLayouter.ContainerLayout.class.hashCode();
+            return ContainerScene.ContainerLayout.class.hashCode();
         }
         if (getState() != STATE_CONTENT) {
             return getState().hashCode();
@@ -66,7 +63,7 @@ public abstract class ContainerMultiData<T> extends StateMultiData<T> {
         if (getState() != STATE_CONTENT && viewType == getState().hashCode()) {
             return true;
         }
-        return viewType == ContainerLayouter.ContainerLayout.class.hashCode()
+        return viewType == ContainerScene.ContainerLayout.class.hashCode()
                 || viewType == getLayoutId();
     }
 

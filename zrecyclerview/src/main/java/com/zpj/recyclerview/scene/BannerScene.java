@@ -1,12 +1,13 @@
-package com.zpj.recyclerview.layouter;
+package com.zpj.recyclerview.scene;
 
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
+import com.zpj.recyclerview.layouter.PagerLayouter;
 
-public class BannerLayouter extends PagerLayouter {
+public class BannerScene extends PagerScene {
 
     private static final String TAG = "BannerLayouter";
 
@@ -26,7 +27,7 @@ public class BannerLayouter extends PagerLayouter {
                         return;
                     }
                     int dx = getDecoratedLeft(current) - getWidth();
-                    Log.d(TAG, "mAutoRunnable dx=" + dx + " mTop=" + mScene.getTop() + " mBottom=" + mScene.getBottom());
+                    Log.d(TAG, "mAutoRunnable dx=" + dx + " mTop=" + getTop() + " mBottom=" + getBottom());
                     mFlinger.fling(dx * 10, 0);
                 }
                 startAutoPlay();
@@ -36,10 +37,20 @@ public class BannerLayouter extends PagerLayouter {
         }
     };
 
+    public BannerScene(MultiData<?> multiData) {
+        this(multiData, new PagerLayouter());
+    }
 
-    public BannerLayouter() {
+    public BannerScene(MultiData<?> multiData, PagerLayouter layouter) {
+        super(multiData, layouter);
         mIsInfinite = true;
     }
+
+
+//    public BannerScene() {
+//        super();
+//        mIsInfinite = true;
+//    }
 
     public void setAutoPlayDuration(int mAutoPlayDuration) {
         this.mAutoPlayDuration = mAutoPlayDuration;
@@ -73,8 +84,8 @@ public class BannerLayouter extends PagerLayouter {
     }
 
     @Override
-    public void layoutChildren(MultiData<?> multiData) {
-        super.layoutChildren(multiData);
+    public void layoutChildren() {
+        super.layoutChildren();
         if (mAutoPlay) {
             if (mStart) {
                 return;
@@ -101,19 +112,19 @@ public class BannerLayouter extends PagerLayouter {
     }
 
     @Override
-    public boolean onTouchDown(MultiData<?> multiData, float downX, float downY, MotionEvent event) {
+    public boolean onTouchDown(float downX, float downY, MotionEvent event) {
         if (!canHandleTouch(downX, downY)) {
             return false;
         }
         Log.d(TAG, "onTouchDown downX=" + downX + " downY=" + downY);
         stopAutoPlay();
-        return super.onTouchDown(multiData, downX, downY, event);
+        return super.onTouchDown(downX, downY, event);
     }
 
     @Override
-    public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY, MotionEvent event) {
+    public boolean onTouchUp(float velocityX, float velocityY, MotionEvent event) {
         Log.d(TAG, "onTouchUp velocityX=" + velocityX + " velocityY=" + velocityY);
-        boolean result = super.onTouchUp(multiData, velocityX, velocityY, event);
+        boolean result = super.onTouchUp(velocityX, velocityY, event);
         startAutoPlay();
         return result;
     }
