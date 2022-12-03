@@ -4,62 +4,15 @@
 package com.zpj.recyclerview.layouter;
 
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
+import com.zpj.recyclerview.core.AbsLayouter;
+import com.zpj.recyclerview.scene.HorizontalScene;
 
-public class HorizontalLayouter extends AbsLayouter {
+public class HorizontalLayouter extends AbsLayouter<HorizontalScene> {
 
     private static final String TAG = "HorizontalLayouter";
-
-    protected boolean mIsInfinite = true;
-
-    public HorizontalLayouter() {
-        this(false);
-    }
-
-    public HorizontalLayouter(boolean isInfinite) {
-        this.mIsInfinite = isInfinite;
-    }
-
-    public void setIsInfinite(boolean isInfinite) {
-        this.mIsInfinite = isInfinite;
-    }
-
-    public boolean isInfinite() {
-        return mIsInfinite;
-    }
-
-//    @Override
-//    public void saveState(int firstPosition, int firstOffset) {
-//        if (isInfinite()) {
-//            this.mFirstPosition = Math.max(0, firstPosition - mPositionOffset);
-//            this.mFirstOffset = Math.min(0, firstOffset);
-//        } else {
-//            Log.d(TAG, "saveState firstPosition=" + firstPosition + " firstOffset=" + firstOffset);
-//            super.saveState(firstPosition, firstOffset);
-//        }
-//    }
-
-    @Override
-    public void saveState(View firstChild) {
-        super.saveState(firstChild);
-        if (isInfinite()) {
-            mAnchorInfo.x = Math.min(0, mAnchorInfo.x);
-        }
-    }
-
-    @Override
-    public void onDetached() {
-        if (isInfinite()) {
-            if (mFlinger != null) {
-                mFlinger.stop();
-            }
-        } else {
-            super.onDetached();
-        }
-    }
 
     @Override
     public boolean canScrollHorizontally() {
@@ -76,20 +29,24 @@ public class HorizontalLayouter extends AbsLayouter {
         if (dy > 0) {
             // 从下往上滑动
             if (anchorView == null) {
-                return fillVerticalBottom(multiData, mAnchorInfo.position + mPositionOffset, dy, mScene.getTop());
+                return fillVerticalBottom(multiData,
+                        mScene.mAnchorInfo.position + mScene.getPositionOffset(),
+                        dy, mScene.getTop());
             } else {
                 // 如果占用两行则需要以下代码
                 int anchorBottom = getDecoratedBottom(anchorView);
-                if (anchorBottom - dy > getHeight()) {
+                if (anchorBottom - dy > getRecyclerHeight()) {
                     return dy;
                 } else {
-                    return anchorBottom - getHeight();
+                    return anchorBottom - getRecyclerHeight();
                 }
             }
         } else {
             // 从上往下滑动
             if (anchorView == null) {
-                return fillVerticalTop(multiData, mAnchorInfo.position + mPositionOffset, dy, mScene.getBottom());
+                return fillVerticalTop(multiData,
+                        mScene.mAnchorInfo.position + mScene.getPositionOffset(),
+                        dy, mScene.getBottom());
             } else {
                 // 如果占用两行则需要以下代码
                 int anchorTop = getDecoratedTop(anchorView);
@@ -105,24 +62,26 @@ public class HorizontalLayouter extends AbsLayouter {
     @Override
     protected int fillVerticalTop(MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
 
-        int left = mAnchorInfo.x;
+        int left = mScene.mAnchorInfo.x;
         int top = anchorTop;
         int right = 0;
         int bottom = anchorTop;
 
-        int availableSpace = getWidth() - getPaddingRight() - left;
+        int availableSpace = getRecyclerWidth() - mScene.getPaddingRight() - left;
 
         int i = 0;
+        int positionOffset = mScene.getPositionOffset();
+        int itemCount = mScene.getItemCount();
         while (availableSpace > 0) {
-            if (currentPosition >= mPositionOffset + getCount(multiData)) {
-                if (isInfinite()) {
-                    currentPosition = mPositionOffset;
+            if (currentPosition >= positionOffset + itemCount) {
+                if (mScene.isInfinite()) {
+                    currentPosition = positionOffset;
                 } else {
                     break;
                 }
             }
 
-            View view = addViewAndMeasure(currentPosition++, i++, multiData);
+            View view = mScene.addViewAndMeasure(currentPosition++, i++);
 
             int measuredWidth = getDecoratedMeasuredWidth(view);
             availableSpace -= measuredWidth;
@@ -143,22 +102,24 @@ public class HorizontalLayouter extends AbsLayouter {
     @Override
     protected int fillVerticalBottom(MultiData<?> multiData, int currentPosition, int dy, int anchorBottom) {
 
-        int left = mAnchorInfo.x;
+        int left = mScene.mAnchorInfo.x;
         int top = anchorBottom;
         int right = 0;
         int bottom = anchorBottom;
 
-        int availableSpace = getWidth() - getPaddingRight() - left;
+        int availableSpace = getRecyclerWidth() - mScene.getPaddingRight() - left;
 
+        int positionOffset = mScene.getPositionOffset();
+        int itemCount = mScene.getItemCount();
         while (availableSpace > 0) {
-            if (currentPosition >= mPositionOffset + getCount(multiData)) {
-                if (isInfinite()) {
-                    currentPosition = mPositionOffset;
+            if (currentPosition >= positionOffset + itemCount) {
+                if (mScene.isInfinite()) {
+                    currentPosition = positionOffset;
                 } else {
                     break;
                 }
             }
-            View view = addViewAndMeasure(currentPosition++, multiData);
+            View view = mScene.addViewAndMeasure(currentPosition++);
             int measuredWidth = getDecoratedMeasuredWidth(view);
             availableSpace -= measuredWidth;
 
@@ -178,22 +139,24 @@ public class HorizontalLayouter extends AbsLayouter {
         if (anchorView == null) {
             return 0;
         }
+        int positionOffset = mScene.getPositionOffset();
+        int itemCount = mScene.getItemCount();
         int anchorPosition = getPosition(anchorView);
-        if (anchorPosition < mPositionOffset || anchorPosition >= mPositionOffset + getCount(multiData)) {
+        if (anchorPosition < positionOffset || anchorPosition >= positionOffset + itemCount) {
             return 0;
         }
-        int index = indexOfChild(anchorView);
+        int index = mScene.indexOfChild(anchorView);
         Log.d(TAG, "fillHorizontal anchorPosition=" + anchorPosition + " index=" + index);
         if (dx > 0) {
             // 从右往左滑动，从右边填充view
 
             int anchorRight = getDecoratedRight(anchorView);
-            if (anchorRight - dx > getWidth()) {
+            if (anchorRight - dx > getRecyclerWidth()) {
                 return dx;
             } else {
 
-                if (!isInfinite() && anchorPosition == mPositionOffset + getCount(multiData) - 1) {
-                    return anchorRight - getWidth();
+                if (!mScene.isInfinite() && anchorPosition == positionOffset + itemCount - 1) {
+                    return anchorRight - getRecyclerWidth();
                 }
 
                 int availableSpace = dx;
@@ -205,15 +168,15 @@ public class HorizontalLayouter extends AbsLayouter {
 
                 int i = index + 1;
                 while (availableSpace > 0) {
-                    if (currentPosition >= mPositionOffset + getCount(multiData)) {
-                        if (isInfinite()) {
-                            currentPosition = mPositionOffset;
+                    if (currentPosition >= positionOffset + itemCount) {
+                        if (mScene.isInfinite()) {
+                            currentPosition = positionOffset;
                         } else {
                             break;
                         }
                     }
 
-                    View view = addViewAndMeasure(currentPosition++, i++, multiData);
+                    View view = mScene.addViewAndMeasure(currentPosition++, i++);
 
                     int measuredWidth = getDecoratedMeasuredWidth(view);
                     availableSpace -= measuredWidth;
@@ -222,7 +185,7 @@ public class HorizontalLayouter extends AbsLayouter {
                     layoutDecorated(view, left, top, right, bottom);
                     left = right;
                 }
-                return Math.min(dx, dx - availableSpace + (anchorRight - getWidth()));
+                return Math.min(dx, dx - availableSpace + (anchorRight - getRecyclerWidth()));
             }
         } else {
             // 从左往右滑动，从左边填充view
@@ -232,7 +195,7 @@ public class HorizontalLayouter extends AbsLayouter {
                 return -dx;
             } else {
 
-                if (!isInfinite() && anchorPosition == mPositionOffset) {
+                if (!mScene.isInfinite() && anchorPosition == positionOffset) {
                     return -anchorLeft;
                 }
 
@@ -244,14 +207,14 @@ public class HorizontalLayouter extends AbsLayouter {
                 int bottom = getDecoratedBottom(anchorView);
 
                 while (availableSpace > 0) {
-                    if (currentPosition < mPositionOffset) {
-                        if (isInfinite()) {
-                            currentPosition = mPositionOffset + getCount(multiData) - 1;
+                    if (currentPosition < positionOffset) {
+                        if (mScene.isInfinite()) {
+                            currentPosition = positionOffset + itemCount - 1;
                         } else {
                             break;
                         }
                     }
-                    View view = addViewAndMeasure(currentPosition--, index, multiData);
+                    View view = mScene.addViewAndMeasure(currentPosition--, index);
 
                     int measuredWidth = getDecoratedMeasuredWidth(view);
                     availableSpace -= measuredWidth;
@@ -265,14 +228,4 @@ public class HorizontalLayouter extends AbsLayouter {
         }
     }
 
-    @Override
-    public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY, MotionEvent event) {
-        if (isInfinite()) {
-            if (canScrollHorizontally() && mFlinger != null) {
-                mFlinger.fling(velocityX, velocityY);
-            }
-            return false;
-        }
-        return super.onTouchUp(multiData, velocityX, velocityY, event);
-    }
 }

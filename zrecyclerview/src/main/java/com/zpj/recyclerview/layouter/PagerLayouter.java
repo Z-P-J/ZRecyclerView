@@ -1,38 +1,25 @@
 package com.zpj.recyclerview.layouter;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Px;
-import android.support.v7.widget.BaseMultiLayoutManager;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.core.MultiScene;
-import com.zpj.recyclerview.flinger.Flinger;
-import com.zpj.recyclerview.flinger.PagerFlinger;
+import com.zpj.recyclerview.core.AbsLayouter;
+import com.zpj.recyclerview.scene.PagerScene;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class PagerLayouter extends AbsLayouter {
+public class PagerLayouter extends AbsLayouter<PagerScene> {
 
     private static final String TAG = "ViewPagerLayouter";
 
-    public static final int SCROLL_STATE_IDLE = 0;
-    public static final int SCROLL_STATE_DRAGGING = 1;
-    public static final int SCROLL_STATE_SETTLING = 2;
+    protected boolean mIsInfinite;
+    
+    public PagerLayouter() {
+        this(false);
+    }
 
-    private int mCurrentItem;
-
-    private PageTransformer mTransformer;
-
-    private int mScrollState = SCROLL_STATE_IDLE;
-    private List<OnPageChangeListener> mOnPageChangeListeners;
-
-    private int mOffscreenPageLimit = 2;
-
-    protected boolean mIsInfinite = false;
+    public PagerLayouter(boolean isInfinite) {
+        mIsInfinite = isInfinite;
+    }
 
     public void setIsInfinite(boolean isInfinite) {
         this.mIsInfinite = isInfinite;
@@ -40,11 +27,6 @@ public class PagerLayouter extends AbsLayouter {
 
     public boolean isInfinite() {
         return mIsInfinite;
-    }
-
-    @Override
-    protected PagerLayoutHelper createLayoutHelper(MultiScene multiScene) {
-        return new PagerLayoutHelper(this, multiScene);
     }
 
     @Override
@@ -58,40 +40,26 @@ public class PagerLayouter extends AbsLayouter {
     }
 
     @Override
-    public void saveState(View firstChild) {
-        View current = findViewByPosition(getCurrentPosition());
-        super.saveState(current);
-    }
-
-    @Override
-    public void layoutChildren(MultiData<?> multiData) {
-        super.layoutChildren(multiData);
-        if (mFlinger == null) {
-            mFlinger = createFlinger(multiData);
-        }
-    }
-
-    @Override
     public int fillVertical(View anchorView, int dy, MultiData<?> multiData) {
         if (dy > 0) {
             // 从下往上滑动
             if (anchorView == null) {
-                return fillVerticalBottom(multiData, getCurrentPosition(), dy, mScene.getTop());
+                return fillVerticalBottom(multiData, mScene.getCurrentPosition(), dy, mScene.getTop());
             } else {
                 // 如果占用两行则需要以下代码
                 int anchorBottom = getDecoratedTop(anchorView);
-                if (anchorBottom > getHeight()) {
-                    if (anchorBottom - dy > getHeight()) {
+                if (anchorBottom > getRecyclerHeight()) {
+                    if (anchorBottom - dy > getRecyclerHeight()) {
                         return dy;
                     } else {
-                        return anchorBottom - getHeight();
+                        return anchorBottom - getRecyclerHeight();
                     }
                 }
             }
         } else {
             // 从上往下滑动
             if (anchorView == null) {
-                return fillVerticalTop(multiData, getCurrentPosition(), dy, mScene.getBottom());
+                return fillVerticalTop(multiData, mScene.getCurrentPosition(), dy, mScene.getBottom());
             } else {
                 // 如果占用两行则需要以下代码
                 int anchorTop = getDecoratedTop(anchorView);
@@ -115,31 +83,31 @@ public class PagerLayouter extends AbsLayouter {
         int right = 0;
         int bottom = anchorTop;
 
-        int min = currentPosition - mOffscreenPageLimit;
-        int max = currentPosition + mOffscreenPageLimit;
-        int first = mPositionOffset;
-        int last = first + getCount(multiData) - 1;
+        int min = currentPosition - mScene.getOffscreenPageLimit();
+        int max = currentPosition + mScene.getOffscreenPageLimit();
+        int first = mScene.getPositionOffset();
+        int last = first + mScene.getItemCount() - 1;
         int index = 0;
 
         for (int i = min; i <= max; i++) {
             int position = i;
             if (position < first) {
-                if (isInfinite()) {
+                if (mIsInfinite) {
                     position = last + position - first + 1;
                 } else {
                     continue;
                 }
             } else if (position > last) {
-                if (isInfinite()) {
+                if (mIsInfinite) {
                     position = first + position - last - 1;
                 } else {
                     continue;
                 }
             }
-            View view = addViewAndMeasure(position, index++, multiData);
+            View view = mScene.addViewAndMeasure(position, index++);
 
-            left = mAnchorInfo.x + (i - currentPosition) * getWidth();
-            right = left + getWidth();
+            left = mScene.mAnchorInfo.x + (i - currentPosition) * getRecyclerWidth();
+            right = left + getRecyclerWidth();
             top = bottom - getDecoratedMeasuredHeight(view);
 
             layoutDecorated(view, left, top, right, bottom);
@@ -157,31 +125,31 @@ public class PagerLayouter extends AbsLayouter {
         int right = 0;
         int bottom = anchorBottom;
 
-        int min = currentPosition - mOffscreenPageLimit;
-        int max = currentPosition + mOffscreenPageLimit;
-        int first = mPositionOffset;
-        int last = first + getCount(multiData) - 1;
+        int min = currentPosition - mScene.getOffscreenPageLimit();
+        int max = currentPosition + mScene.getOffscreenPageLimit();
+        int first = mScene.getPositionOffset();
+        int last = first + mScene.getItemCount() - 1;
 
         for (int i = min; i <= max; i++) {
             int position = i;
             if (position < first) {
-                if (isInfinite()) {
+                if (mIsInfinite) {
                     position = last + position - first + 1;
                 } else {
                     continue;
                 }
             } else if (position > last) {
-                if (isInfinite()) {
+                if (mIsInfinite) {
                     position = first + position - last - 1;
                 } else {
                     continue;
                 }
             }
             Log.d(TAG, "fillVerticalBottom position=" + position);
-            View view = addViewAndMeasure(position, multiData);
+            View view = mScene.addViewAndMeasure(position);
 
-            left = mAnchorInfo.x + (i - currentPosition) * getWidth();
-            right = left + getWidth();
+            left = mScene.mAnchorInfo.x + (i - currentPosition) * getRecyclerWidth();
+            right = left + getRecyclerWidth();
             bottom = top + getDecoratedMeasuredHeight(view);
 
             layoutDecorated(view, left, top, right, bottom);
@@ -195,20 +163,38 @@ public class PagerLayouter extends AbsLayouter {
         if (anchorView == null) {
             return 0;
         }
-        int centerPosition = getCurrentPosition();
+        int centerPosition = mScene.getCurrentPosition();
 
-        int min = centerPosition - mOffscreenPageLimit;
-        int max = centerPosition + mOffscreenPageLimit;
-        int first = mPositionOffset;
-        int last = first + getCount(multiData) - 1;
+        int min = centerPosition - mScene.getOffscreenPageLimit();
+        int max = centerPosition + mScene.getOffscreenPageLimit();
+        int first = mScene.getPositionOffset();
+        int last = first + mScene.getItemCount() - 1;
 
         int anchorPosition = getPosition(anchorView);
 
         if (anchorPosition < first || anchorPosition > last) {
             return 0;
         }
-        int index = indexOfChild(anchorView);
-        int center = indexOfChild(findViewByPosition(getCurrentPosition()));
+//        int anchorIndex = mScene.indexOfChild(anchorView);
+//        int centerIndex = mScene.indexOfChild(mScene.findViewByPosition(centerPosition));
+
+        int anchorIndex = -1;
+        int centerIndex = -1;
+
+        for (int i = 0; i < mScene.getChildCount(); i++) {
+            View child = mScene.getChildAt(i);
+            if (child == null) {
+                continue;
+            } else if (child == anchorView) {
+                anchorIndex = i;
+            } else if (centerPosition == getPosition(child)) {
+                centerIndex = i;
+            }
+            if (anchorIndex >= 0 && centerIndex >= 0) {
+                break;
+            }
+        }
+
         if (dx > 0) {
             // 从右往左滑动，从右边填充view
 
@@ -220,35 +206,35 @@ public class PagerLayouter extends AbsLayouter {
             int right = 0;
             int bottom = getDecoratedBottom(anchorView);
 
-            int i = index + 1;
-            while (i - center <= mOffscreenPageLimit) {
+            int i = anchorIndex + 1;
+            while (i - centerIndex <= mScene.getOffscreenPageLimit()) {
                 int position = currentPosition++;
                 if (position < first) {
-                    if (isInfinite()) {
+                    if (mIsInfinite) {
                         position = last + position - first + 1;
                     } else {
                         break;
                     }
                 } else if (position > last) {
-                    if (isInfinite()) {
+                    if (mIsInfinite) {
                         position = first + position - last - 1;
                     } else {
                         break;
                     }
                 }
-                View view = addViewAndMeasure(position, i++, multiData);
+                View view = mScene.addViewAndMeasure(position, i++);
                 anchorView = view;
 
-                right = left + getWidth();
+                right = left + getRecyclerWidth();
                 layoutDecorated(view, left, top, right, bottom);
                 left = right;
             }
 
             anchorRight = getDecoratedRight(anchorView);
-            if (anchorRight - dx > getWidth()) {
+            if (anchorRight - dx > getRecyclerWidth()) {
                 return dx;
             } else {
-                return anchorRight - getWidth();
+                return anchorRight - getRecyclerWidth();
             }
         } else {
             // 从左往右滑动，从左边填充view
@@ -261,27 +247,27 @@ public class PagerLayouter extends AbsLayouter {
             int right = anchorLeft;
             int bottom = getDecoratedBottom(anchorView);
 
-            int i = index - 1;
-            while (center - i <= mOffscreenPageLimit) {
+            int i = anchorIndex - 1;
+            while (centerIndex - i <= mScene.getOffscreenPageLimit()) {
                 int position = currentPosition--;
                 if (position < first) {
-                    if (isInfinite()) {
+                    if (mIsInfinite) {
                         position = last + position - first + 1;
                     } else {
                         break;
                     }
                 } else if (position > last) {
-                    if (isInfinite()) {
+                    if (mIsInfinite) {
                         position = first + position - last - 1;
                     } else {
                         break;
                     }
                 }
 
-                View view = addViewAndMeasure(position, index, multiData);
+                View view = mScene.addViewAndMeasure(position, anchorIndex);
                 anchorView = view;
 
-                left = right - getWidth();
+                left = right - getRecyclerWidth();
                 layoutDecorated(view, left, top, right, bottom);
                 right = left;
 
@@ -296,259 +282,5 @@ public class PagerLayouter extends AbsLayouter {
             }
         }
     }
-
-    @Override
-    protected Flinger createFlinger(final MultiData<?> multiData) {
-        return new PagerFlinger(this, multiData) {
-            @Override
-            protected void onItemSelected(int item) {
-                mCurrentItem = item;
-                if (mOnPageChangeListeners != null) {
-                    for(int i = 0; i < mOnPageChangeListeners.size(); ++i) {
-                        OnPageChangeListener listener = mOnPageChangeListeners.get(i);
-                        if (listener != null) {
-                            listener.onPageSelected(mCurrentItem);
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onFinished() {
-                setScrollState(SCROLL_STATE_IDLE);
-                if (mOnPageChangeListeners != null) {
-                    for(int i = 0; i < mOnPageChangeListeners.size(); ++i) {
-                        OnPageChangeListener listener = mOnPageChangeListeners.get(i);
-                        if (listener != null) {
-                            listener.onPageEnterEnd(mCurrentItem);
-                        }
-                    }
-                }
-            }
-        };
-    }
-
-    @Override
-    public boolean onTouchDown(MultiData<?> multiData, float downX, float downY, MotionEvent event) {
-        boolean result = super.onTouchDown(multiData, downX, downY, event);
-        if (result && mScrollState == SCROLL_STATE_SETTLING) {
-            setScrollState(SCROLL_STATE_DRAGGING);
-        }
-        return result;
-    }
-
-    @Override
-    public boolean onTouchMove(MultiData<?> multiData, float x, float y, float downX, float downY, MotionEvent event) {
-        if (this.mScrollState != SCROLL_STATE_DRAGGING) {
-            setScrollState(SCROLL_STATE_DRAGGING);
-        }
-        return super.onTouchMove(multiData, x, y, downX, downY, event);
-    }
-
-    @Override
-    public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY, MotionEvent event) {
-        setScrollState(SCROLL_STATE_SETTLING);
-        return super.onTouchUp(multiData, velocityX, velocityY, event);
-    }
-
-    @Override
-    public void onDetached() {
-        if (mFlinger != null) {
-            mFlinger.stop();
-        }
-        if (mAnchorInfo.x != 0) {
-            mAnchorInfo.x = 0;
-        }
-    }
-
-    private void setScrollState(int newState) {
-        if (this.mScrollState != newState) {
-            this.mScrollState = newState;
-//            if (this.mPageTransformer != null) {
-//                this.enableLayers(newState != 0);
-//            }
-            this.dispatchOnScrollStateChanged(newState);
-        }
-    }
-
-    private void dispatchOnScrollStateChanged(int state) {
-        if (this.mOnPageChangeListeners != null) {
-            for(int i = 0; i < this.mOnPageChangeListeners.size(); ++i) {
-                OnPageChangeListener listener = this.mOnPageChangeListeners.get(i);
-                if (listener != null) {
-                    listener.onPageScrollStateChanged(state);
-                }
-            }
-        }
-    }
-
-    public void setOffscreenPageLimit(int limit) {
-        if (limit < 1) {
-            limit = 1;
-        }
-        if (mOffscreenPageLimit != limit) {
-            mOffscreenPageLimit = limit;
-            if (getLayoutHelper() != null) {
-                getLayoutHelper().requestLayout();
-            }
-        }
-    }
-
-    public void setCurrentItem(int item) {
-        setCurrentItem(item, true);
-    }
-
-    public void setCurrentItem(int item, boolean smoothScroll) {
-        if (smoothScroll) {
-            if (mFlinger == null) {
-                return;
-            }
-            int delta = mCurrentItem - item;
-            int dx = delta * getWidth() - mAnchorInfo.x;
-            mFlinger.scroll(dx, 0);
-        } else {
-            if (mFlinger != null) {
-                mFlinger.stop();
-            }
-            mCurrentItem = item;
-            mAnchorInfo.position = item;
-            mAnchorInfo.x = 0;
-            mAnchorInfo.y = mScene.getTop();
-            if (getLayoutHelper() != null) {
-                getLayoutHelper().requestLayout();
-            }
-        }
-    }
-
-    public int getCurrentItem() {
-        return mCurrentItem;
-    }
-
-    public int getCurrentPosition() {
-        return mCurrentItem + mPositionOffset;
-    }
-
-    public void setPageTransformer(PageTransformer transformer) {
-        this.mTransformer = transformer;
-    }
-
-    public void addOnPageChangeListener(@NonNull OnPageChangeListener listener) {
-        if (this.mOnPageChangeListeners == null) {
-            this.mOnPageChangeListeners = new ArrayList<>();
-        }
-
-        this.mOnPageChangeListeners.add(listener);
-    }
-
-    public void removeOnPageChangeListener(@NonNull OnPageChangeListener listener) {
-        if (this.mOnPageChangeListeners != null) {
-            this.mOnPageChangeListeners.remove(listener);
-        }
-
-    }
-
-    public void clearOnPageChangeListeners() {
-        if (this.mOnPageChangeListeners != null) {
-            this.mOnPageChangeListeners.clear();
-            this.mOnPageChangeListeners = null;
-        }
-
-    }
-
-    public interface PageTransformer {
-        void transformPage(@NonNull View page, float position);
-    }
-
-    public interface OnPageChangeListener {
-        void onPageScrolled(int position, float offset, @Px int offsetPixels);
-
-        void onPageSelected(int position);
-
-        void onPageEnterEnd(int position);
-
-        void onPageScrollStateChanged(int state);
-    }
-
-    public static class PagerLayoutHelper extends LayoutHelper {
-
-        protected final PagerLayouter mLayouter;
-
-        public PagerLayoutHelper(PagerLayouter layouter,
-                                 MultiScene multiScene) {
-            super(multiScene);
-            mLayouter = layouter;
-        }
-
-        @Override
-        public int getDecoratedMeasuredWidth(@NonNull View child) {
-            return getWidth();
-        }
-
-        @Override
-        public void layoutDecorated(@NonNull View child, int left, int top, int right, int bottom) {
-            super.layoutDecorated(child, left, top, right, bottom);
-            if (mLayouter.mTransformer != null) {
-                float position = (float) left / getWidth();
-                mLayouter.mTransformer.transformPage(child, position);
-            }
-        }
-
-        @Override
-        public void scrapOrRecycleView(int index, View view) {
-            offsetChildLeftAndRight(view, Integer.MAX_VALUE);
-            super.scrapOrRecycleView(index, view);
-        }
-
-        @Override
-        public boolean shouldRecycleChildViewHorizontally(View view, int consumed) {
-            if (mLayouter.isInfinite()) {
-                if (mLayouter.getCurrentPosition() == getPosition(view)) {
-                    return false;
-                }
-                View current = findViewByPosition(mLayouter.getCurrentPosition());
-                int index = indexOfChild(view);
-                int center = indexOfChild(current);
-                boolean result = Math.abs(index - center) > mLayouter.mOffscreenPageLimit;
-                Log.d(TAG, "shouldRecycleChildViewHorizontally currentPosition=" + mLayouter.getCurrentPosition() + " position=" + getPosition(view) + " recycle=" + result);
-                return result;
-            } else {
-                return Math.abs(mLayouter.getCurrentPosition() - getPosition(view)) > mLayouter.mOffscreenPageLimit;
-            }
-        }
-
-        @Override
-        public void offsetChildLeftAndRight(@NonNull View child, int offset) {
-            super.offsetChildLeftAndRight(child, offset);
-            if (mLayouter.mOnPageChangeListeners != null && offset != 0
-                    && getPosition(child) - mLayouter.getPositionOffset() == mLayouter.getCurrentItem()) {
-                float left = getDecoratedLeft(child);
-                float childOffset = left / getWidth();
-                if (left < 0) {
-                    childOffset = Math.abs(childOffset);
-                } else {
-                    childOffset = 1 - childOffset;
-                }
-                int childOffsetPixels = (int) (childOffset * getWidth());
-                for(int i = 0; i < mLayouter.mOnPageChangeListeners.size(); ++i) {
-                    OnPageChangeListener listener = mLayouter.mOnPageChangeListeners.get(i);
-                    if (listener != null) {
-                        listener.onPageScrolled(mLayouter.getCurrentItem(), childOffset, childOffsetPixels);
-                    }
-                }
-            }
-
-            if (mLayouter.mTransformer != null) {
-                if (offset == Integer.MAX_VALUE) {
-                    mLayouter.mTransformer.transformPage(child, 0);
-                } else {
-                    float left = getDecoratedLeft(child);
-                    float position = left / getWidth();
-                    mLayouter.mTransformer.transformPage(child, position);
-                }
-            }
-        }
-
-    }
-
 
 }

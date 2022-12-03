@@ -23,10 +23,9 @@ import android.view.ViewGroup;
 import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
-import com.zpj.recyclerview.layouter.AbsLayouter;
 import com.zpj.recyclerview.layouter.Layouter;
-import com.zpj.recyclerview.layouter.RefresherLayouter;
 import com.zpj.recyclerview.refresh.IRefresher;
+import com.zpj.recyclerview.scene.RefresherScene;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -98,8 +97,8 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
         super.attachRecycler(recycler);
         mSceneList = recycler.getItems();
         if (recycler.getRefresher() != null) {
-            mSceneList.add(0, new MultiScene(new RefresherMultiData(recycler.getRefresher()),
-                    new RefresherLayouter(recycler.getRefresher())));
+            mSceneList.add(0, new RefresherScene(
+                    new RefresherMultiData(recycler.getRefresher()), recycler.getRefresher()));
         }
         recycler.getRecyclerView().setOverScrollMode(View.OVER_SCROLL_NEVER);
         final int touchSlop = ViewConfiguration.get(mRecycler.getContext()).getScaledTouchSlop();
@@ -331,9 +330,9 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
         for(int i = getChildCount() - 1; i >= 0; --i) {
             View v = this.getChildAt(i);
-            Layouter layouter = getLayouter(v);
-            Log.d(TAG, "onLayoutChildren scrapOrRecycleView layouter=" + layouter);
-            layouter.getLayoutHelper().scrapOrRecycleView(i, v);
+            MultiScene scene = getScene(v);
+            Log.d(TAG, "onLayoutChildren scrapOrRecycleView layouter=" + scene);
+            scene.getLayoutHelper().scrapOrRecycleView(i, v);
         }
 
         StickyInfo temp = stickyInfo;
@@ -345,23 +344,19 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
         MultiScene lastScene = null;
         for (MultiScene scene : mSceneList) {
-            MultiData<?> multiData = scene.getMultiData();
             scene.setPositionOffset(positionOffset);
-            AbsLayouter layouter = (AbsLayouter) scene.getLayouter();
-            layouter.setPositionOffset(positionOffset);
-
             if (scene.getLayoutManager() == null || scene.isAttached()) {
                 scene.attach(this);
 
                 if (lastScene == null) {
-                    topPosition = layouter.mAnchorInfo.position + positionOffset;
+                    topPosition = scene.mAnchorInfo.position + positionOffset;
                 } else {
                     scene.setTop(lastScene.getBottom());
                 }
                 scene.layoutChildren();
                 lastScene = scene;
             }
-            positionOffset += getCount(multiData);
+            positionOffset += scene.getItemCount();
         }
 
         saveState();
@@ -397,10 +392,11 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                 params.setScene(stickyInfo.multiScene);
                 super.addView(child, getChildCount());
                 measureChild(child, 0, 0);
-                layoutDecorated(child, 0, currentStickyOffset, getWidth(), currentStickyOffset + getDecoratedMeasuredHeight(child));
+                layoutDecorated(child, 0, currentStickyOffset, getWidth(),
+                        currentStickyOffset + getDecoratedMeasuredHeight(child));
 
-                Layouter layouter = stickyInfo.multiScene.getLayouter();
-                stickyInfo.multiScene.getMultiData().onItemSticky(new EasyViewHolder(child), stickyInfo.position - layouter.getPositionOffset(), true);
+                stickyInfo.multiScene.getMultiData().onItemSticky(new EasyViewHolder(child),
+                        stickyInfo.position - stickyInfo.multiScene.getPositionOffset(), true);
             }
         }
 
@@ -643,8 +639,8 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                 if (handleSticky(scene, view, i, consumed)) {
                     continue;
                 }
-                if (layouter.getLayoutHelper().shouldRecycleChildViewVertically(view, consumed)) {
-                    layouter.getLayoutHelper().addViewToRecycler(view);
+                if (scene.getLayoutHelper().shouldRecycleChildViewVertically(view, consumed)) {
+                    scene.getLayoutHelper().addViewToRecycler(view);
                 } else {
                     view.offsetTopAndBottom(-consumed);
                 }
@@ -682,8 +678,9 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
             Log.e(TAG, "scrollVerticallyBy currentStickyOffset=" + currentStickyOffset);
             layoutDecorated(child, 0, currentStickyOffset, getWidth(), currentStickyOffset + getDecoratedMeasuredHeight(child));
 
-            Layouter layouter = stickyInfo.multiScene.getLayouter();
-            stickyInfo.multiScene.getMultiData().onItemSticky(new EasyViewHolder(child), stickyInfo.position - layouter.getPositionOffset(), true);
+            stickyInfo.multiScene.getMultiData().onItemSticky(new EasyViewHolder(child),
+                    stickyInfo.position - stickyInfo.multiScene.getPositionOffset(),
+                    true);
         }
 
         Log.d(TAG, "scrollVerticallyBy getChildCount=" + getChildCount() + " \n");
@@ -692,11 +689,11 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
 
     private boolean handleSticky;
 
-    private boolean handleSticky(MultiScene data, View view, int i, int consumed) {
-        Layouter layouter = data.getLayouter();
+    private boolean handleSticky(MultiScene scene, View view, int i, int consumed) {
+        Layouter layouter = scene.getLayouter();
         int position = getPosition(view);
 
-        boolean isStickyPosition = data.getMultiData().isStickyPosition(position - layouter.getPositionOffset());
+        boolean isStickyPosition = scene.getMultiData().isStickyPosition(position - scene.getPositionOffset());
         if (!isStickyPosition) {
             return false;
         }
@@ -704,8 +701,8 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
         Log.e(TAG, "scrollVerticallyBy");
         Log.e(TAG, "scrollVerticallyBy ================================start");
         Log.d(TAG, "scrollVerticallyBy i=" + i + " stickyPosition=" + position);
-        int decoratedTop = layouter.getLayoutHelper().getDecoratedTop(view);
-        int decoratedBottom = layouter.getLayoutHelper().getDecoratedBottom(view);
+        int decoratedTop = scene.getDecoratedTop(view);
+        int decoratedBottom = scene.getDecoratedBottom(view);
 //                        Log.d(TAG, "scrollVerticallyBy decoratedTop=" + decoratedTop
 //                                + " decoratedBottom=" + decoratedBottom + " height=" + getDecoratedMeasuredHeight(view)
 //                                + " consumed=" + consumed + " dy=" + dy
@@ -720,7 +717,9 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
             if (i != getChildCount() - 1 && decoratedTop - consumed >= 0) { //  && decoratedTop - consumed >= 0
 //                            currentStickyOffset = decoratedTop - getDecoratedMeasuredHeight(view) - consumed;
                 if (stickyInfo != null) {
-                    stickyInfo.multiScene.getMultiData().onItemSticky(new EasyViewHolder(view), stickyInfo.position - stickyInfo.multiScene.getLayouter().getPositionOffset(), false);
+                    stickyInfo.multiScene.getMultiData().onItemSticky(new EasyViewHolder(view),
+                            stickyInfo.position - stickyInfo.multiScene.getPositionOffset(),
+                            false);
                 }
                 if (stickyInfoStack.isEmpty()) {
                     stickyInfo = null;
@@ -752,7 +751,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                 // dy > 0 &&
                 if (decoratedTop - consumed < 0) {
                     currentStickyOffset = 0;
-                    stickyInfo = new StickyInfo(position, data);
+                    stickyInfo = new StickyInfo(position, scene);
                     layoutDecorated(view, 0, 0, getWidth(), getDecoratedMeasuredHeight(view));
                     Log.d(TAG, "scrollVerticallyBy 无吸顶===》当前吸顶 currentStickyPosition==position : " + position);
                     return true;
@@ -775,11 +774,11 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                             + " pos=" + position + " stickyPos=" + stickyInfo.position);
                     if (decoratedTop - consumed <= 0) {
                         stickyInfoStack.push(stickyInfo);
-                        layouter.getLayoutHelper().addViewToRecycler(child);
+                        scene.getLayoutHelper().addViewToRecycler(child);
                         if (stickyInfo != null) {
-                            stickyInfo.multiScene.getMultiData().onItemSticky(new EasyViewHolder(child), stickyInfo.position - stickyInfo.multiScene.getLayouter().getPositionOffset(), false);
+                            stickyInfo.multiScene.getMultiData().onItemSticky(new EasyViewHolder(child), stickyInfo.position - stickyInfo.multiScene.getPositionOffset(), false);
                         }
-                        stickyInfo = new StickyInfo(position, data);
+                        stickyInfo = new StickyInfo(position, scene);
                         currentStickyOffset = 0;
                         layoutDecorated(view, 0, 0, getWidth(), getDecoratedMeasuredHeight(view));
                         Log.d(TAG, "scrollVerticallyBy 更改吸顶 child continue + position=" + position);
@@ -787,11 +786,11 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                     } else if (decoratedTop - consumed < getDecoratedMeasuredHeight(child)) {
                         child.offsetTopAndBottom(-consumed);
 //                                    currentStickyOffset = Math.min(layouter.getDecoratedTop(child), getDecoratedMeasuredHeight(child));
-                        int top = layouter.getLayoutHelper().getDecoratedTop(child);
+                        int top = scene.getDecoratedTop(child);
                         if (top > 0) {
                             child.offsetTopAndBottom(-top);
                         }
-                        currentStickyOffset = layouter.getLayoutHelper().getDecoratedTop(child);
+                        currentStickyOffset = scene.getDecoratedTop(child);
                         Log.d(TAG, "scrollVerticallyBy 更改吸顶 child continue currentStickyOffset=" + currentStickyOffset + " position=" + position);
                     } else {
                         currentStickyOffset = 0;
@@ -800,18 +799,18 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
                     if (decoratedBottom - consumed >= 0) {
                         child.offsetTopAndBottom(-consumed);
 //                                    currentStickyOffset = Math.min(layouter.getDecoratedTop(child), getDecoratedMeasuredHeight(child));
-                        int top = layouter.getLayoutHelper().getDecoratedTop(child);
+                        int top = scene.getDecoratedTop(child);
                         if (top > 0) {
                             child.offsetTopAndBottom(-top);
                         }
-                        currentStickyOffset = layouter.getLayoutHelper().getDecoratedTop(child);
+                        currentStickyOffset = scene.getDecoratedTop(child);
 
                     } else if (decoratedBottom - consumed > getDecoratedMeasuredHeight(child)) {
 //                                    currentStickyOffset = decoratedTop - getDecoratedMeasuredHeight() - consumed;
                         if (stickyInfo != null) {
                             stickyInfo.multiScene.getMultiData()
                                     .onItemSticky(new EasyViewHolder(child),
-                                            stickyInfo.position - stickyInfo.multiScene.getLayouter().getPositionOffset(),
+                                            stickyInfo.position - stickyInfo.multiScene.getPositionOffset(),
                                             false);
                         }
                         if (stickyInfoStack.isEmpty()) {
@@ -949,7 +948,7 @@ public class MultiLayoutManager extends BaseMultiLayoutManager
             if (last != scene) {
                 last = scene;
                 scene.saveState(child);
-                Log.e(TAG, "saveState i=" + i + " mAnchorInfo=" + ((AbsLayouter) scene.getLayouter()).mAnchorInfo);
+                Log.e(TAG, "saveState i=" + i + " mAnchorInfo=" + scene.mAnchorInfo);
             }
         }
     }

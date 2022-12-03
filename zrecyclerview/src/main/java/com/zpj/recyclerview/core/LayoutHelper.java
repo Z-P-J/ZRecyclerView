@@ -1,4 +1,4 @@
-package com.zpj.recyclerview.layouter;
+package com.zpj.recyclerview.core;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -9,35 +9,24 @@ import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiRecycler;
-import com.zpj.recyclerview.core.MultiLayoutParams;
-import com.zpj.recyclerview.core.MultiScene;
+import com.zpj.recyclerview.layouter.Layouter;
 
 public class LayoutHelper {
 
     protected final MultiScene mScene;
     protected final BaseMultiLayoutManager mLayoutManager;
-    protected final MultiData<?> mMultiData;
 
     public LayoutHelper(MultiScene multiScene) {
         mScene = multiScene;
         mLayoutManager = multiScene.getLayoutManager();
-        mMultiData = multiScene.getMultiData();
     }
 
     public BaseMultiLayoutManager getLayoutManager() {
         return mLayoutManager;
     }
 
-    public MultiData<?> getMultiData() {
-        return mMultiData;
-    }
-
     public int getPosition(@NonNull View child) {
         return mLayoutManager.getPosition(child);
-    }
-    
-    public View findViewByPosition(int position) {
-        return mLayoutManager.findViewByPosition(position);
     }
     
     public int getDecoratedLeft(@NonNull View child) {
@@ -56,19 +45,23 @@ public class LayoutHelper {
         return mLayoutManager.getDecoratedBottom(child);
     }
 
+    public View findViewByPosition(int position) {
+        return mLayoutManager.findViewByPosition(position);
+    }
+
     public View getViewForPosition(int position) {
         return mLayoutManager.getViewForPosition(position);
     }
 
-    public View getViewForPosition(int position, int offset) {
+    public View obtainViewForPosition(int position) {
         View view = null;
-        if (mScene.getMultiData().isStickyPosition(position - offset)) {
-            view  = mLayoutManager.findViewByPosition(position);
+        if (mScene.getMultiData().isStickyPosition(position - mScene.getPositionOffset())) {
+            view  = findViewByPosition(position);
         }
         if (view == null) {
             view = getViewForPosition(position);
         } else {
-            mLayoutManager.detachAndScrapView(view);
+            detachAndScrapView(view);
         }
         MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
         params.setScene(mScene);
@@ -170,6 +163,10 @@ public class LayoutHelper {
         return mLayoutManager.getChildAt(index);
     }
 
+    public MultiScene getMultiScene(View child) {
+        return mLayoutManager.getScene(child);
+    }
+
     public MultiData<?> getMultiData(View child) {
         return mLayoutManager.getMultiData(child);
     }
@@ -184,10 +181,6 @@ public class LayoutHelper {
 
     public MultiRecycler getRecycler() {
         return mLayoutManager.getRecycler();
-    }
-
-    public int getCount(MultiData<?> multiData) {
-        return mLayoutManager.getCount(multiData);
     }
 
     public void recycleViews() {

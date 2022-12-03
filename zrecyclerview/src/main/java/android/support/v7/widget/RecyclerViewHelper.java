@@ -5,8 +5,7 @@ import android.view.ViewGroup;
 import android.view.animation.Interpolator;
 
 import com.zpj.recyclerview.MultiRecycler;
-import com.zpj.recyclerview.layouter.ContainerLayouter;
-import com.zpj.recyclerview.layouter.Layouter;
+import com.zpj.recyclerview.scene.ContainerScene;
 
 public class RecyclerViewHelper {
 
@@ -60,7 +59,7 @@ public class RecyclerViewHelper {
     }
 
     public static void attachViewToParent(RecyclerView.LayoutManager manager,
-                                          ContainerLayouter.ContainerLayout container,
+                                          ContainerScene.ContainerLayout container,
                                           View child, int index, ViewGroup.LayoutParams layoutParams) {
         RecyclerView.ViewHolder vh = getChildViewHolderInt(child);
         if (vh != null) {
@@ -74,7 +73,7 @@ public class RecyclerViewHelper {
     }
 
     public static void detachViewFromParent(RecyclerView.LayoutManager manager,
-                                            ContainerLayouter.ContainerLayout container,
+                                            ContainerScene.ContainerLayout container,
                                             int offset) {
         View child = container.getChildAt(offset);
         if (child != null) {

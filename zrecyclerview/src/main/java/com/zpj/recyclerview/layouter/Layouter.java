@@ -13,7 +13,7 @@ public interface Layouter {
 
     void detach();
 
-    LayoutHelper getLayoutHelper();
+//    LayoutHelper getLayoutHelper();
 
 //    void setLeft(int left);
 //
@@ -30,14 +30,14 @@ public interface Layouter {
 //    int getRight();
 //
 //    int getBottom();
-
+//
 //    void offsetLeftAndRight(int offset);
 //
 //    void offsetTopAndBottom(int offset);
-
-    void setPositionOffset(int offset);
-
-    int getPositionOffset();
+//
+//    void setPositionOffset(int offset);
+//
+//    int getPositionOffset();
 
     boolean canScrollHorizontally();
 
@@ -49,17 +49,17 @@ public interface Layouter {
 
     int fillHorizontal(View anchorView, int dx, MultiData<?> multiData);
 
-    int scrollHorizontallyBy(int dx, MultiData<?> scrollMultiData);
-
-    void saveState(View firstChild);
-
-    boolean onTouchDown(MultiData<?> multiData, float downX, float downY, MotionEvent event);
-
-    boolean onTouchMove(MultiData<?> multiData, float x, float y, float downX, float downY, MotionEvent event);
-
-    boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY, MotionEvent event);
-
-    // TODO 交给Scene处理
-    boolean scrollToPositionWithOffset(MultiData<?> multiData, int position, int offset);
+//    int scrollHorizontallyBy(int dx, MultiData<?> scrollMultiData);
+//
+//    void saveState(View firstChild);
+//
+//    boolean onTouchDown(MultiData<?> multiData, float downX, float downY, MotionEvent event);
+//
+//    boolean onTouchMove(MultiData<?> multiData, float x, float y, float downX, float downY, MotionEvent event);
+//
+//    boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY, MotionEvent event);
+//
+//    // TODO 交给Scene处理
+//    boolean scrollToPositionWithOffset(MultiData<?> multiData, int position, int offset);
 
 }

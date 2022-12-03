@@ -4,8 +4,10 @@ import android.util.Log;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
+import com.zpj.recyclerview.core.AbsLayouter;
+import com.zpj.recyclerview.core.MultiScene;
 
-public class VerticalLayouter extends AbsLayouter {
+public class VerticalLayouter extends AbsLayouter<MultiScene> {
 
     private static final String TAG = "VerticalLayouter";
 
@@ -23,12 +25,12 @@ public class VerticalLayouter extends AbsLayouter {
     protected int fillVerticalTop(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop) {
         int left = 0;
         int top = anchorTop;
-        int right = getWidth();
+        int right = getRecyclerWidth();
         int bottom = anchorTop;
 
-        while (availableSpace > 0 && currentPosition >= mPositionOffset) {
+        while (availableSpace > 0 && currentPosition >= mScene.getPositionOffset()) {
             Log.e(TAG, "scrollVerticallyBy decoratedTop currentPosition=" + currentPosition + " availableSpace=" + availableSpace);
-            View view = addViewAndMeasure(currentPosition--, 0, multiData);
+            View view = mScene.addViewAndMeasure(currentPosition--, 0);
 
             int measuredHeight= getDecoratedMeasuredHeight(view);
             availableSpace -= measuredHeight;
@@ -47,13 +49,13 @@ public class VerticalLayouter extends AbsLayouter {
     protected int fillVerticalBottom(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom) {
         int left = 0;
         int top = anchorBottom;
-        int right = getWidth();
+        int right = getRecyclerWidth();
         int bottom = anchorBottom;
-        Log.e(TAG, "fillVerticalBottom anchorBottom=" + anchorBottom + " height=" + getHeight());
+        Log.e(TAG, "fillVerticalBottom anchorBottom=" + anchorBottom + " height=" + getRecyclerHeight());
 
-        while (availableSpace > 0 && currentPosition < mPositionOffset + getCount(multiData)) {
+        while (availableSpace > 0 && currentPosition < mScene.getPositionOffset() + mScene.getItemCount()) {
             Log.e(TAG, "fillVerticalBottom currentPosition=" + currentPosition + " availableSpace=" + availableSpace);
-            View view = addViewAndMeasure(currentPosition++, multiData);
+            View view = mScene.addViewAndMeasure(currentPosition++);
             int measuredHeight= getDecoratedMeasuredHeight(view);
             availableSpace -= measuredHeight;
 

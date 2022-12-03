@@ -133,16 +133,6 @@ public class BaseMultiLayoutManager extends RecyclerView.LayoutManager {
         RecyclerViewHelper.getRecycler(mRecycler).recycleView(view);
     }
 
-    public void offsetChildLeftAndRight(@NonNull View child, int offset) {
-        if (offset != 0) {
-            child.offsetLeftAndRight(offset);
-        }
-    }
-
-    public int getCount(MultiData<?> multiData) {
-        return multiData.getCount();
-    }
-
     public RecyclerView getRecycleView() {
         return mRecyclerView;
     }

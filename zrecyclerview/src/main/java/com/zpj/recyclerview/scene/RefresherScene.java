@@ -1,11 +1,12 @@
-package com.zpj.recyclerview.layouter;
+package com.zpj.recyclerview.scene;
 
 import android.view.MotionEvent;
 
 import com.zpj.recyclerview.MultiData;
+import com.zpj.recyclerview.layouter.VerticalLayouter;
 import com.zpj.recyclerview.refresh.IRefresher;
 
-public class RefresherLayouter extends VerticalLayouter {
+public class RefresherScene extends VerticalScene {
 
     private final IRefresher mRefreshHeader;
 
@@ -14,12 +15,14 @@ public class RefresherLayouter extends VerticalLayouter {
     private float mOffset = 0;
     private boolean isMoveDown;
 
-    public RefresherLayouter(IRefresher refresher) {
-        this.mRefreshHeader = refresher;
+    public RefresherScene(MultiData<?> multiData, IRefresher refresher) {
+        super(multiData);
+        mRefreshHeader = refresher;
     }
 
+
     @Override
-    public boolean onTouchDown(MultiData<?> multiData, float downX, float downY, MotionEvent event) {
+    public boolean onTouchDown(float downX, float downY, MotionEvent event) {
         isMoveDown = false;
         if (mRefreshHeader.getView() != null
                 && mRefreshHeader.getView().getParent() != null
@@ -33,7 +36,7 @@ public class RefresherLayouter extends VerticalLayouter {
     }
 
     @Override
-    public boolean onTouchMove(MultiData<?> multiData, float x, float y, float downX, float downY, MotionEvent event) {
+    public boolean onTouchMove(float x, float y, float downX, float downY, MotionEvent event) {
         if (isMoveDown) {
             float deltaY = event.getY() - mDownY + mOffset;
             getLayoutHelper().stopInterceptRequestLayout();
@@ -64,7 +67,7 @@ public class RefresherLayouter extends VerticalLayouter {
     }
 
     @Override
-    public boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY, MotionEvent event) {
+    public boolean onTouchUp(float velocityX, float velocityY, MotionEvent event) {
         if (isMoveDown) {
             isMoveDown = false;
             mDownX = -1;

@@ -1,20 +1,19 @@
 package com.zpj.recyclerview.flinger;
 
-import android.support.v4.view.ViewCompat;
+import android.support.annotation.NonNull;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.widget.RecyclerViewHelper;
 import android.view.animation.Interpolator;
 import android.widget.OverScroller;
 
-import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.layouter.AbsLayouter;
+import com.zpj.recyclerview.core.MultiScene;
 
 public abstract class AbsFlinger implements Flinger, Runnable, Interpolator {
 
     public static final Interpolator sScrollInterpolator = new FastOutSlowInInterpolator();
 
-    protected final AbsLayouter mLayouter;
-    protected final MultiData<?> mMultiData;
+    @NonNull
+    protected final MultiScene mScene;
     protected final OverScroller mScroller;
 
     private int mLastX;
@@ -22,23 +21,18 @@ public abstract class AbsFlinger implements Flinger, Runnable, Interpolator {
 
     private Interpolator mInterpolator;
 
-    public AbsFlinger(AbsLayouter layouter, MultiData<?> multiData) {
-        this.mLayouter = layouter;
-        this.mMultiData = multiData;
-        this.mScroller = new OverScroller(layouter.getContext(), this);
+    public AbsFlinger(@NonNull MultiScene scene) {
+        mScene = scene;
+        this.mScroller = new OverScroller(scene.getContext(), this);
     }
 
     private boolean flag = true;
 
     @Override
     public void run() {
-        if (mMultiData == null) {
-            stop();
-            return;
-        }
         if (flag) {
             flag = false;
-            mLayouter.getLayoutHelper().startInterceptRequestLayout();
+            mScene.getLayoutHelper().startInterceptRequestLayout();
         }
         if (mScroller.computeScrollOffset()) {
             int x = mScroller.getCurrX();
@@ -68,17 +62,14 @@ public abstract class AbsFlinger implements Flinger, Runnable, Interpolator {
 
     @Override
     public void postOnAnimation() {
-        mLayouter.getRecycler().removeCallbacks(this);
-        ViewCompat.postOnAnimation(mLayouter.getRecycler().getRecyclerView(), this);
+        mScene.removeCallbacks(this);
+        mScene.postOnAnimation(this);
     }
 
 
 
     @Override
     public void fling(float velocityX, float velocityY) {
-        if (mMultiData == null) {
-            return;
-        }
         stop();
         mInterpolator = null;
         this.mScroller.fling(0, 0, (int) velocityX, (int) velocityY,
@@ -93,9 +84,6 @@ public abstract class AbsFlinger implements Flinger, Runnable, Interpolator {
 
     @Override
     public void scroll(int dx, int dy, int duration) {
-        if (mMultiData == null) {
-            return;
-        }
         stop();
         mInterpolator = null;
         mInterpolator = sScrollInterpolator;
@@ -115,13 +103,13 @@ public abstract class AbsFlinger implements Flinger, Runnable, Interpolator {
         if (mScroller.isFinished()) {
             return;
         }
-        mLayouter.getRecycler().removeCallbacks(this);
+        mScene.removeCallbacks(this);
         mScroller.forceFinished(true);
         onStopped();
     }
 
     protected void finish() {
-        mLayouter.getRecycler().removeCallbacks(this);
+        mScene.removeCallbacks(this);
         mScroller.forceFinished(true);
         mLastX = 0;
         mLastY = 0;
@@ -130,20 +118,20 @@ public abstract class AbsFlinger implements Flinger, Runnable, Interpolator {
 
     @Override
     public void onFinished() {
-        mLayouter.onFlingFinished();
         if (!flag) {
             flag = true;
-            mLayouter.getLayoutHelper().stopInterceptRequestLayout();
+            mScene.getLayoutHelper().stopInterceptRequestLayout();
         }
+        mScene.onFlingFinished();
     }
 
     @Override
     public void onStopped() {
-        mLayouter.onFlingStopped();
         if (!flag) {
             flag = true;
-            mLayouter.getLayoutHelper().stopInterceptRequestLayout();
+            mScene.getLayoutHelper().stopInterceptRequestLayout();
         }
+        mScene.onFlingStopped();
     }
 
     public void setInterpolator(Interpolator mInterpolator) {
@@ -151,7 +139,7 @@ public abstract class AbsFlinger implements Flinger, Runnable, Interpolator {
     }
 
     protected float calculateSpeedPerPixel() {
-        return 25f / mLayouter.getContext().getResources().getDisplayMetrics().densityDpi;
+        return 25f / mScene.getContext().getResources().getDisplayMetrics().densityDpi;
     }
 
     protected int calculateTimeForScrolling(int dx) {

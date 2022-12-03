@@ -6,8 +6,6 @@ import android.widget.Toast;
 import com.zpj.recycler.demo.R;
 import com.zpj.recyclerview.ContainerMultiData;
 import com.zpj.recyclerview.EasyViewHolder;
-import com.zpj.recyclerview.layouter.AbsLayouter;
-import com.zpj.recyclerview.layouter.ContainerLayouter;
 
 import java.util.List;
 
