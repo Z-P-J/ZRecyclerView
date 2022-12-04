@@ -1,17 +1,20 @@
 package com.zpj.recyclerview.layouter;
 
+import android.support.annotation.IntRange;
 import android.util.Log;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.core.AbsLayouter;
+import com.zpj.recyclerview.core.Scene;
 import com.zpj.recyclerview.scene.PagerScene;
 
-public class PagerLayouter extends AbsLayouter<PagerScene> {
+public class PagerLayouter extends AbsLayouter {
 
     private static final String TAG = "ViewPagerLayouter";
 
     protected boolean mIsInfinite;
+    private int mOffscreenPageLimit = 2;
     
     public PagerLayouter() {
         this(false);
@@ -29,6 +32,14 @@ public class PagerLayouter extends AbsLayouter<PagerScene> {
         return mIsInfinite;
     }
 
+    public void setOffscreenPageLimit(@IntRange(from = 1) int limit) {
+        mOffscreenPageLimit = limit;
+    }
+
+    public int getOffscreenPageLimit() {
+        return mOffscreenPageLimit;
+    }
+
     @Override
     public boolean canScrollHorizontally() {
         return true;
@@ -40,29 +51,31 @@ public class PagerLayouter extends AbsLayouter<PagerScene> {
     }
 
     @Override
-    public int fillVertical(View anchorView, int dy, MultiData<?> multiData) {
+    public int fillVertical(Scene scene, View anchorView, int dy) {
         if (dy > 0) {
             // 从下往上滑动
             if (anchorView == null) {
-                return fillVerticalBottom(multiData, mScene.getCurrentPosition(), dy, mScene.getTop());
+                int currentPosition = scene.mAnchorInfo.position + scene.getPositionOffset();
+                return fillVerticalBottom(scene, currentPosition, dy, scene.getTop());
             } else {
                 // 如果占用两行则需要以下代码
-                int anchorBottom = getDecoratedTop(anchorView);
-                if (anchorBottom > getRecyclerHeight()) {
-                    if (anchorBottom - dy > getRecyclerHeight()) {
+                int anchorBottom = scene.getDecoratedTop(anchorView);
+                if (anchorBottom > scene.getHeight()) {
+                    if (anchorBottom - dy > scene.getHeight()) {
                         return dy;
                     } else {
-                        return anchorBottom - getRecyclerHeight();
+                        return anchorBottom - scene.getHeight();
                     }
                 }
             }
         } else {
             // 从上往下滑动
             if (anchorView == null) {
-                return fillVerticalTop(multiData, mScene.getCurrentPosition(), dy, mScene.getBottom());
+                int currentPosition = scene.mAnchorInfo.position + scene.getPositionOffset();
+                return fillVerticalTop(scene, currentPosition, dy, scene.getBottom());
             } else {
                 // 如果占用两行则需要以下代码
-                int anchorTop = getDecoratedTop(anchorView);
+                int anchorTop = scene.getDecoratedTop(anchorView);
                 if (anchorTop < 0) {
                     if (anchorTop - dy < 0) {
                         return -dy;
@@ -76,17 +89,17 @@ public class PagerLayouter extends AbsLayouter<PagerScene> {
     }
 
     @Override
-    protected int fillVerticalTop(MultiData<?> multiData, int currentPosition, int dy, int anchorTop) {
+    protected int fillVerticalTop(Scene scene, int currentPosition, int dy, int anchorTop) {
 
         int left = 0;
         int top = anchorTop;
         int right = 0;
         int bottom = anchorTop;
 
-        int min = currentPosition - mScene.getOffscreenPageLimit();
-        int max = currentPosition + mScene.getOffscreenPageLimit();
-        int first = mScene.getPositionOffset();
-        int last = first + mScene.getItemCount() - 1;
+        int min = currentPosition - mOffscreenPageLimit;
+        int max = currentPosition + mOffscreenPageLimit;
+        int first = scene.getPositionOffset();
+        int last = first + scene.getItemCount() - 1;
         int index = 0;
 
         for (int i = min; i <= max; i++) {
@@ -104,31 +117,31 @@ public class PagerLayouter extends AbsLayouter<PagerScene> {
                     continue;
                 }
             }
-            View view = mScene.addViewAndMeasure(position, index++);
+            View view = scene.addViewAndMeasure(position, index++);
 
-            left = mScene.mAnchorInfo.x + (i - currentPosition) * getRecyclerWidth();
-            right = left + getRecyclerWidth();
-            top = bottom - getDecoratedMeasuredHeight(view);
+            left = scene.mAnchorInfo.x + (i - currentPosition) * scene.getWidth();
+            right = left + scene.getWidth();
+            top = bottom - scene.getDecoratedMeasuredHeight(view);
 
-            layoutDecorated(view, left, top, right, bottom);
+            scene.layoutDecorated(view, left, top, right, bottom);
         }
-        mScene.setTop(top);
+        scene.setTop(top);
         // TODO 如果有多行，需要减去anchorTop
         return Math.min(-dy, -top);
     }
 
     @Override
-    protected int fillVerticalBottom(MultiData<?> multiData, int currentPosition, int dy, int anchorBottom) {
+    protected int fillVerticalBottom(Scene scene, int currentPosition, int dy, int anchorBottom) {
 
         int left = 0;
         int top = anchorBottom;
         int right = 0;
         int bottom = anchorBottom;
 
-        int min = currentPosition - mScene.getOffscreenPageLimit();
-        int max = currentPosition + mScene.getOffscreenPageLimit();
-        int first = mScene.getPositionOffset();
-        int last = first + mScene.getItemCount() - 1;
+        int min = currentPosition - mOffscreenPageLimit;
+        int max = currentPosition + mOffscreenPageLimit;
+        int first = scene.getPositionOffset();
+        int last = first + scene.getItemCount() - 1;
 
         for (int i = min; i <= max; i++) {
             int position = i;
@@ -146,48 +159,48 @@ public class PagerLayouter extends AbsLayouter<PagerScene> {
                 }
             }
             Log.d(TAG, "fillVerticalBottom position=" + position);
-            View view = mScene.addViewAndMeasure(position);
+            View view = scene.addViewAndMeasure(position);
 
-            left = mScene.mAnchorInfo.x + (i - currentPosition) * getRecyclerWidth();
-            right = left + getRecyclerWidth();
-            bottom = top + getDecoratedMeasuredHeight(view);
+            left = scene.mAnchorInfo.x + (i - currentPosition) * scene.getWidth();
+            right = left + scene.getWidth();
+            bottom = top + scene.getDecoratedMeasuredHeight(view);
 
-            layoutDecorated(view, left, top, right, bottom);
+            scene.layoutDecorated(view, left, top, right, bottom);
         }
-        mScene.setBottom(bottom);
+        scene.setBottom(bottom);
         return Math.min(dy, - anchorBottom);
     }
 
     @Override
-    public int fillHorizontal(View anchorView, int dx, MultiData<?> multiData) {
+    public int fillHorizontal(Scene scene, View anchorView, int dx) {
         if (anchorView == null) {
             return 0;
         }
-        int centerPosition = mScene.getCurrentPosition();
+        int centerPosition = scene.mAnchorInfo.position + scene.getPositionOffset();
 
-        int min = centerPosition - mScene.getOffscreenPageLimit();
-        int max = centerPosition + mScene.getOffscreenPageLimit();
-        int first = mScene.getPositionOffset();
-        int last = first + mScene.getItemCount() - 1;
+        int min = centerPosition - mOffscreenPageLimit;
+        int max = centerPosition + mOffscreenPageLimit;
+        int first = scene.getPositionOffset();
+        int last = first + scene.getItemCount() - 1;
 
-        int anchorPosition = getPosition(anchorView);
+        int anchorPosition = scene.getPosition(anchorView);
 
         if (anchorPosition < first || anchorPosition > last) {
             return 0;
         }
-//        int anchorIndex = mScene.indexOfChild(anchorView);
-//        int centerIndex = mScene.indexOfChild(mScene.findViewByPosition(centerPosition));
+//        int anchorIndex = scene.indexOfChild(anchorView);
+//        int centerIndex = scene.indexOfChild(scene.findViewByPosition(centerPosition));
 
         int anchorIndex = -1;
         int centerIndex = -1;
 
-        for (int i = 0; i < mScene.getChildCount(); i++) {
-            View child = mScene.getChildAt(i);
+        for (int i = 0; i < scene.getChildCount(); i++) {
+            View child = scene.getChildAt(i);
             if (child == null) {
                 continue;
             } else if (child == anchorView) {
                 anchorIndex = i;
-            } else if (centerPosition == getPosition(child)) {
+            } else if (centerPosition == scene.getPosition(child)) {
                 centerIndex = i;
             }
             if (anchorIndex >= 0 && centerIndex >= 0) {
@@ -198,16 +211,16 @@ public class PagerLayouter extends AbsLayouter<PagerScene> {
         if (dx > 0) {
             // 从右往左滑动，从右边填充view
 
-            int anchorRight = getDecoratedRight(anchorView);
+            int anchorRight = scene.getDecoratedRight(anchorView);
 
             int currentPosition = anchorPosition + 1;
             int left = anchorRight;
-            int top = getDecoratedTop(anchorView);
+            int top = scene.getDecoratedTop(anchorView);
             int right = 0;
-            int bottom = getDecoratedBottom(anchorView);
+            int bottom = scene.getDecoratedBottom(anchorView);
 
             int i = anchorIndex + 1;
-            while (i - centerIndex <= mScene.getOffscreenPageLimit()) {
+            while (i - centerIndex <= mOffscreenPageLimit) {
                 int position = currentPosition++;
                 if (position < first) {
                     if (mIsInfinite) {
@@ -222,33 +235,33 @@ public class PagerLayouter extends AbsLayouter<PagerScene> {
                         break;
                     }
                 }
-                View view = mScene.addViewAndMeasure(position, i++);
+                View view = scene.addViewAndMeasure(position, i++);
                 anchorView = view;
 
-                right = left + getRecyclerWidth();
-                layoutDecorated(view, left, top, right, bottom);
+                right = left + scene.getWidth();
+                scene.layoutDecorated(view, left, top, right, bottom);
                 left = right;
             }
 
-            anchorRight = getDecoratedRight(anchorView);
-            if (anchorRight - dx > getRecyclerWidth()) {
+            anchorRight = scene.getDecoratedRight(anchorView);
+            if (anchorRight - dx > scene.getWidth()) {
                 return dx;
             } else {
-                return anchorRight - getRecyclerWidth();
+                return anchorRight - scene.getWidth();
             }
         } else {
             // 从左往右滑动，从左边填充view
 
-            int anchorLeft = getDecoratedLeft(anchorView);
+            int anchorLeft = scene.getDecoratedLeft(anchorView);
 
             int currentPosition = anchorPosition - 1;
             int left = 0;
-            int top = getDecoratedTop(anchorView);
+            int top = scene.getDecoratedTop(anchorView);
             int right = anchorLeft;
-            int bottom = getDecoratedBottom(anchorView);
+            int bottom = scene.getDecoratedBottom(anchorView);
 
             int i = anchorIndex - 1;
-            while (centerIndex - i <= mScene.getOffscreenPageLimit()) {
+            while (centerIndex - i <= mOffscreenPageLimit) {
                 int position = currentPosition--;
                 if (position < first) {
                     if (mIsInfinite) {
@@ -264,17 +277,17 @@ public class PagerLayouter extends AbsLayouter<PagerScene> {
                     }
                 }
 
-                View view = mScene.addViewAndMeasure(position, anchorIndex);
+                View view = scene.addViewAndMeasure(position, anchorIndex);
                 anchorView = view;
 
-                left = right - getRecyclerWidth();
-                layoutDecorated(view, left, top, right, bottom);
+                left = right - scene.getWidth();
+                scene.layoutDecorated(view, left, top, right, bottom);
                 right = left;
 
                 i--;
             }
 
-            anchorLeft = getDecoratedLeft(anchorView);
+            anchorLeft = scene.getDecoratedLeft(anchorView);
             if (anchorLeft - dx < 0) {
                 return -dx;
             } else {

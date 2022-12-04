@@ -8,17 +8,17 @@ import android.support.v7.widget.RecyclerViewHelper;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.MultiRecycler;
+import com.zpj.recyclerview.MultiSceneRecycler;
 import com.zpj.recyclerview.layouter.Layouter;
 
 public class LayoutHelper {
 
-    protected final MultiScene mScene;
+    protected final Scene mScene;
     protected final BaseMultiLayoutManager mLayoutManager;
 
-    public LayoutHelper(MultiScene multiScene) {
-        mScene = multiScene;
-        mLayoutManager = multiScene.getLayoutManager();
+    public LayoutHelper(Scene scene) {
+        mScene = scene;
+        mLayoutManager = scene.getLayoutManager();
     }
 
     public BaseMultiLayoutManager getLayoutManager() {
@@ -63,7 +63,7 @@ public class LayoutHelper {
         } else {
             detachAndScrapView(view);
         }
-        MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
+        SceneLayoutParams params = (SceneLayoutParams) view.getLayoutParams();
         params.setScene(mScene);
         return view;
     }
@@ -163,7 +163,7 @@ public class LayoutHelper {
         return mLayoutManager.getChildAt(index);
     }
 
-    public MultiScene getMultiScene(View child) {
+    public Scene getScene(View child) {
         return mLayoutManager.getScene(child);
     }
 
@@ -179,7 +179,7 @@ public class LayoutHelper {
         return mLayoutManager.indexOfChild(child);
     }
 
-    public MultiRecycler getRecycler() {
+    public MultiSceneRecycler getRecycler() {
         return mLayoutManager.getRecycler();
     }
 

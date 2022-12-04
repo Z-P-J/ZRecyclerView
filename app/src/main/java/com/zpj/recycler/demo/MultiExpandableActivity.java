@@ -5,10 +5,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 
 import com.zpj.recycler.demo.mutildata.ExpandableMultiData;
-import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.MultiRecycler;
-import com.zpj.recyclerview.core.MultiLayoutManager;
-import com.zpj.recyclerview.core.MultiScene;
+import com.zpj.recyclerview.MultiSceneRecycler;
+import com.zpj.recyclerview.core.MultiSceneLayoutManager;
+import com.zpj.recyclerview.core.Scene;
+import com.zpj.recyclerview.scene.VerticalScene;
 import com.zpj.statemanager.State;
 
 import java.util.ArrayList;
@@ -21,16 +21,16 @@ public class MultiExpandableActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test);
 
-        List<MultiScene> list = new ArrayList<>();
+        List<Scene> list = new ArrayList<>();
 
         for (int i = 0; i < 3; i++) {
-            list.add(new MultiScene(new MyExpandMultiData("title_" + i)));
+            list.add(new VerticalScene(new MyExpandMultiData("title_" + i)));
         }
 
 
-        MultiRecycler.with((RecyclerView) findViewById(R.id.recycler_view))
+        MultiSceneRecycler.with((RecyclerView) findViewById(R.id.recycler_view))
                 .setItems(list)
-                .setLayoutManager(new MultiLayoutManager())
+                .setLayoutManager(new MultiSceneLayoutManager())
 //                .addItemDecoration(new StickyHeaderItemDecoration())
                 .build();
 

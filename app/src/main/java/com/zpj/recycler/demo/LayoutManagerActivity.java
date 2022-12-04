@@ -13,18 +13,14 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.zpj.recycler.demo.mutildata.BaseHeaderMultiData;
-import com.zpj.recycler.demo.mutildata.TestContainerMultiData;
 import com.zpj.recyclerview.EasyViewHolder;
-import com.zpj.recyclerview.MultiRecycler;
+import com.zpj.recyclerview.MultiSceneRecycler;
 import com.zpj.recyclerview.SingleTypeMultiData;
-import com.zpj.recyclerview.core.MultiLayoutManager;
-import com.zpj.recyclerview.core.MultiScene;
+import com.zpj.recyclerview.core.MultiSceneLayoutManager;
+import com.zpj.recyclerview.core.Scene;
 import com.zpj.recyclerview.layouter.FlowLayouter;
-import com.zpj.recyclerview.layouter.HorizontalLayouter;
 import com.zpj.recyclerview.refresh.IRefresher;
 import com.zpj.recyclerview.refresh.SimpleRefresher;
-import com.zpj.recyclerview.scene.BannerScene;
-import com.zpj.recyclerview.scene.ContainerScene;
 import com.zpj.recyclerview.scene.FlowScene;
 import com.zpj.recyclerview.scene.GridScene;
 import com.zpj.recyclerview.scene.HorizontalScene;
@@ -44,7 +40,7 @@ public class LayoutManagerActivity extends AppCompatActivity {
             1000000000, 10, 1000000, 1000, 10000, 1, 10, 10000000, 100, 1000000000, 100
     };
 
-    private MultiRecycler mRecycler;
+    private MultiSceneRecycler mRecycler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +53,7 @@ public class LayoutManagerActivity extends AppCompatActivity {
         }
 
 
-        List<MultiScene> sceneList = new ArrayList<>();
+        List<Scene> sceneList = new ArrayList<>();
 
 //        final BannerLayouter bannerLayouter = new BannerLayouter();
 //        bannerLayouter.setAutoPlayDuration(5000);
@@ -160,8 +156,8 @@ public class LayoutManagerActivity extends AppCompatActivity {
 
 
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
-        mRecycler = new MultiRecycler(recyclerView, sceneList);
-        mRecycler.setLayoutManager(new MultiLayoutManager())
+        mRecycler = new MultiSceneRecycler(recyclerView, sceneList);
+        mRecycler.setLayoutManager(new MultiSceneLayoutManager())
                 .onRefresh(new SimpleRefresher(), new IRefresher.OnRefreshListener() {
                     @Override
                     public void onRefresh(IRefresher refresher) {
@@ -207,7 +203,7 @@ public class LayoutManagerActivity extends AppCompatActivity {
     }
 
 
-    private void addMoreScene(List<MultiScene> sceneList, List<Integer> list) {
+    private void addMoreScene(List<Scene> sceneList, List<Integer> list) {
         sceneList.add(new HorizontalScene(new LayouterMultiData(list) {
             @Override
             public int getLayoutId() {

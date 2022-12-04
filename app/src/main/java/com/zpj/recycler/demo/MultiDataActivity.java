@@ -3,8 +3,6 @@ package com.zpj.recycler.demo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
-import android.view.LayoutInflater;
-import android.widget.TextView;
 
 import com.zpj.recycler.demo.mutildata.IntMultiData;
 import com.zpj.recycler.demo.mutildata.RecyclerViewHeaderMultiData;
@@ -14,8 +12,9 @@ import com.zpj.recycler.demo.mutildata.StringSingleTypeMultiData2;
 import com.zpj.recycler.demo.mutildata.TestErrorStringMultiData;
 import com.zpj.recyclerview.GroupMultiData;
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.MultiRecycler;
-import com.zpj.recyclerview.core.MultiScene;
+import com.zpj.recyclerview.MultiSceneRecycler;
+import com.zpj.recyclerview.core.Scene;
+import com.zpj.recyclerview.scene.VerticalScene;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,8 +55,8 @@ public class MultiDataActivity extends AppCompatActivity {
 
         GroupMultiData groupMultiData = new GroupMultiData(list);
 
-        MultiRecycler.with((RecyclerView) findViewById(R.id.recycler_view))
-                .setItems(new MultiScene(groupMultiData))
+        MultiSceneRecycler.with((RecyclerView) findViewById(R.id.recycler_view))
+                .setItems(new VerticalScene(groupMultiData))
 //                .setItems(list)
 //                .setHeaderView(LayoutInflater.from(this).inflate(R.layout.item_header, null, false))
 //                .setFooterViewBinder(new SimpleFooterViewHolder(R.layout.layout_loading_footer, R.layout.layout_error_footer) {

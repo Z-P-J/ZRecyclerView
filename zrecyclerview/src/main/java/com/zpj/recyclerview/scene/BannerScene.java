@@ -38,12 +38,11 @@ public class BannerScene extends PagerScene {
     };
 
     public BannerScene(MultiData<?> multiData) {
-        this(multiData, new PagerLayouter());
+        this(multiData, new PagerLayouter(true));
     }
 
     public BannerScene(MultiData<?> multiData, PagerLayouter layouter) {
         super(multiData, layouter);
-        mIsInfinite = true;
     }
 
 

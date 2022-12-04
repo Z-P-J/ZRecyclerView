@@ -4,9 +4,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
 
-import com.zpj.recyclerview.core.MultiScene;
 import com.zpj.recyclerview.core.LayoutHelper;
-import com.zpj.recyclerview.layouter.PagerLayouter;
 import com.zpj.recyclerview.scene.PagerScene;
 
 public abstract class PagerFlinger extends HorizontalFlinger {
@@ -85,7 +83,7 @@ public abstract class PagerFlinger extends HorizontalFlinger {
             for (int i = 0; i < pagerScene.getChildCount(); i++) {
                 View child = pagerScene.getChildAt(i);
 
-                if (pagerScene.getMultiScene(child) == mScene) {
+                if (pagerScene.getScene(child) == mScene) {
                     count++;
                 }
             }

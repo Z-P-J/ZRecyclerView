@@ -14,7 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.zpj.recyclerview.footer.IFooterViewHolder;
-import com.zpj.recyclerview.core.MultiLayoutManager;
+import com.zpj.recyclerview.core.MultiSceneLayoutManager;
 import com.zpj.recyclerview.refresh.IRefresher;
 
 import java.util.List;
@@ -250,7 +250,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
             @Override
             public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent event) {
-                if (recyclerView.getLayoutManager() instanceof MultiLayoutManager) {
+                if (recyclerView.getLayoutManager() instanceof MultiSceneLayoutManager) {
                     return false;
                 }
 

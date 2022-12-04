@@ -4,11 +4,11 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 
-import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.core.AbsLayouter;
+import com.zpj.recyclerview.core.Scene;
 import com.zpj.recyclerview.scene.FlowScene;
 
-public class FlowLayouter extends AbsLayouter<FlowScene> {
+public class FlowLayouter extends AbsLayouter {
 
     private static final String TAG = "FlowLayouter";
 
@@ -85,22 +85,22 @@ public class FlowLayouter extends AbsLayouter<FlowScene> {
         return true;
     }
 
-    private void initStates() {
-        int itemCount = mScene.getItemCount();
+    private void initStates(Scene scene) {
+        int itemCount = scene.getItemCount();
         if (states.size() == itemCount) {
             return;
         }
         int row = 0;
         int offsetX = mSpaceLeft;
         int offsetY = 0;
-        int positionOffset = mScene.getPositionOffset();
+        int positionOffset = scene.getPositionOffset();
         for (int i = 0; i < itemCount; i++) {
-            View view = mScene.getViewForPosition(i + positionOffset);
-            measureChild(view, mSpaceLeft + mSpaceRight, 0);
-            int childWidth = getDecoratedMeasuredWidth(view);
-            int childHeight = getDecoratedMeasuredHeight(view);
+            View view = scene.getViewForPosition(i + positionOffset);
+            scene.measureChild(view, mSpaceLeft + mSpaceRight, 0);
+            int childWidth = scene.getDecoratedMeasuredWidth(view);
+            int childHeight = scene.getDecoratedMeasuredHeight(view);
 
-            if (offsetX + childWidth + mSpaceRight > getRecyclerWidth()) {
+            if (offsetX + childWidth + mSpaceRight > scene.getWidth()) {
                 offsetX = mSpaceLeft;
                 offsetY += childHeight;
                 row++;
@@ -120,7 +120,7 @@ public class FlowLayouter extends AbsLayouter<FlowScene> {
 
             offsetX += (childWidth + mSpaceLeft + mSpaceRight);
 
-            mScene.getLayoutHelper().recycleView(view);
+            scene.getLayoutHelper().recycleView(view);
 
             Log.d(TAG, "initStates item=" + item);
         }
@@ -128,24 +128,24 @@ public class FlowLayouter extends AbsLayouter<FlowScene> {
 
     // 从上往下滑动
     @Override
-    protected int fillVerticalTop(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop) {
+    protected int fillVerticalTop(Scene scene, int currentPosition, int availableSpace, int anchorTop) {
         int left = 0;
         int top = anchorTop - mSpaceBottom;
         int right = 0;
         int bottom = anchorTop - mSpaceBottom;
 
-        initStates();
+        initStates(scene);
 
-        int positionOffset = mScene.getPositionOffset();
+        int positionOffset = scene.getPositionOffset();
         while (availableSpace > 0 && currentPosition >= positionOffset) {
             int key = currentPosition - positionOffset;
             ItemState itemState = states.get(key);
 
             Log.d(TAG, "onFillVertical itemState=" + itemState);
 
-            View view = mScene.obtainViewForPosition(currentPosition--);
-            mScene.addView(view, 0);
-            measureChild(view, mSpaceLeft + mSpaceRight, 0);
+            View view = scene.obtainViewForPosition(currentPosition--);
+            scene.addView(view, 0);
+            scene.measureChild(view, mSpaceLeft + mSpaceRight, 0);
 
             left = itemState.offsetX;
             right = left + itemState.width;
@@ -153,7 +153,7 @@ public class FlowLayouter extends AbsLayouter<FlowScene> {
             top = bottom - itemState.height;
 
             Log.d(TAG, "onFillVertical left=" + left + " top=" + top + " right=" + right + " bottom=" + bottom);
-            layoutDecorated(view, left, top, right, bottom);
+            scene.layoutDecorated(view, left, top, right, bottom);
 
             top -= mSpaceTop;
 
@@ -162,22 +162,22 @@ public class FlowLayouter extends AbsLayouter<FlowScene> {
                 bottom = top - mSpaceBottom;
             }
         }
-        mScene.setTop(top);
+        scene.setTop(top);
         return availableSpace;
     }
 
     // 从下往上滑动
     @Override
-    protected int fillVerticalBottom(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom) {
+    protected int fillVerticalBottom(Scene scene, int currentPosition, int availableSpace, int anchorBottom) {
         int left = 0;
         int top = anchorBottom + mSpaceBottom;
         int right = 0;
         int bottom = anchorBottom + mSpaceBottom;
 
-        initStates();
+        initStates(scene);
 
-        int positionOffset = mScene.getPositionOffset();
-        int itemCount = mScene.getItemCount();
+        int positionOffset = scene.getPositionOffset();
+        int itemCount = scene.getItemCount();
         int key = currentPosition - positionOffset;
         ItemState itemState = states.get(key);
         int row = -1;
@@ -188,10 +188,10 @@ public class FlowLayouter extends AbsLayouter<FlowScene> {
                 row = itemState.row;
             }
 
-            View view = mScene.obtainViewForPosition(currentPosition++);
-            mScene.addView(view);
+            View view = scene.obtainViewForPosition(currentPosition++);
+            scene.addView(view);
             int childHeight = itemState.height;
-            measureChild(view, mSpaceLeft + mSpaceRight, 0);
+            scene.measureChild(view, mSpaceLeft + mSpaceRight, 0);
 
             left = itemState.offsetX;
             right = left + itemState.width;
@@ -203,7 +203,7 @@ public class FlowLayouter extends AbsLayouter<FlowScene> {
             bottom = top + childHeight;
 
             Log.d(TAG, "availableSpace left=" + left + " top=" + top + " right=" + right + " bottom=" + bottom + " childHeight=" + childHeight);
-            layoutDecorated(view, left, top, right, bottom);
+            scene.layoutDecorated(view, left, top, right, bottom);
 
             bottom += mSpaceBottom;
 
@@ -214,14 +214,9 @@ public class FlowLayouter extends AbsLayouter<FlowScene> {
             }
 
         }
-        mScene.setBottom(Math.max(bottom, mScene.getTop()));
+        scene.setBottom(Math.max(bottom, scene.getTop()));
         return availableSpace;
 
-    }
-
-    @Override
-    public int fillHorizontal(View anchorView, int dx, MultiData<?> multiData) {
-        return 0;
     }
 
 }

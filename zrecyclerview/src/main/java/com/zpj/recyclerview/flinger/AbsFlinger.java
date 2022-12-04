@@ -6,14 +6,14 @@ import android.support.v7.widget.RecyclerViewHelper;
 import android.view.animation.Interpolator;
 import android.widget.OverScroller;
 
-import com.zpj.recyclerview.core.MultiScene;
+import com.zpj.recyclerview.core.Scene;
 
 public abstract class AbsFlinger implements Flinger, Runnable, Interpolator {
 
     public static final Interpolator sScrollInterpolator = new FastOutSlowInInterpolator();
 
     @NonNull
-    protected final MultiScene mScene;
+    protected final Scene mScene;
     protected final OverScroller mScroller;
 
     private int mLastX;
@@ -21,7 +21,7 @@ public abstract class AbsFlinger implements Flinger, Runnable, Interpolator {
 
     private Interpolator mInterpolator;
 
-    public AbsFlinger(@NonNull MultiScene scene) {
+    public AbsFlinger(@NonNull Scene scene) {
         mScene = scene;
         this.mScroller = new OverScroller(scene.getContext(), this);
     }

@@ -1,22 +1,12 @@
 package com.zpj.recyclerview.scene;
 
-import android.support.annotation.IntRange;
-import android.util.Log;
-import android.util.SparseIntArray;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.core.AbsLayouter;
-import com.zpj.recyclerview.core.MultiLayoutParams;
-import com.zpj.recyclerview.core.MultiScene;
-import com.zpj.recyclerview.layouter.Layouter;
+import com.zpj.recyclerview.core.Scene;
 import com.zpj.recyclerview.layouter.StaggeredGridLayouter;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
-public class StaggeredGridScene extends MultiScene {
+public class StaggeredGridScene extends Scene<StaggeredGridLayouter> {
 
     public StaggeredGridScene(MultiData<?> multiData) {
         this(multiData, new StaggeredGridLayouter(2));
@@ -32,7 +22,7 @@ public class StaggeredGridScene extends MultiScene {
 
     @Override
     public void saveState(View firstChild) {
-        ((StaggeredGridLayouter) mLayouter).saveState();
+        mLayouter.saveState(this);
     }
 
 }

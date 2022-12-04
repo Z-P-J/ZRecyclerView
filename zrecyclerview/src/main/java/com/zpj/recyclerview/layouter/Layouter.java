@@ -1,65 +1,20 @@
 package com.zpj.recyclerview.layouter;
 
-import android.support.v7.widget.BaseMultiLayoutManager;
-import android.view.MotionEvent;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.core.MultiScene;
+import com.zpj.recyclerview.core.Scene;
 
 public interface Layouter {
-
-    void attach(MultiScene multiScene);
-
-    void detach();
-
-//    LayoutHelper getLayoutHelper();
-
-//    void setLeft(int left);
-//
-//    void setTop(int top);
-//
-//    void setRight(int right);
-//
-//    void setBottom(int bottom);
-//
-//    int getLeft();
-//
-//    int getTop();
-//
-//    int getRight();
-//
-//    int getBottom();
-//
-//    void offsetLeftAndRight(int offset);
-//
-//    void offsetTopAndBottom(int offset);
-//
-//    void setPositionOffset(int offset);
-//
-//    int getPositionOffset();
 
     boolean canScrollHorizontally();
 
     boolean canScrollVertically();
 
-    void layoutChildren(MultiData<?> multiData);
+    void layoutChildren(Scene scene);
 
-    int fillVertical(View anchorView, int dy, MultiData<?> multiData);
+    int fillVertical(Scene scene, View anchorView, int dy);
 
-    int fillHorizontal(View anchorView, int dx, MultiData<?> multiData);
-
-//    int scrollHorizontallyBy(int dx, MultiData<?> scrollMultiData);
-//
-//    void saveState(View firstChild);
-//
-//    boolean onTouchDown(MultiData<?> multiData, float downX, float downY, MotionEvent event);
-//
-//    boolean onTouchMove(MultiData<?> multiData, float x, float y, float downX, float downY, MotionEvent event);
-//
-//    boolean onTouchUp(MultiData<?> multiData, float velocityX, float velocityY, MotionEvent event);
-//
-//    // TODO 交给Scene处理
-//    boolean scrollToPositionWithOffset(MultiData<?> multiData, int position, int offset);
+    int fillHorizontal(Scene scene, View anchorView, int dx);
 
 }
