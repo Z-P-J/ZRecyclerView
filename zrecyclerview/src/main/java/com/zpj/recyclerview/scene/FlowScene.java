@@ -1,32 +1,35 @@
 package com.zpj.recyclerview.scene;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
-import android.util.SparseArray;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.core.AbsLayouter;
 import com.zpj.recyclerview.core.LayoutHelper;
-import com.zpj.recyclerview.core.MultiScene;
+import com.zpj.recyclerview.core.Scene;
 import com.zpj.recyclerview.layouter.FlowLayouter;
-import com.zpj.recyclerview.layouter.Layouter;
 
-public class FlowScene extends MultiScene {
+public class FlowScene extends Scene<FlowLayouter> {
 
     private static final String TAG = "FlowLayouter";
 
     public FlowScene(MultiData<?> multiData) {
-        this(multiData, new FlowLayouter());
+        this(multiData, 0);
+    }
+
+    public FlowScene(MultiData<?> multiData, int space) {
+        this(multiData, space, space);
+    }
+
+    public FlowScene(MultiData<?> multiData, int spaceHorizontal, int spaceVertical) {
+        this(multiData, spaceHorizontal, spaceVertical, spaceHorizontal, spaceVertical);
+    }
+
+    public FlowScene(MultiData<?> multiData, int spaceLeft, int spaceTop, int spaceRight, int spaceBottom) {
+        this(multiData, new FlowLayouter(spaceLeft, spaceTop, spaceRight, spaceBottom));
     }
 
     public FlowScene(MultiData<?> multiData, FlowLayouter layouter) {
         super(multiData, layouter);
-    }
-
-    @Override
-    public FlowLayouter getLayouter() {
-        return (FlowLayouter) super.getLayouter();
     }
 
     @Override

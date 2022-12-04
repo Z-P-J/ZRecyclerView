@@ -14,25 +14,25 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.MultiRecycler;
+import com.zpj.recyclerview.MultiSceneRecycler;
 import com.zpj.recyclerview.core.AbsLayouter;
 import com.zpj.recyclerview.core.LayoutHelper;
-import com.zpj.recyclerview.core.MultiLayoutParams;
-import com.zpj.recyclerview.core.MultiScene;
+import com.zpj.recyclerview.core.SceneLayoutParams;
+import com.zpj.recyclerview.core.Scene;
 import com.zpj.recyclerview.layouter.Layouter;
 
-public class ContainerScene extends MultiScene {
+public class ContainerScene extends Scene {
 
     private static final String TAG = "ContainerLayouter";
 
     @NonNull
-    private final MultiScene mDelegateScene;
+    private final Scene mDelegateScene;
 
     protected final BaseMultiLayoutManager mContainerLayoutManager = new ContainerLayoutManager(this);
 
 
     // TODO 代理的方式
-    public static class ChildScene extends MultiScene {
+    public static class ChildScene extends Scene {
 
         public ChildScene(MultiData<?> multiData, Layouter layouter) {
             super(multiData, layouter);
@@ -115,7 +115,7 @@ public class ContainerScene extends MultiScene {
 //        ContainerLayout containerLayout = (ContainerLayout) container;
 //        containerLayout.removeAllViews();
 
-        MultiLayoutParams params = (MultiLayoutParams) container.getLayoutParams();
+        SceneLayoutParams params = (SceneLayoutParams) container.getLayoutParams();
         params.width = ViewGroup.LayoutParams.MATCH_PARENT;
         super.addView(container);
         mDelegateScene.layoutChildren();
@@ -155,7 +155,7 @@ public class ContainerScene extends MultiScene {
         }
 
         @Override
-        public void attachRecycler(MultiRecycler recycler) {
+        public void attachRecycler(MultiSceneRecycler recycler) {
             super.attachRecycler(recycler);
             setRecyclerView(recycler.getRecyclerView(), new PublicChildHelper(new PublicChildHelper.PublicCallback() {
                 @Override
@@ -382,22 +382,22 @@ public class ContainerScene extends MultiScene {
 
         @Override
         protected boolean checkLayoutParams(LayoutParams lp) {
-            return lp instanceof MultiLayoutParams;
+            return lp instanceof SceneLayoutParams;
         }
 
         @Override
         public RecyclerView.LayoutParams generateLayoutParams(LayoutParams lp) {
-            return new MultiLayoutParams(lp);
+            return new SceneLayoutParams(lp);
         }
 
         @Override
         public LayoutParams generateLayoutParams(AttributeSet attrs) {
-            return new MultiLayoutParams(getContext(), attrs);
+            return new SceneLayoutParams(getContext(), attrs);
         }
 
         @Override
         public RecyclerView.LayoutParams generateDefaultLayoutParams() {
-            return new MultiLayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+            return new SceneLayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
         }
 
         @Override
@@ -455,11 +455,11 @@ public class ContainerScene extends MultiScene {
         }
     }
 
-    private static class ContainerLayouter extends AbsLayouter<MultiScene> {
+    private static class ContainerLayouter extends AbsLayouter {
 
-        private final MultiScene mChildScene;
+        private final Scene mChildScene;
 
-        private ContainerLayouter(MultiScene scene) {
+        private ContainerLayouter(Scene scene) {
             mChildScene = scene;
         }
 
@@ -475,17 +475,17 @@ public class ContainerScene extends MultiScene {
         }
 
         @Override
-        public int fillVertical(View anchorView, int dy, MultiData<?> multiData) {
-            int positionOffset = mScene.getPositionOffset();
-            View container = mScene.findViewByPosition(positionOffset);
+        public int fillVertical(Scene scene, View anchorView, int dy) {
+            int positionOffset = scene.getPositionOffset();
+            View container = scene.findViewByPosition(positionOffset);
             boolean isNewContainer = container == null;
             if (isNewContainer) {
-                container = mScene.obtainViewForPosition(positionOffset);
+                container = scene.obtainViewForPosition(positionOffset);
                 if (dy > 0) {
                     // 从下往上滑动
-                    mScene.addView(container);
+                    scene.addView(container);
                 } else {
-                    mScene.addView(container, 0);
+                    scene.addView(container, 0);
                 }
             }
 
@@ -497,21 +497,21 @@ public class ContainerScene extends MultiScene {
             } else {
                 anchorView = containerLayout.getChildAt(0);
             }
-            int consumed = mChildScene.getLayouter().fillVertical(anchorView, dy, multiData);
+            int consumed = mChildScene.getLayouter().fillVertical(mChildScene, anchorView, dy);
 
-            int height = mScene.getBottom() - mScene.getTop();
+            int height = mChildScene.getBottom() - mChildScene.getTop();
 
             if (dy > 0) {
                 // 从下往上滑动
-                mScene.setBottom(mScene.getTop() + height);
+                scene.setBottom(scene.getTop() + height);
             } else {
-                mScene.setTop(mScene.getBottom() - height);
+                scene.setTop(scene.getBottom() - height);
             }
 
-            containerLayout.measure(View.MeasureSpec.makeMeasureSpec(getRecyclerWidth(), View.MeasureSpec.EXACTLY),
+            containerLayout.measure(View.MeasureSpec.makeMeasureSpec(scene.getWidth(), View.MeasureSpec.EXACTLY),
                     View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY));
 
-            super.layoutDecorated(containerLayout, mScene.getLeft(), mScene.getTop(), mScene.getRight(), mScene.getBottom());
+            scene.layoutDecorated(containerLayout, scene.getLeft(), scene.getTop(), scene.getRight(), scene.getBottom());
 
             if (isNewContainer) {
                 return consumed;
@@ -519,16 +519,16 @@ public class ContainerScene extends MultiScene {
 
             if (dy > 0) {
                 // 从下往上滑动
-                int bottom = mScene.getBottom();
-                if (bottom > getRecyclerHeight()) {
-                    if (bottom - dy > getRecyclerHeight()) {
+                int bottom = scene.getBottom();
+                if (bottom > scene.getHeight()) {
+                    if (bottom - dy > scene.getHeight()) {
                         return dy;
                     } else {
-                        return bottom - getRecyclerHeight();
+                        return bottom - scene.getHeight();
                     }
                 }
             } else {
-                int top = mScene.getTop();
+                int top = scene.getTop();
                 if (top < 0) {
                     if (top - dy < 0) {
                         return -dy;
@@ -541,18 +541,18 @@ public class ContainerScene extends MultiScene {
         }
 
         @Override
-        protected int fillVerticalTop(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop) {
+        protected int fillVerticalTop(Scene scene, int currentPosition, int availableSpace, int anchorTop) {
             return 0;
         }
 
         @Override
-        protected int fillVerticalBottom(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom) {
+        protected int fillVerticalBottom(Scene scene, int currentPosition, int availableSpace, int anchorBottom) {
             return 0;
         }
 
         @Override
-        public int fillHorizontal(View anchorView, int dx, MultiData<?> multiData) {
-            return mChildScene.getLayouter().fillHorizontal(anchorView, dx, multiData);
+        public int fillHorizontal(Scene scene, View anchorView, int dx) {
+            return mChildScene.getLayouter().fillHorizontal(mChildScene, anchorView, dx);
         }
     }
 }

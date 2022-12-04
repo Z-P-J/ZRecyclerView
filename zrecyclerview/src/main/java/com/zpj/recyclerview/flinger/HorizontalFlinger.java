@@ -2,13 +2,13 @@ package com.zpj.recyclerview.flinger;
 
 import android.support.annotation.NonNull;
 
-import com.zpj.recyclerview.core.MultiScene;
+import com.zpj.recyclerview.core.Scene;
 
 public class HorizontalFlinger extends AbsFlinger {
 
     private boolean stopOverScroll = false;
 
-    public HorizontalFlinger(@NonNull MultiScene scene) {
+    public HorizontalFlinger(@NonNull Scene scene) {
         super(scene);
     }
 

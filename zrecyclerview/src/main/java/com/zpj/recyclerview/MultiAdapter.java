@@ -9,7 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.zpj.recyclerview.core.MultiScene;
+import com.zpj.recyclerview.core.Scene;
 import com.zpj.recyclerview.refresh.IRefresher;
 import com.zpj.statemanager.IViewHolder;
 import com.zpj.statemanager.State;
@@ -19,11 +19,11 @@ import java.util.List;
 import static com.zpj.statemanager.State.STATE_CONTENT;
 import static com.zpj.statemanager.State.STATE_LOGIN;
 
-public class MultiAdapter extends EasyStateAdapter<MultiScene> {
+public class MultiAdapter extends EasyStateAdapter<Scene> {
 
     private static final String TAG = "MultiAdapter";
 
-    MultiAdapter(final Context context, List<MultiScene> list, final EasyStateConfig<?> config, IRefresher refresher) {
+    MultiAdapter(final Context context, List<Scene> list, final EasyStateConfig<?> config, IRefresher refresher) {
         super(context, list, 0, null, null,
                 null, null, null,
                 null, null, null, refresher, config);
@@ -61,7 +61,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiScene> {
             return 1;
         }
         int count = 0;
-        for (MultiScene scene : list) {
+        for (Scene scene : list) {
             count += scene.getItemCount();
         }
         boolean isMultiManager = getRecyclerView().getLayoutManager() instanceof BaseMultiLayoutManager;
@@ -142,7 +142,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiScene> {
 
         position = getRealPosition(holder);
         int count = 0;
-        for (MultiScene scene : list) {
+        for (Scene scene : list) {
             int itemCount = scene.getItemCount();
             MultiData<?> data = scene.getMultiData();
             if (position >= count && position < count + itemCount) {
@@ -192,13 +192,13 @@ public class MultiAdapter extends EasyStateAdapter<MultiScene> {
         int end = getRealPosition(mRecyclerView.getLayoutManager().getPosition(lastChild));
         Log.d(TAG, "onLoadMore start=" + start + " end=" + end);
 
-        MultiScene multiScene = null;
+        Scene loadingScene = null;
         int offset = 0;
         for (int i = 0; i < list.size(); i++) {
             if (end < offset) {
                 break;
             }
-            MultiScene scene = list.get(i);
+            Scene scene = list.get(i);
             MultiData<?> data = scene.getMultiData();
             int max = offset + data.getCount();
 
@@ -208,13 +208,13 @@ public class MultiAdapter extends EasyStateAdapter<MultiScene> {
             }
 
             if (data.hasMore() && data.load(Math.max(0, start - offset), end - offset, this)) {
-                multiScene = scene;
+                loadingScene = scene;
                 Log.d(TAG, "onLoadMore scene=" + scene);
             }
             offset = max;
         }
 
-        if (multiScene != null) { //  && multiData.load(this)
+        if (loadingScene != null) { //  && multiData.load(this)
             if (footerViewHolder != null) {
                 footerViewHolder.onShowLoading();
             }
@@ -244,7 +244,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiScene> {
                         position--;
                     }
                     int count = 0;
-                    for (MultiScene scene : list) {
+                    for (Scene scene : list) {
                         int itemCount = scene.getItemCount();
                         MultiData<?> data = scene.getMultiData();
                         if (position >= count && position < count + itemCount) {
@@ -259,9 +259,9 @@ public class MultiAdapter extends EasyStateAdapter<MultiScene> {
         }
     }
 
-    public int onGetViewType(List<MultiScene> list, int position) {
+    public int onGetViewType(List<Scene> list, int position) {
         int count = 0;
-        for (MultiScene scene : list) {
+        for (Scene scene : list) {
             int itemCount = scene.getItemCount();
             MultiData<?> data = scene.getMultiData();
             if (position >= count && position < count + itemCount) {
@@ -273,7 +273,7 @@ public class MultiAdapter extends EasyStateAdapter<MultiScene> {
     }
 
     public View onCreateView(Context context, ViewGroup container, int viewType) {
-        for (MultiScene scene : list) {
+        for (Scene scene : list) {
             MultiData<?> data = scene.getMultiData();
             if (data.hasViewType(viewType)) {
                 return data.onCreateView(context, container, viewType);
@@ -282,9 +282,9 @@ public class MultiAdapter extends EasyStateAdapter<MultiScene> {
         return null;
     }
 
-    public void notifyDataSetChange(MultiScene target) {
+    public void notifyDataSetChange(Scene target) {
         int count = 0;
-        for (MultiScene scene : list) {
+        for (Scene scene : list) {
             int itemCount = scene.getItemCount();
             if (scene == target) {
                 notifyItemRangeChanged(count, itemCount);
@@ -293,9 +293,9 @@ public class MultiAdapter extends EasyStateAdapter<MultiScene> {
         }
     }
 
-    public void notifyItemRangeInserted(MultiScene target) {
+    public void notifyItemRangeInserted(Scene target) {
         int count = 0;
-        for (MultiScene scene : list) {
+        for (Scene scene : list) {
             int itemCount = scene.getItemCount();
             if (scene == target) {
                 notifyItemRangeInserted(count, itemCount);
@@ -304,11 +304,11 @@ public class MultiAdapter extends EasyStateAdapter<MultiScene> {
         }
     }
 
-    public void notifyItemRangeInserted(MultiScene multiScene, int positionStart, int count) {
+    public void notifyItemRangeInserted(Scene targetScene, int positionStart, int count) {
         int num = 0;
-        for (MultiScene scene : list) {
+        for (Scene scene : list) {
             int itemCount = scene.getItemCount();
-            if (scene == multiScene) {
+            if (scene == targetScene) {
                 if (positionStart >= itemCount) {
                     return;
                 }

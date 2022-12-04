@@ -1,39 +1,34 @@
 package com.zpj.recyclerview.scene;
 
 import android.support.annotation.IntRange;
-import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.core.MultiScene;
+import com.zpj.recyclerview.core.Scene;
 import com.zpj.recyclerview.layouter.GridLayouter;
-import com.zpj.recyclerview.layouter.StaggeredGridLayouter;
 
-public class GridScene extends MultiScene {
-
-    private int mSpanCount;
+public class GridScene extends Scene<GridLayouter> {
 
     public GridScene(MultiData<?> multiData) {
-        this(multiData, 2);
+        this(multiData, new GridLayouter());
     }
 
     public GridScene(MultiData<?> multiData, @IntRange(from = 1)int spanCount) {
-        this(multiData, new GridLayouter(), spanCount);
+        this(multiData, new GridLayouter(spanCount));
     }
 
-    public GridScene(MultiData<?> multiData, GridLayouter layouter, @IntRange(from = 1)int spanCount) {
+    public GridScene(MultiData<?> multiData, GridLayouter layouter) {
         super(multiData, layouter);
-        mSpanCount = spanCount;
     }
 
     public int getSpanCount() {
-        return mSpanCount;
+        return mLayouter.getSpanCount();
     }
 
     public void setSpanCount(@IntRange(from = 1) int spanCount) {
-        if (mSpanCount == spanCount) {
+        if (getSpanCount() == spanCount) {
             return;
         }
-        mSpanCount = spanCount;
+        mLayouter.setSpanCount(spanCount);
         if (getLayoutHelper() != null) {
             getLayoutHelper().requestLayout();
         }

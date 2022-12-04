@@ -3,41 +3,35 @@
 
 package com.zpj.recyclerview.scene;
 
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.core.AbsLayouter;
-import com.zpj.recyclerview.core.MultiScene;
+import com.zpj.recyclerview.core.Scene;
 import com.zpj.recyclerview.layouter.HorizontalLayouter;
-import com.zpj.recyclerview.layouter.Layouter;
 
-public class HorizontalScene extends MultiScene {
+public class HorizontalScene extends Scene<HorizontalLayouter> {
 
     private static final String TAG = "HorizontalLayouter";
 
-    protected boolean mIsInfinite = true;
-
     public HorizontalScene(MultiData<?> multiData) {
-        this(multiData, new HorizontalLayouter(), false);
+        this(multiData, new HorizontalLayouter());
     }
 
     public HorizontalScene(MultiData<?> multiData, boolean isInfinite) {
-        this(multiData, new HorizontalLayouter(), isInfinite);
+        this(multiData, new HorizontalLayouter(isInfinite));
     }
 
-    public HorizontalScene(MultiData<?> multiData, HorizontalLayouter layouter, boolean isInfinite) {
+    public HorizontalScene(MultiData<?> multiData, HorizontalLayouter layouter) {
         super(multiData, layouter);
-        mIsInfinite = isInfinite;
     }
 
     public void setIsInfinite(boolean isInfinite) {
-        this.mIsInfinite = isInfinite;
+        mLayouter.setIsInfinite(isInfinite);
     }
 
     public boolean isInfinite() {
-        return mIsInfinite;
+        return mLayouter.isInfinite();
     }
 
 //    @Override

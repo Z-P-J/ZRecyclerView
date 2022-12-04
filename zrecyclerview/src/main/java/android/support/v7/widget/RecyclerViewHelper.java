@@ -4,12 +4,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Interpolator;
 
-import com.zpj.recyclerview.MultiRecycler;
+import com.zpj.recyclerview.MultiSceneRecycler;
 import com.zpj.recyclerview.scene.ContainerScene;
 
 public class RecyclerViewHelper {
 
-    public static RecyclerView.Recycler getRecycler(MultiRecycler recycler) {
+    public static RecyclerView.Recycler getRecycler(MultiSceneRecycler recycler) {
         return getRecycler(recycler.getRecyclerView());
     }
 
@@ -17,7 +17,7 @@ public class RecyclerViewHelper {
         return recyclerView.mRecycler;
     }
 
-    public static RecyclerView.State getState(MultiRecycler recycler) {
+    public static RecyclerView.State getState(MultiSceneRecycler recycler) {
         return recycler.getRecyclerView().mState;
     }
 

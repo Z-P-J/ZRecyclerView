@@ -11,21 +11,20 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.MultiRecycler;
+import com.zpj.recyclerview.MultiSceneRecycler;
 import com.zpj.recyclerview.flinger.Flinger;
 import com.zpj.recyclerview.flinger.HorizontalFlinger;
 import com.zpj.recyclerview.layouter.Layouter;
-import com.zpj.recyclerview.layouter.VerticalLayouter;
 
-public class MultiScene {
+public abstract class Scene<T extends Layouter> {
 
-    private static final String TAG = "MultiScene";
+    private static final String TAG = "Scene";
 
     public final AnchorInfo mAnchorInfo = new AnchorInfo();
 
     protected BaseMultiLayoutManager mLayoutManager;
     protected final MultiData<?> mMultiData;
-    protected final Layouter mLayouter;
+    protected final T mLayouter;
 
     protected LayoutHelper mHelper;
 
@@ -40,11 +39,11 @@ public class MultiScene {
 
     protected int mPositionOffset;
 
-    public MultiScene(MultiData<?> multiData) {
-        this(multiData, new VerticalLayouter());
-    }
+//    public Scene(MultiData<?> multiData) {
+//        this(multiData, new VerticalLayouter());
+//    }
 
-    public MultiScene(MultiData<?> multiData, Layouter layouter) {
+    public Scene(MultiData<?> multiData, T layouter) {
         mMultiData = multiData;
         mLayouter = layouter;
     }
@@ -74,7 +73,6 @@ public class MultiScene {
             throw new IllegalArgumentException("attach error! LayoutManager must not be null!");
         }
         mLayoutManager = manager;
-        mLayouter.attach(this);
         if (mHelper != null && mHelper.getLayoutManager() != manager) {
             mHelper = null;
         }
@@ -99,20 +97,19 @@ public class MultiScene {
         mLeft = 0;
         mRight = 0;
         mBottom = 0;
-        mLayouter.detach();
         mAttached = false;
     }
 
-    public Layouter getLayouter() {
+    public T getLayouter() {
         return mLayouter;
     }
 
-    public MultiRecycler getRecycler() {
+    public MultiSceneRecycler getRecycler() {
         return mLayoutManager.getRecycler();
     }
 
-    public MultiScene getMultiScene(View child) {
-        return mHelper.getMultiScene(child);
+    public Scene getScene(View child) {
+        return mHelper.getScene(child);
     }
 
     public BaseMultiLayoutManager getLayoutManager() {
@@ -286,12 +283,12 @@ public class MultiScene {
     }
 
     public void layoutChildren() {
-        mLayouter.layoutChildren(mMultiData);
+        mLayouter.layoutChildren(this);
     }
 
     public boolean scrollToPositionWithOffset(int position, int offset) {
         if (position >= mPositionOffset && position < mPositionOffset + getItemCount()) {
-            mAnchorInfo.position = position;
+            mAnchorInfo.position = position - mPositionOffset;
             mAnchorInfo.x = offset;
             mAnchorInfo.y = offset;
             return true;
@@ -349,11 +346,11 @@ public class MultiScene {
 
             for (int i = 0; i < getChildCount(); i++) {
                 View view = getChildAt(i);
-                final MultiScene scene = getMultiScene(view);
+                final Scene scene = getScene(view);
                 if (scene == this) {
                     for (int j = i; j < getChildCount(); j++) {
                         View child = getChildAt(j);
-                        if (getMultiScene(child) != this) {
+                        if (getScene(child) != this) {
                             break;
                         }
                         mHelper.offsetChildLeftAndRight(child, -overScroll);
@@ -391,9 +388,9 @@ public class MultiScene {
             // 从右往左滑动
             for (int i = getChildCount() - 1; i >= 0; i--) {
                 View view = getChildAt(i);
-                if (getMultiScene(view) == this) {
+                if (getScene(view) == this) {
                     index = i;
-                    consumed += mLayouter.fillHorizontal(view, dx, mMultiData);
+                    consumed += mLayouter.fillHorizontal(this, view, dx);
                     break;
                 }
             }
@@ -401,9 +398,9 @@ public class MultiScene {
             // 从左往右滑动
             for (int i = 0; i < getChildCount(); i++) {
                 View view = getChildAt(i);
-                if (getMultiScene(view) == this) {
+                if (getScene(view) == this) {
                     index = i;
-                    consumed -= mLayouter.fillHorizontal(view, dx, mMultiData);
+                    consumed -= mLayouter.fillHorizontal(this, view, dx);
                     break;
                 }
             }
@@ -418,7 +415,7 @@ public class MultiScene {
             // 从右往左滑动
             for (int i = getChildCount() - 1; i >= 0; i--) {
                 View view = getChildAt(i);
-                MultiScene scene = getMultiScene(view);
+                Scene scene = getScene(view);
                 if (scene != this) {
                     continue;
                 }
@@ -434,7 +431,7 @@ public class MultiScene {
             // 从左往右滑动
             for (int i = 0; i < getChildCount(); i++) {
                 View view = getChildAt(i);
-                MultiScene scene = getMultiScene(view);
+                Scene scene = getScene(view);
                 if (scene != this) {
                     continue;
                 }
@@ -453,7 +450,7 @@ public class MultiScene {
 
         for (int i = 0; i < getChildCount(); i++) {
             View view = getChildAt(i);
-            if (getMultiScene(view) == this) {
+            if (getScene(view) == this) {
                 index = i;
                 break;
             }
@@ -482,7 +479,7 @@ public class MultiScene {
 
             for (int i = 0; i < getChildCount(); i++) {
                 View view = getChildAt(i);
-                if (getMultiScene(view) == this) {
+                if (getScene(view) == this) {
                     mHelper.offsetChildLeftAndRight(view, -overScroll);
                 }
             }
@@ -509,7 +506,7 @@ public class MultiScene {
             if (isOverScrolling) {
                 for (int i = 0; i < getChildCount(); i++) {
                     View view = getChildAt(i);
-                    if (getMultiScene(view) == this) {
+                    if (getScene(view) == this) {
                         onStopOverScroll();
                         return true;
                     }
@@ -553,7 +550,7 @@ public class MultiScene {
                 if (overScrollDirection == OVER_SCROLL_LEFT) {
                     for (int i = 0; i < getChildCount(); i++) {
                         View view = getChildAt(i);
-                        if (getMultiScene(view) == this) {
+                        if (getScene(view) == this) {
                             final int firstLeft = getDecoratedLeft(view);
                             Log.d(TAG, "onStopOverScroll firstLeft=" + firstLeft + " overScrollDistance=" + overScrollDistance);
                             if (firstLeft > 0) { //  && getPosition(view) == scrollMultiData.getLayouter().getPositionOffset()
@@ -565,7 +562,7 @@ public class MultiScene {
                 } else if (overScrollDirection == OVER_SCROLL_RIGHT) {
                     for (int i = getChildCount() - 1; i >= 0; i--) {
                         View view = getChildAt(i);
-                        if (getMultiScene(view) == this) {
+                        if (getScene(view) == this) {
                             final int right = getDecoratedRight(view);
                             Log.d(TAG, "onStopOverScroll right=" + right + " overScrollDistance=" + overScrollDistance);
                             if (right < getWidth()) { //  && getPosition(view) == scrollMultiData.getLayouter().getPositionOffset() + scrollgetCount(multiData) - 1
@@ -593,27 +590,27 @@ public class MultiScene {
 
 
 
-    protected int getPosition(@NonNull View child) {
+    public int getPosition(@NonNull View child) {
         return mHelper.getPosition(child);
     }
 
-    protected int getDecoratedLeft(@NonNull View child) {
+    public int getDecoratedLeft(@NonNull View child) {
         return mHelper.getDecoratedLeft(child);
     }
 
-    protected int getDecoratedTop(@NonNull View child) {
+    public int getDecoratedTop(@NonNull View child) {
         return mHelper.getDecoratedTop(child);
     }
 
-    protected int getDecoratedRight(@NonNull View child) {
+    public int getDecoratedRight(@NonNull View child) {
         return mHelper.getDecoratedRight(child);
     }
 
-    protected int getDecoratedBottom(@NonNull View child) {
+    public int getDecoratedBottom(@NonNull View child) {
         return mHelper.getDecoratedBottom(child);
     }
 
-    protected void layoutDecorated(@NonNull View child, int left, int top, int right, int bottom) {
+    public void layoutDecorated(@NonNull View child, int left, int top, int right, int bottom) {
         mHelper.layoutDecorated(child, left, top, right, bottom);
     }
 

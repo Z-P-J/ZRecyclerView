@@ -8,10 +8,10 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.MultiRecycler;
-import com.zpj.recyclerview.core.MultiScene;
+import com.zpj.recyclerview.MultiSceneRecycler;
+import com.zpj.recyclerview.core.Scene;
 import com.zpj.recyclerview.layouter.Layouter;
-import com.zpj.recyclerview.core.MultiLayoutParams;
+import com.zpj.recyclerview.core.SceneLayoutParams;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -23,9 +23,9 @@ public class BaseMultiLayoutManager extends RecyclerView.LayoutManager {
 
     public final Set<View> recycleViews = new LinkedHashSet<>();
 
-    protected MultiRecycler mRecycler;
+    protected MultiSceneRecycler mRecycler;
 
-    public void attachRecycler(MultiRecycler recycler) {
+    public void attachRecycler(MultiSceneRecycler recycler) {
         this.mRecycler = recycler;
     }
 
@@ -36,22 +36,22 @@ public class BaseMultiLayoutManager extends RecyclerView.LayoutManager {
 
     @Override
     public boolean checkLayoutParams(RecyclerView.LayoutParams lp) {
-        return lp instanceof MultiLayoutParams;
+        return lp instanceof SceneLayoutParams;
     }
 
     @Override
     public RecyclerView.LayoutParams generateLayoutParams(ViewGroup.LayoutParams lp) {
-        return new MultiLayoutParams(lp);
+        return new SceneLayoutParams(lp);
     }
 
     @Override
     public RecyclerView.LayoutParams generateLayoutParams(Context c, AttributeSet attrs) {
-        return new MultiLayoutParams(c, attrs);
+        return new SceneLayoutParams(c, attrs);
     }
 
     @Override
     public RecyclerView.LayoutParams generateDefaultLayoutParams() {
-        return new MultiLayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        return new SceneLayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
     }
 
     @Override
@@ -76,19 +76,19 @@ public class BaseMultiLayoutManager extends RecyclerView.LayoutManager {
         detachAndScrapView(child, RecyclerViewHelper.getRecycler(mRecycler));
     }
 
-    public MultiRecycler getRecycler() {
+    public MultiSceneRecycler getRecycler() {
         return mRecycler;
     }
 
-    public MultiScene getScene(View child) {
+    public Scene getScene(View child) {
         if (child == null) {
             return null;
         }
-        return ((MultiLayoutParams) child.getLayoutParams()).getScene();
+        return ((SceneLayoutParams) child.getLayoutParams()).getScene();
     }
 
     public Layouter getLayouter(View child) {
-        MultiScene scene = getScene(child);
+        Scene scene = getScene(child);
         if (scene == null) {
             return null;
         }
@@ -96,7 +96,7 @@ public class BaseMultiLayoutManager extends RecyclerView.LayoutManager {
     }
 
     public MultiData<?> getMultiData(View child) {
-        MultiScene scene = getScene(child);
+        Scene scene = getScene(child);
         if (scene == null) {
             return null;
         }

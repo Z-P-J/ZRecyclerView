@@ -1,5 +1,6 @@
 package com.zpj.recyclerview.scene;
 
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Px;
 import android.util.Log;
@@ -7,7 +8,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.core.MultiScene;
+import com.zpj.recyclerview.core.Scene;
 import com.zpj.recyclerview.flinger.Flinger;
 import com.zpj.recyclerview.flinger.PagerFlinger;
 import com.zpj.recyclerview.core.LayoutHelper;
@@ -16,7 +17,7 @@ import com.zpj.recyclerview.layouter.PagerLayouter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PagerScene extends MultiScene {
+public class PagerScene extends Scene<PagerLayouter> {
 
     private static final String TAG = "ViewPagerLayouter";
 
@@ -24,16 +25,10 @@ public class PagerScene extends MultiScene {
     public static final int SCROLL_STATE_DRAGGING = 1;
     public static final int SCROLL_STATE_SETTLING = 2;
 
-    private int mCurrentItem;
-
     private PageTransformer mTransformer;
 
     private int mScrollState = SCROLL_STATE_IDLE;
     private List<OnPageChangeListener> mOnPageChangeListeners;
-
-    private int mOffscreenPageLimit = 2;
-
-    protected boolean mIsInfinite = false;
 
     public PagerScene(MultiData<?> multiData) {
         this(multiData, new PagerLayouter());
@@ -49,11 +44,11 @@ public class PagerScene extends MultiScene {
     }
 
     public void setIsInfinite(boolean isInfinite) {
-        ((PagerLayouter) mLayouter).setIsInfinite(isInfinite);
+        mLayouter.setIsInfinite(isInfinite);
     }
 
     public boolean isInfinite() {
-        return ((PagerLayouter) mLayouter).isInfinite();
+        return mLayouter.isInfinite();
     }
 
     @Override
@@ -80,12 +75,12 @@ public class PagerScene extends MultiScene {
         return new PagerFlinger(this) {
             @Override
             protected void onItemSelected(int item) {
-                mCurrentItem = item;
+                mAnchorInfo.position = item;
                 if (mOnPageChangeListeners != null) {
                     for(int i = 0; i < mOnPageChangeListeners.size(); ++i) {
                         OnPageChangeListener listener = mOnPageChangeListeners.get(i);
                         if (listener != null) {
-                            listener.onPageSelected(mCurrentItem);
+                            listener.onPageSelected(item);
                         }
                     }
                 }
@@ -98,7 +93,7 @@ public class PagerScene extends MultiScene {
                     for(int i = 0; i < mOnPageChangeListeners.size(); ++i) {
                         OnPageChangeListener listener = mOnPageChangeListeners.get(i);
                         if (listener != null) {
-                            listener.onPageEnterEnd(mCurrentItem);
+                            listener.onPageEnterEnd(mAnchorInfo.position);
                         }
                     }
                 }
@@ -160,12 +155,12 @@ public class PagerScene extends MultiScene {
         }
     }
 
-    public void setOffscreenPageLimit(int limit) {
+    public void setOffscreenPageLimit(@IntRange(from = 1) int limit) {
         if (limit < 1) {
             limit = 1;
         }
-        if (mOffscreenPageLimit != limit) {
-            mOffscreenPageLimit = limit;
+        if (getOffscreenPageLimit() != limit) {
+            mLayouter.setOffscreenPageLimit(limit);
             if (getLayoutHelper() != null) {
                 getLayoutHelper().requestLayout();
             }
@@ -173,7 +168,7 @@ public class PagerScene extends MultiScene {
     }
 
     public int getOffscreenPageLimit() {
-        return mOffscreenPageLimit;
+        return mLayouter.getOffscreenPageLimit();
     }
 
     public void setCurrentItem(int item) {
@@ -185,14 +180,13 @@ public class PagerScene extends MultiScene {
             if (mFlinger == null) {
                 return;
             }
-            int delta = mCurrentItem - item;
+            int delta = mAnchorInfo.position - item;
             int dx = delta * getWidth() - mAnchorInfo.x;
             mFlinger.scroll(dx, 0);
         } else {
             if (mFlinger != null) {
                 mFlinger.stop();
             }
-            mCurrentItem = item;
             mAnchorInfo.position = item;
             mAnchorInfo.x = 0;
             mAnchorInfo.y = getTop();
@@ -203,11 +197,11 @@ public class PagerScene extends MultiScene {
     }
 
     public int getCurrentItem() {
-        return mCurrentItem;
+        return mAnchorInfo.position;
     }
 
     public int getCurrentPosition() {
-        return mCurrentItem + mPositionOffset;
+        return mAnchorInfo.position + mPositionOffset;
     }
 
     public void setPageTransformer(PageTransformer transformer) {
@@ -289,11 +283,11 @@ public class PagerScene extends MultiScene {
                 View current = findViewByPosition(mPagerScene.getCurrentPosition());
                 int index = indexOfChild(view);
                 int center = indexOfChild(current);
-                boolean result = Math.abs(index - center) > mPagerScene.mOffscreenPageLimit;
+                boolean result = Math.abs(index - center) > mPagerScene.getOffscreenPageLimit();
                 Log.d(TAG, "shouldRecycleChildViewHorizontally currentPosition=" + mPagerScene.getCurrentPosition() + " position=" + getPosition(view) + " recycle=" + result);
                 return result;
             } else {
-                return Math.abs(mPagerScene.getCurrentPosition() - getPosition(view)) > mPagerScene.mOffscreenPageLimit;
+                return Math.abs(mPagerScene.getCurrentPosition() - getPosition(view)) > mPagerScene.getOffscreenPageLimit();
             }
         }
 

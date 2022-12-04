@@ -7,10 +7,10 @@ import android.support.v7.widget.RecyclerView;
 import com.zpj.recycler.demo.mutildata.ExpandableLoadMoreMultiData;
 import com.zpj.recycler.demo.mutildata.ExpandableMultiData;
 import com.zpj.recycler.demo.mutildata.TestErrorStringMultiData;
-import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.MultiRecycler;
-import com.zpj.recyclerview.core.MultiScene;
+import com.zpj.recyclerview.MultiSceneRecycler;
+import com.zpj.recyclerview.core.Scene;
 import com.zpj.recyclerview.decoration.StickyHeaderItemDecoration;
+import com.zpj.recyclerview.scene.VerticalScene;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,8 +26,8 @@ public class ExpandableActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test);
 
-        List<MultiScene> list = new ArrayList<>();
-        list.add(new MultiScene(new TestErrorStringMultiData("StringMultiData0")));
+        List<Scene> list = new ArrayList<>();
+        list.add(new VerticalScene(new TestErrorStringMultiData("StringMultiData0")));
 
         List<Integer> list1 = new ArrayList<>();
         for (int i = 0; i < 20; i++) {
@@ -39,19 +39,19 @@ public class ExpandableActivity extends AppCompatActivity {
             list2.add(i);
         }
 
-        list.add(new MultiScene(new ExpandableMultiData("Expandable111", list1)));
+        list.add(new VerticalScene(new ExpandableMultiData("Expandable111", list1)));
         ExpandableMultiData expandableMultiData = new ExpandableMultiData("Expandable222", list2);
         expandableMultiData.setExpand(false);
-        list.add(new MultiScene(expandableMultiData));
+        list.add(new VerticalScene(expandableMultiData));
 
-        list.add(new MultiScene(new ExpandableLoadMoreMultiData("IntExpandableMultiData1111111111111111111111")));
+        list.add(new VerticalScene(new ExpandableLoadMoreMultiData("IntExpandableMultiData1111111111111111111111")));
 
         ExpandableLoadMoreMultiData expandableLoadMoreMultiData = new ExpandableLoadMoreMultiData("IntExpandableMultiData22222222222222222222");
         expandableLoadMoreMultiData.setExpand(false);
-        list.add(new MultiScene(expandableLoadMoreMultiData));
+        list.add(new VerticalScene(expandableLoadMoreMultiData));
 
 
-        MultiRecycler.with((RecyclerView) findViewById(R.id.recycler_view))
+        MultiSceneRecycler.with((RecyclerView) findViewById(R.id.recycler_view))
                 .setItems(list)
                 .addItemDecoration(new StickyHeaderItemDecoration())
                 .build();

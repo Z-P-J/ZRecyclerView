@@ -1,26 +1,26 @@
 package com.zpj.recyclerview.layouter;
 
+import android.support.annotation.IntRange;
 import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.View;
 
-import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.core.AbsLayouter;
-import com.zpj.recyclerview.core.MultiLayoutParams;
-import com.zpj.recyclerview.core.MultiScene;
+import com.zpj.recyclerview.core.Scene;
+import com.zpj.recyclerview.core.SceneLayoutParams;
 
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-public class StaggeredGridLayouter extends AbsLayouter<MultiScene> {
+public class StaggeredGridLayouter extends AbsLayouter {
 
     private static final String TAG = "StaggeredGridLayouter";
 
     private int[] mTops;
     private int[] mPositions;
 
-    private int mSpanCount;
+    private final int mSpanCount;
 
     private Column[] columns = null;
     private final SparseIntArray array = new SparseIntArray();
@@ -55,17 +55,12 @@ public class StaggeredGridLayouter extends AbsLayouter<MultiScene> {
 
     }
 
-    public StaggeredGridLayouter(int mSpanCount) {
-        this.mSpanCount = Math.max(mSpanCount, 1);
+    public StaggeredGridLayouter(@IntRange(from = 1) int spanCount) {
+        mSpanCount = spanCount;
     }
 
-//    public void saveState() {
-//
-//
-//    }
-
-    public void saveState() {
-        int childWidth = getRecyclerWidth() / mSpanCount;
+    public void saveState(Scene scene) {
+        int childWidth = scene.getWidth() / mSpanCount;
         boolean[] places = new boolean[mSpanCount];
 
         if (this.mTops == null || this.mPositions == null) {
@@ -74,21 +69,21 @@ public class StaggeredGridLayouter extends AbsLayouter<MultiScene> {
         }
 
         int count = 0;
-        for (int i = 0; i < mScene.getChildCount(); i++) {
-            View view = mScene.getChildAt(i);
+        for (int i = 0; i < scene.getChildCount(); i++) {
+            View view = scene.getChildAt(i);
             if (view == null) {
                 continue;
             }
 
-            MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
+            SceneLayoutParams params = (SceneLayoutParams) view.getLayoutParams();
             if (params.getScene().getLayouter() != this) {
                 continue;
             }
 
-            int col = getDecoratedLeft(view) / childWidth;
+            int col = scene.getDecoratedLeft(view) / childWidth;
             if (!places[col]) {
                 places[col] = true;
-                mTops[col] = getDecoratedTop(view);
+                mTops[col] = scene.getDecoratedTop(view);
                 int index = columns[col].positions.indexOf(params.getViewLayoutPosition());
 //                mPositions[col] = params.getViewLayoutPosition();
                 if (index == 0) {
@@ -129,9 +124,9 @@ public class StaggeredGridLayouter extends AbsLayouter<MultiScene> {
     }
 
     @Override
-    public void layoutChildren(MultiData<?> multiData) {
-        if (mScene.getItemCount() == 0 || mScene.getTop() > getRecyclerHeight()) {
-            mScene.setBottom(mScene.getTop());
+    public void layoutChildren(Scene scene) {
+        if (scene.getItemCount() == 0 || scene.getTop() > scene.getHeight()) {
+            scene.setBottom(scene.getTop());
             return;
         }
 
@@ -139,29 +134,29 @@ public class StaggeredGridLayouter extends AbsLayouter<MultiScene> {
 
         if (this.mTops == null || this.mPositions == null) {
             this.mTops = new int[mSpanCount];
-            Arrays.fill(this.mTops, mScene.getTop());
-            fillVertical(null, 1, multiData);
+            Arrays.fill(this.mTops, scene.getTop());
+            fillVertical(scene, null, 1);
         } else {
-            if (mScene.getTop() > 0) {
-                Arrays.fill(this.mTops, mScene.getTop());
+            if (scene.getTop() > 0) {
+                Arrays.fill(this.mTops, scene.getTop());
             }
-            int maxBottom = mScene.getBottom();
+            int maxBottom = scene.getBottom();
             for (int i = 0; i < mSpanCount; i++) {
 
                 Column column = columns[i];
                 int position = mPositions[i];
 
-                int bottom = fillColumnBottom(multiData, column, getRecyclerHeight(), position, mTops[i]);
+                int bottom = fillColumnBottom(scene, column, scene.getHeight(), position, mTops[i]);
                 maxBottom = Math.max(bottom, maxBottom);
             }
-            mScene.setBottom(maxBottom);
+            scene.setBottom(maxBottom);
         }
     }
 
     @Override
-    public int fillVertical(View anchorView, int dy, MultiData<?> multiData) {
+    public int fillVertical(Scene scene, View anchorView, int dy) {
         Log.e(TAG, "fillVertical anchorView is null=" + (anchorView == null) + " dy=" + dy);
-        initColumns(multiData);
+        initColumns(scene);
 
         Log.e(TAG, "fillVertical anchorView is null=" + (anchorView == null) + " dy=" + dy);
         if (dy > 0) {
@@ -169,43 +164,43 @@ public class StaggeredGridLayouter extends AbsLayouter<MultiScene> {
             if (anchorView == null) {
 
 
-                int maxBottom = mScene.getTop();
+                int maxBottom = scene.getTop();
                 for (int i = 0; i < mSpanCount; i++) {
 
                     Column column = columns[i];
 //                    int position = column.positions.get(0);
 
-                    int bottom = fillColumnBottom(multiData, column, dy, -1, mScene.getTop());
+                    int bottom = fillColumnBottom(scene, column, dy, -1, scene.getTop());
                     maxBottom = Math.max(bottom, maxBottom);
                 }
 
-                mScene.setBottom(maxBottom);
-                return Math.min(dy, maxBottom - mScene.getTop());
+                scene.setBottom(maxBottom);
+                return Math.min(dy, maxBottom - scene.getTop());
             } else {
 
 
-                int childWidth = getRecyclerWidth() / mSpanCount;
+                int childWidth = scene.getWidth() / mSpanCount;
 
                 boolean[] places = new boolean[mSpanCount];
                 int[] bottoms = new int[mSpanCount];
                 int[] positions = new int[mSpanCount];
 
-                int index = mScene.indexOfChild(anchorView);
+                int index = scene.indexOfChild(anchorView);
                 for (int i = index; i >= 0; i--) {
-                    View view = mScene.getChildAt(i);
+                    View view = scene.getChildAt(i);
                     if (view == null) {
                         continue;
                     }
 
-                    MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
+                    SceneLayoutParams params = (SceneLayoutParams) view.getLayoutParams();
                     if (params.getScene().getLayouter() != this) {
                         break;
                     }
 
-                    int col = getDecoratedLeft(view) / childWidth;
+                    int col = scene.getDecoratedLeft(view) / childWidth;
                     if (!places[col]) {
                         places[col] = true;
-                        bottoms[col] = getDecoratedBottom(view);
+                        bottoms[col] = scene.getDecoratedBottom(view);
                         positions[col] = params.getViewLayoutPosition();
                     }
 
@@ -222,60 +217,60 @@ public class StaggeredGridLayouter extends AbsLayouter<MultiScene> {
 
                 }
 
-                int maxBottom = mScene.getBottom();
+                int maxBottom = scene.getBottom();
                 for (int i = 0; i < mSpanCount; i++) {
 
                     Column column = columns[i];
                     int position = positions[i];
 
-                    int bottom = fillColumnBottom(multiData, column, dy, position, bottoms[i]);
+                    int bottom = fillColumnBottom(scene, column, dy, position, bottoms[i]);
                     maxBottom = Math.max(bottom, maxBottom);
                 }
-                mScene.setBottom(maxBottom);
-                return Math.min(dy, maxBottom - getRecyclerHeight());
+                scene.setBottom(maxBottom);
+                return Math.min(dy, maxBottom - scene.getHeight());
             }
         } else {
             // 从上往下滑动
             if (anchorView == null) {
 
-                int minTop = mScene.getBottom();
+                int minTop = scene.getBottom();
                 for (int i = 0; i < mSpanCount; i++) {
 
                     Column column = columns[i];
 //                    int position = column.getLast();
 
-                    int top = fillColumnTop(multiData, column, dy, -1, mScene.getBottom() + column.bottom);
+                    int top = fillColumnTop(scene, column, dy, -1, scene.getBottom() + column.bottom);
                     minTop = Math.min(top, minTop);
                 }
 
-                mScene.setTop(minTop);
-                return Math.min(-dy, mScene.getBottom() - minTop);
+                scene.setTop(minTop);
+                return Math.min(-dy, scene.getBottom() - minTop);
             } else {
 
-                int childWidth = getRecyclerWidth() / mSpanCount;
+                int childWidth = scene.getWidth() / mSpanCount;
 
                 boolean[] places = new boolean[mSpanCount];
                 int[] tops = new int[mSpanCount];
                 int[] positions = new int[mSpanCount];
                 Arrays.fill(positions, -1);
 
-                int index = mScene.indexOfChild(anchorView);
+                int index = scene.indexOfChild(anchorView);
                 int count = 0;
-                for (int i = index; i < mScene.getChildCount(); i++) {
-                    View view = mScene.getChildAt(i);
+                for (int i = index; i < scene.getChildCount(); i++) {
+                    View view = scene.getChildAt(i);
                     if (view == null) {
                         continue;
                     }
 
-                    MultiLayoutParams params = (MultiLayoutParams) view.getLayoutParams();
+                    SceneLayoutParams params = (SceneLayoutParams) view.getLayoutParams();
                     if (params.getScene().getLayouter() != this) {
                         break;
                     }
 
-                    int col = getDecoratedLeft(view) / childWidth;
+                    int col = scene.getDecoratedLeft(view) / childWidth;
                     if (!places[col]) {
                         places[col] = true;
-                        tops[col] = getDecoratedTop(view);
+                        tops[col] = scene.getDecoratedTop(view);
                         positions[col] = params.getViewLayoutPosition();
                         count++;
                     }
@@ -286,9 +281,9 @@ public class StaggeredGridLayouter extends AbsLayouter<MultiScene> {
                 }
 
 
-                int col = getDecoratedLeft(anchorView) / childWidth;
+                int col = scene.getDecoratedLeft(anchorView) / childWidth;
                 Column anchorColumn = columns[col];
-                int anchorBottom = getDecoratedBottom(anchorView) - anchorColumn.bottom;
+                int anchorBottom = scene.getDecoratedBottom(anchorView) - anchorColumn.bottom;
 
                 Log.d(TAG, "fillVertical bottom col=" + col);
 
@@ -301,18 +296,18 @@ public class StaggeredGridLayouter extends AbsLayouter<MultiScene> {
                     }
                 }
 
-                int minTop = mScene.getTop();
+                int minTop = scene.getTop();
                 for (int i = 0; i < mSpanCount; i++) {
 
                     Column column = columns[i];
                     int position = positions[i];
 
                     Log.d(TAG, "fillVertical fillColumnTop tops[i]=" + tops[i] + " pos=" + position + " i=" + i);
-                    int top = fillColumnTop(multiData, column, dy, position, tops[i]);
+                    int top = fillColumnTop(scene, column, dy, position, tops[i]);
                     minTop = Math.min(top, minTop);
                 }
 
-                mScene.setTop(minTop);
+                scene.setTop(minTop);
                 Log.d(TAG, "fillVertical anchorBottom=" + anchorBottom + " top=" + minTop);
                 return Math.min(-dy, -minTop);
             }
@@ -321,16 +316,16 @@ public class StaggeredGridLayouter extends AbsLayouter<MultiScene> {
     }
 
     @Override
-    protected int fillVerticalTop(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorTop) {
+    protected int fillVerticalTop(Scene scene, int currentPosition, int availableSpace, int anchorTop) {
         return 0;
     }
 
     @Override
-    protected int fillVerticalBottom(MultiData<?> multiData, int currentPosition, int availableSpace, int anchorBottom) {
+    protected int fillVerticalBottom(Scene scene, int currentPosition, int availableSpace, int anchorBottom) {
         return 0;
     }
 
-    private int fillColumnTop(MultiData<?> multiData, Column column, int dy, int currentPosition, int anchorTop) {
+    private int fillColumnTop(Scene scene, Column column, int dy, int currentPosition, int anchorTop) {
 
         if (anchorTop - dy < 0) {
             return anchorTop;
@@ -347,15 +342,15 @@ public class StaggeredGridLayouter extends AbsLayouter<MultiScene> {
             next = index - 1;
         }
 
-        int childWidth = getRecyclerWidth() / mSpanCount;
-        int childWidthUsed = getRecyclerWidth() - childWidth;
+        int childWidth = scene.getWidth() / mSpanCount;
+        int childWidthUsed = scene.getWidth() - childWidth;
         while (next >= 0) {
             int nextPosition = column.positions.get(next--);
-            View view = mScene.obtainViewForPosition(nextPosition);
-            mScene.addView(view, 0);
-            measureChild(view, childWidthUsed, 0);
+            View view = scene.obtainViewForPosition(nextPosition);
+            scene.addView(view, 0);
+            scene.measureChild(view, childWidthUsed, 0);
 
-            int height = getDecoratedMeasuredHeight(view);
+            int height = scene.getDecoratedMeasuredHeight(view);
 
             int left = column.index * childWidth;
             int bottom = anchorTop;
@@ -365,7 +360,7 @@ public class StaggeredGridLayouter extends AbsLayouter<MultiScene> {
 
             anchorTop = top;
 
-            layoutDecorated(view, left, top, right, bottom);
+            scene.layoutDecorated(view, left, top, right, bottom);
 
             if (anchorTop - dy < 0) {
                 break;
@@ -376,9 +371,9 @@ public class StaggeredGridLayouter extends AbsLayouter<MultiScene> {
 
     }
 
-    private int fillColumnBottom(MultiData<?> multiData, Column column, int dy, int currentPosition, int anchorBottom) {
+    private int fillColumnBottom(Scene scene, Column column, int dy, int currentPosition, int anchorBottom) {
 
-        if (anchorBottom - dy > getRecyclerHeight()) {
+        if (anchorBottom - dy > scene.getHeight()) {
             return anchorBottom;
         }
 
@@ -394,15 +389,15 @@ public class StaggeredGridLayouter extends AbsLayouter<MultiScene> {
         }
 
 
-        int childWidth = getRecyclerWidth() / mSpanCount;
-        int childWidthUsed = getRecyclerWidth() - childWidth;
+        int childWidth = scene.getWidth() / mSpanCount;
+        int childWidthUsed = scene.getWidth() - childWidth;
         while (next < column.positions.size()) {
             int nextPosition = column.positions.get(next++);
-            View view = mScene.obtainViewForPosition(nextPosition);
-            mScene.addView(view);
-            measureChild(view, childWidthUsed, 0);
+            View view = scene.obtainViewForPosition(nextPosition);
+            scene.addView(view);
+            scene.measureChild(view, childWidthUsed, 0);
 
-            int height = getDecoratedMeasuredHeight(view);
+            int height = scene.getDecoratedMeasuredHeight(view);
 
             int left = column.index * childWidth;
             int top = anchorBottom;
@@ -411,9 +406,9 @@ public class StaggeredGridLayouter extends AbsLayouter<MultiScene> {
 
             anchorBottom = bottom;
 
-            layoutDecorated(view, left, top, right, bottom);
+            scene.layoutDecorated(view, left, top, right, bottom);
 
-            if (anchorBottom - dy > getRecyclerHeight()) {
+            if (anchorBottom - dy > scene.getHeight()) {
                 break;
             }
         }
@@ -421,14 +416,9 @@ public class StaggeredGridLayouter extends AbsLayouter<MultiScene> {
         return anchorBottom;
 
     }
-
-    @Override
-    public int fillHorizontal(View anchorView, int dx, MultiData<?> multiData) {
-        return 0;
-    }
-
-    private void initColumns(MultiData<?> multiData) {
-        if (columns == null || array.size() != mScene.getItemCount()) {
+    
+    private void initColumns(Scene scene) {
+        if (columns == null || array.size() != scene.getItemCount()) {
 
             columns = new Column[mSpanCount];
             array.clear();
@@ -437,18 +427,20 @@ public class StaggeredGridLayouter extends AbsLayouter<MultiScene> {
                 columns[i] = new Column(i);
             }
 
-            int childWidth = getRecyclerWidth() / mSpanCount;
-            int childWidthUsed = getRecyclerWidth() - childWidth;
+            int childWidth = scene.getWidth() / mSpanCount;
+            int childWidthUsed = scene.getWidth() - childWidth;
             int minIndex = 0;
             int minBottom = 0;
             int maxBottom = 0;
 
 
-            for (int i = mScene.getPositionOffset(); i < mScene.getPositionOffset() + mScene.getItemCount(); i++) {
-                View view = mScene.obtainViewForPosition(i);
-                measureChild(view, childWidthUsed, 0);
+            int positionOffset = scene.getPositionOffset();
+            int itemCount = scene.getItemCount();
+            for (int i = positionOffset; i < positionOffset + itemCount; i++) {
+                View view = scene.obtainViewForPosition(i);
+                scene.measureChild(view, childWidthUsed, 0);
 
-                int height = getDecoratedMeasuredHeight(view);
+                int height = scene.getDecoratedMeasuredHeight(view);
 
                 Column column = columns[minIndex];
                 column.bottom += height;
