@@ -7,8 +7,8 @@ import android.view.View;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.StateMultiData;
 import com.zpj.recyclerview.core.AbsLayouter;
+import com.zpj.recyclerview.core.AnchorInfo;
 import com.zpj.recyclerview.core.Scene;
-import com.zpj.recyclerview.scene.GridScene;
 
 public class GridLayouter extends AbsLayouter {
 
@@ -43,13 +43,14 @@ public class GridLayouter extends AbsLayouter {
     }
 
     @Override
-    protected int fillVerticalTop(Scene scene, int currentPosition, int availableSpace, int anchorTop) {
-        int left = 0;
-        int top = anchorTop;
-        int right = 0;
-        int bottom = anchorTop;
-
+    protected int fillVerticalTop(Scene scene, AnchorInfo anchorInfo, int availableSpace) {
         int positionOffset = scene.getPositionOffset();
+        int currentPosition = anchorInfo.position + positionOffset;
+        int left = 0;
+        int top = anchorInfo.y;
+        int right = 0;
+        int bottom = top;
+
         MultiData<?> multiData = scene.getMultiData();
         if (multiData instanceof StateMultiData && ((StateMultiData<?>) multiData).getState() != com.zpj.statemanager.State.STATE_CONTENT) {
             View view = scene.addViewAndMeasure(positionOffset, 0);
@@ -90,13 +91,14 @@ public class GridLayouter extends AbsLayouter {
     }
 
     @Override
-    protected int fillVerticalBottom(Scene scene, int currentPosition, int availableSpace, int anchorBottom) {
-        int left = 0;
-        int top = anchorBottom;
-        int right = 0;
-        int bottom = anchorBottom;
-
+    protected int fillVerticalBottom(Scene scene, AnchorInfo anchorInfo, int availableSpace) {
         int positionOffset = scene.getPositionOffset();
+        int currentPosition = anchorInfo.position + positionOffset;
+        int left = 0;
+        int top = anchorInfo.y;
+        int right = 0;
+        int bottom = top;
+
         int itemCount = scene.getItemCount();
         MultiData<?> multiData = scene.getMultiData();
         if (multiData instanceof StateMultiData && ((StateMultiData<?>) multiData).getState() != com.zpj.statemanager.State.STATE_CONTENT) {

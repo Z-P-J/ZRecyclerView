@@ -152,7 +152,7 @@ public class LayoutManagerActivity extends AppCompatActivity {
 
 //        sceneList.add(new ContainerScene(new TestContainerMultiData(list), new HorizontalLayouter()));
 
-//        addMoreScene(sceneList, list);
+        addMoreScene(sceneList, list);
 
 
         RecyclerView recyclerView = findViewById(R.id.recycler_view);

@@ -87,14 +87,6 @@ public class BaseMultiLayoutManager extends RecyclerView.LayoutManager {
         return ((SceneLayoutParams) child.getLayoutParams()).getScene();
     }
 
-    public Layouter getLayouter(View child) {
-        Scene scene = getScene(child);
-        if (scene == null) {
-            return null;
-        }
-        return scene.getLayouter();
-    }
-
     public MultiData<?> getMultiData(View child) {
         Scene scene = getScene(child);
         if (scene == null) {

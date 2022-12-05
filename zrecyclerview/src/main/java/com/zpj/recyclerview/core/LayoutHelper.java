@@ -171,10 +171,6 @@ public class LayoutHelper {
         return mLayoutManager.getMultiData(child);
     }
 
-    public Layouter getLayouter(View child) {
-        return mLayoutManager.getLayouter(child);
-    }
-
     public int indexOfChild(View child) {
         return mLayoutManager.indexOfChild(child);
     }

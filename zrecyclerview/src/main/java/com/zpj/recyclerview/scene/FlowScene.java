@@ -4,11 +4,11 @@ import android.support.annotation.NonNull;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
+import com.zpj.recyclerview.core.AbsScene;
 import com.zpj.recyclerview.core.LayoutHelper;
-import com.zpj.recyclerview.core.Scene;
 import com.zpj.recyclerview.layouter.FlowLayouter;
 
-public class FlowScene extends Scene<FlowLayouter> {
+public class FlowScene extends AbsScene<FlowLayouter> {
 
     private static final String TAG = "FlowLayouter";
 
@@ -32,6 +32,22 @@ public class FlowScene extends Scene<FlowLayouter> {
         super(multiData, layouter);
     }
 
+    public int getSpaceLeft() {
+        return mLayouter.getSpaceLeft();
+    }
+
+    public int getSpaceTop() {
+        return mLayouter.getSpaceTop();
+    }
+
+    public int getSpaceRight() {
+        return mLayouter.getSpaceRight();
+    }
+
+    public int getSpaceBottom() {
+        return mLayouter.getSpaceBottom();
+    }
+
     @Override
     protected FlowLayoutHelper createLayoutHelper() {
         return new FlowLayoutHelper(this);
@@ -48,22 +64,22 @@ public class FlowScene extends Scene<FlowLayouter> {
 
         @Override
         public int getDecoratedLeft(@NonNull View child) {
-            return super.getDecoratedLeft(child) - mScene.getLayouter().getSpaceLeft();
+            return super.getDecoratedLeft(child) - mScene.getSpaceLeft();
         }
 
         @Override
         public int getDecoratedTop(@NonNull View child) {
-            return super.getDecoratedTop(child) - mScene.getLayouter().getSpaceTop();
+            return super.getDecoratedTop(child) - mScene.getSpaceTop();
         }
 
         @Override
         public int getDecoratedRight(@NonNull View child) {
-            return super.getDecoratedRight(child) + mScene.getLayouter().getSpaceRight();
+            return super.getDecoratedRight(child) + mScene.getSpaceRight();
         }
 
         @Override
         public int getDecoratedBottom(@NonNull View child) {
-            return super.getDecoratedBottom(child) + mScene.getLayouter().getSpaceBottom();
+            return super.getDecoratedBottom(child) + mScene.getSpaceBottom();
         }
 
     }

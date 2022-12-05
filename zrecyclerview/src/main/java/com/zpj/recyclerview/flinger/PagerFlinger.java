@@ -83,7 +83,7 @@ public abstract class PagerFlinger extends HorizontalFlinger {
             for (int i = 0; i < pagerScene.getChildCount(); i++) {
                 View child = pagerScene.getChildAt(i);
 
-                if (pagerScene.getScene(child) == mScene) {
+                if (pagerScene.getLayoutHelper().getScene(child) == mScene) {
                     count++;
                 }
             }

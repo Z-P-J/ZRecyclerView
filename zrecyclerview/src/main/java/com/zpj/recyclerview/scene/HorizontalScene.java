@@ -7,10 +7,10 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.core.Scene;
+import com.zpj.recyclerview.core.AbsScene;
 import com.zpj.recyclerview.layouter.HorizontalLayouter;
 
-public class HorizontalScene extends Scene<HorizontalLayouter> {
+public class HorizontalScene extends AbsScene<HorizontalLayouter> {
 
     private static final String TAG = "HorizontalLayouter";
 

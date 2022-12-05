@@ -1,8 +1,6 @@
 package com.zpj.recyclerview.layouter;
 
-import android.view.View;
-
-import com.zpj.recyclerview.MultiData;
+import com.zpj.recyclerview.core.AnchorInfo;
 import com.zpj.recyclerview.core.Scene;
 
 public interface Layouter {
@@ -11,10 +9,10 @@ public interface Layouter {
 
     boolean canScrollVertically();
 
-    void layoutChildren(Scene scene);
+    void layoutChildren(Scene scene, AnchorInfo anchorInfo);
 
-    int fillVertical(Scene scene, View anchorView, int dy);
+    int fillVertical(Scene scene, AnchorInfo anchorInfo, int dy);
 
-    int fillHorizontal(Scene scene, View anchorView, int dx);
+    int fillHorizontal(Scene scene, AnchorInfo anchorInfo, int dx);
 
 }

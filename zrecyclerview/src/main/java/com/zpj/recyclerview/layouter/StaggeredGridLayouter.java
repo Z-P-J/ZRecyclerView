@@ -6,6 +6,7 @@ import android.util.SparseIntArray;
 import android.view.View;
 
 import com.zpj.recyclerview.core.AbsLayouter;
+import com.zpj.recyclerview.core.AnchorInfo;
 import com.zpj.recyclerview.core.Scene;
 import com.zpj.recyclerview.core.SceneLayoutParams;
 
@@ -58,7 +59,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
     public StaggeredGridLayouter(@IntRange(from = 1) int spanCount) {
         mSpanCount = spanCount;
     }
-
+    
     public void saveState(Scene scene) {
         int childWidth = scene.getWidth() / mSpanCount;
         boolean[] places = new boolean[mSpanCount];
@@ -76,7 +77,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
             }
 
             SceneLayoutParams params = (SceneLayoutParams) view.getLayoutParams();
-            if (params.getScene().getLayouter() != this) {
+            if (params.getScene() != scene) {
                 continue;
             }
 
@@ -124,7 +125,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
     }
 
     @Override
-    public void layoutChildren(Scene scene) {
+    public void layoutChildren(Scene scene, AnchorInfo anchorInfo) {
         if (scene.getItemCount() == 0 || scene.getTop() > scene.getHeight()) {
             scene.setBottom(scene.getTop());
             return;
@@ -154,14 +155,11 @@ public class StaggeredGridLayouter extends AbsLayouter {
     }
 
     @Override
-    public int fillVertical(Scene scene, View anchorView, int dy) {
-        Log.e(TAG, "fillVertical anchorView is null=" + (anchorView == null) + " dy=" + dy);
+    public int fillVertical(Scene scene, AnchorInfo anchorInfo, int dy) {
         initColumns(scene);
-
-        Log.e(TAG, "fillVertical anchorView is null=" + (anchorView == null) + " dy=" + dy);
         if (dy > 0) {
             // 从下往上滑动
-            if (anchorView == null) {
+            if (anchorInfo.anchorView == null) {
 
 
                 int maxBottom = scene.getTop();
@@ -185,6 +183,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
                 int[] bottoms = new int[mSpanCount];
                 int[] positions = new int[mSpanCount];
 
+                View anchorView = anchorInfo.anchorView;
                 int index = scene.indexOfChild(anchorView);
                 for (int i = index; i >= 0; i--) {
                     View view = scene.getChildAt(i);
@@ -193,7 +192,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
                     }
 
                     SceneLayoutParams params = (SceneLayoutParams) view.getLayoutParams();
-                    if (params.getScene().getLayouter() != this) {
+                    if (params.getScene() != scene) {
                         break;
                     }
 
@@ -231,7 +230,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
             }
         } else {
             // 从上往下滑动
-            if (anchorView == null) {
+            if (anchorInfo.anchorView == null) {
 
                 int minTop = scene.getBottom();
                 for (int i = 0; i < mSpanCount; i++) {
@@ -254,6 +253,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
                 int[] positions = new int[mSpanCount];
                 Arrays.fill(positions, -1);
 
+                View anchorView = anchorInfo.anchorView;
                 int index = scene.indexOfChild(anchorView);
                 int count = 0;
                 for (int i = index; i < scene.getChildCount(); i++) {
@@ -263,7 +263,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
                     }
 
                     SceneLayoutParams params = (SceneLayoutParams) view.getLayoutParams();
-                    if (params.getScene().getLayouter() != this) {
+                    if (params.getScene() != scene) {
                         break;
                     }
 
@@ -316,12 +316,12 @@ public class StaggeredGridLayouter extends AbsLayouter {
     }
 
     @Override
-    protected int fillVerticalTop(Scene scene, int currentPosition, int availableSpace, int anchorTop) {
+    protected int fillVerticalTop(Scene scene, AnchorInfo anchor, int availableSpace) {
         return 0;
     }
 
     @Override
-    protected int fillVerticalBottom(Scene scene, int currentPosition, int availableSpace, int anchorBottom) {
+    protected int fillVerticalBottom(Scene scene, AnchorInfo anchor, int availableSpace) {
         return 0;
     }
 

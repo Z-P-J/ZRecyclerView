@@ -3,8 +3,8 @@ package com.zpj.recyclerview.layouter;
 import android.util.Log;
 import android.view.View;
 
-import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.core.AbsLayouter;
+import com.zpj.recyclerview.core.AnchorInfo;
 import com.zpj.recyclerview.core.Scene;
 
 public class VerticalLayouter extends AbsLayouter {
@@ -22,13 +22,15 @@ public class VerticalLayouter extends AbsLayouter {
     }
 
     @Override
-    protected int fillVerticalTop(Scene scene, int currentPosition, int availableSpace, int anchorTop) {
+    protected int fillVerticalTop(Scene scene, AnchorInfo anchorInfo, int availableSpace) {
+        int positionOffset = scene.getPositionOffset();
+        int currentPosition = anchorInfo.position + positionOffset;
         int left = 0;
-        int top = anchorTop;
+        int top = anchorInfo.y;
         int right = scene.getWidth();
-        int bottom = anchorTop;
+        int bottom = top;
 
-        while (availableSpace > 0 && currentPosition >= scene.getPositionOffset()) {
+        while (availableSpace > 0 && currentPosition >= positionOffset) {
             Log.e(TAG, "scrollVerticallyBy decoratedTop currentPosition=" + currentPosition + " availableSpace=" + availableSpace);
             View view = scene.addViewAndMeasure(currentPosition--, 0);
 
@@ -46,14 +48,15 @@ public class VerticalLayouter extends AbsLayouter {
     }
 
     @Override
-    protected int fillVerticalBottom(Scene scene, int currentPosition, int availableSpace, int anchorBottom) {
+    protected int fillVerticalBottom(Scene scene, AnchorInfo anchorInfo, int availableSpace) {
+        int positionOffset = scene.getPositionOffset();
+        int currentPosition = anchorInfo.position + positionOffset;
         int left = 0;
-        int top = anchorBottom;
+        int top = anchorInfo.y;
         int right = scene.getWidth();
-        int bottom = anchorBottom;
-        Log.e(TAG, "fillVerticalBottom anchorBottom=" + anchorBottom + " height=" + scene.getHeight());
+        int bottom = top;
 
-        while (availableSpace > 0 && currentPosition < scene.getPositionOffset() + scene.getItemCount()) {
+        while (availableSpace > 0 && currentPosition < positionOffset + scene.getItemCount()) {
             Log.e(TAG, "fillVerticalBottom currentPosition=" + currentPosition + " availableSpace=" + availableSpace);
             View view = scene.addViewAndMeasure(currentPosition++);
             int measuredHeight= scene.getDecoratedMeasuredHeight(view);

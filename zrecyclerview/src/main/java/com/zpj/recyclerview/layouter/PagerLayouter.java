@@ -4,10 +4,9 @@ import android.support.annotation.IntRange;
 import android.util.Log;
 import android.view.View;
 
-import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.core.AbsLayouter;
+import com.zpj.recyclerview.core.AnchorInfo;
 import com.zpj.recyclerview.core.Scene;
-import com.zpj.recyclerview.scene.PagerScene;
 
 public class PagerLayouter extends AbsLayouter {
 
@@ -51,36 +50,32 @@ public class PagerLayouter extends AbsLayouter {
     }
 
     @Override
-    public int fillVertical(Scene scene, View anchorView, int dy) {
+    public int fillVertical(Scene scene, AnchorInfo anchorInfo, int dy) {
         if (dy > 0) {
             // 从下往上滑动
-            if (anchorView == null) {
-                int currentPosition = scene.mAnchorInfo.position + scene.getPositionOffset();
-                return fillVerticalBottom(scene, currentPosition, dy, scene.getTop());
+            if (anchorInfo.anchorView == null) {
+                return fillVerticalBottom(scene, anchorInfo, dy);
             } else {
                 // 如果占用两行则需要以下代码
-                int anchorBottom = scene.getDecoratedTop(anchorView);
-                if (anchorBottom > scene.getHeight()) {
-                    if (anchorBottom - dy > scene.getHeight()) {
+                if (anchorInfo.y > scene.getHeight()) {
+                    if (anchorInfo.y - dy > scene.getHeight()) {
                         return dy;
                     } else {
-                        return anchorBottom - scene.getHeight();
+                        return anchorInfo.y - scene.getHeight();
                     }
                 }
             }
         } else {
             // 从上往下滑动
-            if (anchorView == null) {
-                int currentPosition = scene.mAnchorInfo.position + scene.getPositionOffset();
-                return fillVerticalTop(scene, currentPosition, dy, scene.getBottom());
+            if (anchorInfo.anchorView == null) {
+                return fillVerticalTop(scene, anchorInfo, dy);
             } else {
                 // 如果占用两行则需要以下代码
-                int anchorTop = scene.getDecoratedTop(anchorView);
-                if (anchorTop < 0) {
-                    if (anchorTop - dy < 0) {
+                if (anchorInfo.y < 0) {
+                    if (anchorInfo.y - dy < 0) {
                         return -dy;
                     } else {
-                        return -anchorTop;
+                        return -anchorInfo.y;
                     }
                 }
             }
@@ -89,12 +84,12 @@ public class PagerLayouter extends AbsLayouter {
     }
 
     @Override
-    protected int fillVerticalTop(Scene scene, int currentPosition, int dy, int anchorTop) {
-
+    protected int fillVerticalTop(Scene scene, AnchorInfo anchorInfo, int dy) {
+        int currentPosition = anchorInfo.position + scene.getPositionOffset();
         int left = 0;
-        int top = anchorTop;
+        int top = anchorInfo.y;
         int right = 0;
-        int bottom = anchorTop;
+        int bottom = top;
 
         int min = currentPosition - mOffscreenPageLimit;
         int max = currentPosition + mOffscreenPageLimit;
@@ -119,7 +114,7 @@ public class PagerLayouter extends AbsLayouter {
             }
             View view = scene.addViewAndMeasure(position, index++);
 
-            left = scene.mAnchorInfo.x + (i - currentPosition) * scene.getWidth();
+            left = anchorInfo.x + (i - currentPosition) * scene.getWidth();
             right = left + scene.getWidth();
             top = bottom - scene.getDecoratedMeasuredHeight(view);
 
@@ -131,12 +126,13 @@ public class PagerLayouter extends AbsLayouter {
     }
 
     @Override
-    protected int fillVerticalBottom(Scene scene, int currentPosition, int dy, int anchorBottom) {
-
+    protected int fillVerticalBottom(Scene scene, AnchorInfo anchorInfo, int dy) {
+        int currentPosition = anchorInfo.position + scene.getPositionOffset();
+        int anchorBottom = anchorInfo.y;
         int left = 0;
         int top = anchorBottom;
         int right = 0;
-        int bottom = anchorBottom;
+        int bottom = top;
 
         int min = currentPosition - mOffscreenPageLimit;
         int max = currentPosition + mOffscreenPageLimit;
@@ -161,7 +157,7 @@ public class PagerLayouter extends AbsLayouter {
             Log.d(TAG, "fillVerticalBottom position=" + position);
             View view = scene.addViewAndMeasure(position);
 
-            left = scene.mAnchorInfo.x + (i - currentPosition) * scene.getWidth();
+            left = anchorInfo.x + (i - currentPosition) * scene.getWidth();
             right = left + scene.getWidth();
             bottom = top + scene.getDecoratedMeasuredHeight(view);
 
@@ -172,11 +168,12 @@ public class PagerLayouter extends AbsLayouter {
     }
 
     @Override
-    public int fillHorizontal(Scene scene, View anchorView, int dx) {
+    public int fillHorizontal(Scene scene, AnchorInfo anchorInfo, int dx) {
+        View anchorView = anchorInfo.anchorView;
         if (anchorView == null) {
             return 0;
         }
-        int centerPosition = scene.mAnchorInfo.position + scene.getPositionOffset();
+        int centerPosition = anchorInfo.position + scene.getPositionOffset();
 
         int min = centerPosition - mOffscreenPageLimit;
         int max = centerPosition + mOffscreenPageLimit;

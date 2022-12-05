@@ -349,7 +349,9 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
                 scene.attach(this);
 
                 if (lastScene == null) {
-                    topPosition = scene.mAnchorInfo.position + positionOffset;
+//                    topPosition = scene.mAnchorInfo.position + positionOffset;
+                    // TODO fixme
+                    topPosition = positionOffset;
                 } else {
                     scene.setTop(lastScene.getBottom());
                 }
@@ -568,17 +570,14 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
                 scene = getScene(view);
                 i++;
             } while (scene == null);
-            Layouter layouter = scene.getLayouter();
             Log.d(TAG, "scrollVerticallyBy firstChildPosition=" + getPosition(view));
-            consumed -= layouter.fillVertical(scene, view, dy - consumed);
+            consumed -= scene.fillVertical(view, dy - consumed);
             i = mSceneList.indexOf(scene);
             while (consumed > dy && i > 0) {
                 int top = scene.getTop();
                 scene = mSceneList.get(--i);
-                layouter = scene.getLayouter();
                 scene.setBottom(top);
-                Log.d(TAG, "scrollVerticallyBy layouter=" + layouter);
-                consumed -= layouter.fillVertical(scene, null, dy - consumed);
+                consumed -= scene.fillVertical(null, dy - consumed);
             }
         } else {
             // 从下往上滑动
@@ -599,18 +598,14 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
                 scene = getScene(view);
                 i--;
             } while (scene == null);
-            Layouter layouter = scene.getLayouter();
-            Log.w(TAG, "scrollVerticallyBy layouter=" + layouter);
-            consumed += layouter.fillVertical(scene, view, dy - consumed);
+            consumed += scene.fillVertical(view, dy - consumed);
             i = mSceneList.indexOf(scene);
             Log.w(TAG, "scrollVerticallyBy consumedLast=" + consumed + " i=" + i + " lastPosition=" + getPosition(view));
             while (consumed < dy && i < mSceneList.size() - 1) {
                 int bottom = scene.getBottom();
                 scene = mSceneList.get(++i);
-                layouter = scene.getLayouter();
-                Log.w(TAG, "scrollVerticallyBy layouter=" + layouter + " consumed=" + consumed);
                 scene.setTop(bottom);
-                consumed += layouter.fillVertical(scene, null, dy - consumed);
+                consumed += scene.fillVertical(null, dy - consumed);
             }
         }
 
@@ -618,7 +613,7 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
 
         Scene last = null;
         handleSticky = true;
-        List<Layouter> layouters = new ArrayList<>();
+//        List<Layouter> layouters = new ArrayList<>();
         for (int i = 0; i < getChildCount(); i++) {
             View view = getChildAt(i);
             if (view == null) {
@@ -629,13 +624,13 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
                 Log.d(TAG, "scrollVerticallyBy i=" + i + " position=" + getPosition(view));
                 continue;
             }
-            Layouter layouter = scene.getLayouter();
+//            Layouter layouter = scene.getLayouter();
             if (scene != last) {
-                layouters.add(layouter);
+//                layouters.add(layouter);
                 scene.offsetTopAndBottom(-consumed);
                 last = scene;
             }
-            if (layouter.canScrollVertically()) {
+            if (scene.canScrollVertically()) {
                 if (handleSticky(scene, view, i, consumed)) {
                     continue;
                 }
@@ -690,7 +685,6 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
     private boolean handleSticky;
 
     private boolean handleSticky(Scene scene, View view, int i, int consumed) {
-        Layouter layouter = scene.getLayouter();
         int position = getPosition(view);
 
         boolean isStickyPosition = scene.getMultiData().isStickyPosition(position - scene.getPositionOffset());
@@ -948,7 +942,6 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
             if (last != scene) {
                 last = scene;
                 scene.saveState(child);
-                Log.e(TAG, "saveState i=" + i + " mAnchorInfo=" + scene.mAnchorInfo);
             }
         }
     }

@@ -5,8 +5,8 @@ import android.util.SparseArray;
 import android.view.View;
 
 import com.zpj.recyclerview.core.AbsLayouter;
+import com.zpj.recyclerview.core.AnchorInfo;
 import com.zpj.recyclerview.core.Scene;
-import com.zpj.recyclerview.scene.FlowScene;
 
 public class FlowLayouter extends AbsLayouter {
 
@@ -128,15 +128,16 @@ public class FlowLayouter extends AbsLayouter {
 
     // 从上往下滑动
     @Override
-    protected int fillVerticalTop(Scene scene, int currentPosition, int availableSpace, int anchorTop) {
+    protected int fillVerticalTop(Scene scene, AnchorInfo anchorInfo, int availableSpace) {
+        int positionOffset = scene.getPositionOffset();
+        int currentPosition = anchorInfo.position + positionOffset;
         int left = 0;
-        int top = anchorTop - mSpaceBottom;
+        int top = anchorInfo.y - mSpaceBottom;
         int right = 0;
-        int bottom = anchorTop - mSpaceBottom;
+        int bottom = top;
 
         initStates(scene);
 
-        int positionOffset = scene.getPositionOffset();
         while (availableSpace > 0 && currentPosition >= positionOffset) {
             int key = currentPosition - positionOffset;
             ItemState itemState = states.get(key);
@@ -168,15 +169,16 @@ public class FlowLayouter extends AbsLayouter {
 
     // 从下往上滑动
     @Override
-    protected int fillVerticalBottom(Scene scene, int currentPosition, int availableSpace, int anchorBottom) {
+    protected int fillVerticalBottom(Scene scene, AnchorInfo anchorInfo, int availableSpace) {
+        int positionOffset = scene.getPositionOffset();
+        int currentPosition = anchorInfo.position + positionOffset;
         int left = 0;
-        int top = anchorBottom + mSpaceBottom;
+        int top = anchorInfo.y + mSpaceBottom;
         int right = 0;
-        int bottom = anchorBottom + mSpaceBottom;
+        int bottom = top;
 
         initStates(scene);
 
-        int positionOffset = scene.getPositionOffset();
         int itemCount = scene.getItemCount();
         int key = currentPosition - positionOffset;
         ItemState itemState = states.get(key);
