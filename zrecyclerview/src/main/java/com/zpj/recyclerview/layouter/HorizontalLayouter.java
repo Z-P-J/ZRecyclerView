@@ -6,10 +6,9 @@ package com.zpj.recyclerview.layouter;
 import android.util.Log;
 import android.view.View;
 
-import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.core.AbsLayouter;
+import com.zpj.recyclerview.core.AnchorInfo;
 import com.zpj.recyclerview.core.Scene;
-import com.zpj.recyclerview.scene.HorizontalScene;
 
 public class HorizontalLayouter extends AbsLayouter {
 
@@ -44,52 +43,46 @@ public class HorizontalLayouter extends AbsLayouter {
     }
 
     @Override
-    public int fillVertical(Scene scene, View anchorView, int dy) {
+    public int fillVertical(Scene scene, AnchorInfo anchorInfo, int dy) {
         if (dy > 0) {
             // 从下往上滑动
-            if (anchorView == null) {
-                return fillVerticalBottom(scene,
-                        scene.mAnchorInfo.position + scene.getPositionOffset(),
-                        dy, scene.getTop());
+            if (anchorInfo.anchorView == null) {
+                return fillVerticalBottom(scene, anchorInfo, dy);
             } else {
                 // 如果占用两行则需要以下代码
-                int anchorBottom = scene.getDecoratedBottom(anchorView);
-                if (anchorBottom - dy > scene.getHeight()) {
+                if (anchorInfo.y - dy > scene.getHeight()) {
                     return dy;
                 } else {
-                    return anchorBottom - scene.getHeight();
+                    return anchorInfo.y - scene.getHeight();
                 }
             }
         } else {
             // 从上往下滑动
-            if (anchorView == null) {
-                return fillVerticalTop(scene,
-                        scene.mAnchorInfo.position + scene.getPositionOffset(),
-                        dy, scene.getBottom());
+            if (anchorInfo.anchorView == null) {
+                return fillVerticalTop(scene, anchorInfo, dy);
             } else {
                 // 如果占用两行则需要以下代码
-                int anchorTop = scene.getDecoratedTop(anchorView);
-                if (anchorTop - dy < 0) {
+                if (anchorInfo.y - dy < 0) {
                     return -dy;
                 } else {
-                    return -anchorTop;
+                    return -anchorInfo.y;
                 }
             }
         }
     }
 
     @Override
-    protected int fillVerticalTop(Scene scene, int currentPosition, int dy, int anchorTop) {
-
-        int left = scene.mAnchorInfo.x;
-        int top = anchorTop;
+    protected int fillVerticalTop(Scene scene, AnchorInfo anchorInfo, int dy) {
+        int positionOffset = scene.getPositionOffset();
+        int currentPosition = anchorInfo.position + positionOffset;
+        int left = anchorInfo.x;
+        int top = anchorInfo.y;
         int right = 0;
-        int bottom = anchorTop;
+        int bottom = top;
 
         int availableSpace = scene.getWidth() - scene.getPaddingRight() - left;
 
         int i = 0;
-        int positionOffset = scene.getPositionOffset();
         int itemCount = scene.getItemCount();
         while (availableSpace > 0) {
             if (currentPosition >= positionOffset + itemCount) {
@@ -119,16 +112,18 @@ public class HorizontalLayouter extends AbsLayouter {
     }
 
     @Override
-    protected int fillVerticalBottom(Scene scene, int currentPosition, int dy, int anchorBottom) {
-
-        int left = scene.mAnchorInfo.x;
+    protected int fillVerticalBottom(Scene scene, AnchorInfo anchorInfo, int dy) {
+        int positionOffset = scene.getPositionOffset();
+        int currentPosition = anchorInfo.position + positionOffset;
+        int anchorBottom = anchorInfo.y;
+        int left = anchorInfo.x;
         int top = anchorBottom;
         int right = 0;
-        int bottom = anchorBottom;
+        int bottom = top;
 
         int availableSpace = scene.getWidth() - scene.getPaddingRight() - left;
 
-        int positionOffset = scene.getPositionOffset();
+
         int itemCount = scene.getItemCount();
         while (availableSpace > 0) {
             if (currentPosition >= positionOffset + itemCount) {
@@ -154,7 +149,8 @@ public class HorizontalLayouter extends AbsLayouter {
     }
 
     @Override
-    public int fillHorizontal(Scene scene, View anchorView, int dx) {
+    public int fillHorizontal(Scene scene, AnchorInfo anchorInfo, int dx) {
+        View anchorView = anchorInfo.anchorView;
         if (anchorView == null) {
             return 0;
         }

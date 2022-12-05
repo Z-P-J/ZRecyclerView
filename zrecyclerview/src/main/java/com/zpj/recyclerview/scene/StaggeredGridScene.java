@@ -3,10 +3,10 @@ package com.zpj.recyclerview.scene;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.core.Scene;
+import com.zpj.recyclerview.core.AbsScene;
 import com.zpj.recyclerview.layouter.StaggeredGridLayouter;
 
-public class StaggeredGridScene extends Scene<StaggeredGridLayouter> {
+public class StaggeredGridScene extends AbsScene<StaggeredGridLayouter> {
 
     public StaggeredGridScene(MultiData<?> multiData) {
         this(multiData, new StaggeredGridLayouter(2));

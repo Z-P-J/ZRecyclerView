@@ -1,10 +1,10 @@
 package com.zpj.recyclerview.scene;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.core.Scene;
+import com.zpj.recyclerview.core.AbsScene;
 import com.zpj.recyclerview.layouter.VerticalLayouter;
 
-public class VerticalScene extends Scene {
+public class VerticalScene extends AbsScene<VerticalLayouter> {
 
     public VerticalScene(MultiData<?> multiData) {
         this(multiData, new VerticalLayouter());

@@ -16,12 +16,14 @@ import android.view.ViewGroup;
 import com.zpj.recyclerview.MultiData;
 import com.zpj.recyclerview.MultiSceneRecycler;
 import com.zpj.recyclerview.core.AbsLayouter;
+import com.zpj.recyclerview.core.AbsScene;
+import com.zpj.recyclerview.core.AnchorInfo;
 import com.zpj.recyclerview.core.LayoutHelper;
 import com.zpj.recyclerview.core.SceneLayoutParams;
 import com.zpj.recyclerview.core.Scene;
 import com.zpj.recyclerview.layouter.Layouter;
 
-public class ContainerScene extends Scene {
+public class ContainerScene extends AbsScene<Layouter> {
 
     private static final String TAG = "ContainerLayouter";
 
@@ -32,7 +34,7 @@ public class ContainerScene extends Scene {
 
 
     // TODO 代理的方式
-    public static class ChildScene extends Scene {
+    public static class ChildScene extends AbsScene<Layouter> {
 
         public ChildScene(MultiData<?> multiData, Layouter layouter) {
             super(multiData, layouter);
@@ -475,7 +477,7 @@ public class ContainerScene extends Scene {
         }
 
         @Override
-        public int fillVertical(Scene scene, View anchorView, int dy) {
+        public int fillVertical(Scene scene, AnchorInfo anchorInfo, int dy) {
             int positionOffset = scene.getPositionOffset();
             View container = scene.findViewByPosition(positionOffset);
             boolean isNewContainer = container == null;
@@ -492,12 +494,13 @@ public class ContainerScene extends Scene {
             ContainerLayout containerLayout = (ContainerLayout) container;
 //        containerLayout.removeAllViews();
 
+            View anchorView;
             if (dy > 0) {
                 anchorView = containerLayout.getChildAt(containerLayout.getChildCount() - 1);
             } else {
                 anchorView = containerLayout.getChildAt(0);
             }
-            int consumed = mChildScene.getLayouter().fillVertical(mChildScene, anchorView, dy);
+            int consumed = mChildScene.fillVertical(anchorView, dy);
 
             int height = mChildScene.getBottom() - mChildScene.getTop();
 
@@ -541,18 +544,22 @@ public class ContainerScene extends Scene {
         }
 
         @Override
-        protected int fillVerticalTop(Scene scene, int currentPosition, int availableSpace, int anchorTop) {
+        protected int fillVerticalTop(Scene scene, AnchorInfo anchor, int availableSpace) {
             return 0;
         }
 
         @Override
-        protected int fillVerticalBottom(Scene scene, int currentPosition, int availableSpace, int anchorBottom) {
+        protected int fillVerticalBottom(Scene scene, AnchorInfo anchor, int availableSpace) {
             return 0;
         }
 
         @Override
-        public int fillHorizontal(Scene scene, View anchorView, int dx) {
-            return mChildScene.getLayouter().fillHorizontal(mChildScene, anchorView, dx);
+        public int fillHorizontal(Scene scene, AnchorInfo anchorInfo, int dx) {
+            View anchorView = (ViewGroup) scene.findViewByPosition(scene.getPositionOffset());
+            if (anchorView != null) {
+                anchorView = ((ViewGroup) anchorView).getChildAt(0);
+            }
+            return mChildScene.fillHorizontal(anchorView, dx);
         }
     }
 }

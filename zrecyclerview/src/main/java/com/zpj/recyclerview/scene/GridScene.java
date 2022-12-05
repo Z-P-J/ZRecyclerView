@@ -3,10 +3,10 @@ package com.zpj.recyclerview.scene;
 import android.support.annotation.IntRange;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.core.Scene;
+import com.zpj.recyclerview.core.AbsScene;
 import com.zpj.recyclerview.layouter.GridLayouter;
 
-public class GridScene extends Scene<GridLayouter> {
+public class GridScene extends AbsScene<GridLayouter> {
 
     public GridScene(MultiData<?> multiData) {
         this(multiData, new GridLayouter());

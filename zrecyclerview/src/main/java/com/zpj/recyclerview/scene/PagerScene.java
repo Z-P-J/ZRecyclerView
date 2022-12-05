@@ -8,16 +8,16 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
-import com.zpj.recyclerview.core.Scene;
+import com.zpj.recyclerview.core.AbsScene;
+import com.zpj.recyclerview.core.LayoutHelper;
 import com.zpj.recyclerview.flinger.Flinger;
 import com.zpj.recyclerview.flinger.PagerFlinger;
-import com.zpj.recyclerview.core.LayoutHelper;
 import com.zpj.recyclerview.layouter.PagerLayouter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PagerScene extends Scene<PagerLayouter> {
+public class PagerScene extends AbsScene<PagerLayouter> {
 
     private static final String TAG = "ViewPagerLayouter";
 
