@@ -10,8 +10,6 @@ import com.zpj.recyclerview.layouter.FlowLayouter;
 
 public class FlowScene extends AbsScene<FlowLayouter> {
 
-    private static final String TAG = "FlowLayouter";
-
     public FlowScene(MultiData<?> multiData) {
         this(multiData, 0);
     }

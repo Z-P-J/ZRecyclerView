@@ -164,7 +164,7 @@ public class PagerLayouter extends AbsLayouter {
             scene.layoutDecorated(view, left, top, right, bottom);
         }
         scene.setBottom(bottom);
-        return Math.min(dy, - anchorBottom);
+        return Math.min(dy, bottom - anchorBottom);
     }
 
     @Override

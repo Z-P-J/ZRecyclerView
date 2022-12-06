@@ -15,6 +15,7 @@ public class AnchorInfo {
                 "x=" + x +
                 ", y=" + y +
                 ", position=" + position +
+                ", anchorView=" + anchorView +
                 '}';
     }
 }

@@ -47,7 +47,7 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
     private static final int OVER_SCROLL_LEFT = 3;
     private static final int OVER_SCROLL_RIGHT = 4;
 
-    private final Deque<StickyInfo> stickyInfoStack = new ArrayDeque<>();
+    private final StickyItemManager mStickyItemManager = new StickyItemManager();
 
     private List<Scene> mSceneList;
 
@@ -55,9 +55,6 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
 
     private float mDownX = -1;
     private float mDownY = -1;
-
-    private StickyInfo stickyInfo;
-    private int currentStickyOffset = 0;
 
     private boolean isOverScrolling;
     private int overScrollDirection;
@@ -268,7 +265,7 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
                     }
 
                     if (mOverScrollAnimator == null) {
-                        View lastChild = getChildAt(stickyInfo == null ? getChildCount() - 1 : getChildCount() - 2);
+                        View lastChild = getChildAt(mStickyItemManager.hasStickyItem() ? getChildCount() - 2 : getChildCount() - 1);
                         if (lastChild != null) {
                             final int bottom = getDecoratedBottom(lastChild);
                             final int contentHeight = Math.min(getHeight(), bottom - firstTop);
@@ -335,8 +332,7 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
             scene.getLayoutHelper().scrapOrRecycleView(i, v);
         }
 
-        StickyInfo temp = stickyInfo;
-        stickyInfo = null;
+        mStickyItemManager.setEnable(false);
 
         int positionOffset = 0;
         int topPosition = 0;
@@ -363,44 +359,8 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
 
         saveState();
 
-        stickyInfo = temp;
-
-        Log.d(TAG, "stickyInfo111=" + stickyInfo + " topPosition=" + topPosition);
-        if (stickyInfo == null || topPosition > stickyInfo.position) {
-            initStickyInfoStack(topPosition);
-            stickyInfo = stickyInfoStack.poll();
-        } else if (topPosition < stickyInfo.position) {
-            if (stickyInfoStack.isEmpty()) {
-                initStickyInfoStack(topPosition);
-            }
-            while (stickyInfo != null && topPosition < stickyInfo.position) {
-                stickyInfo = stickyInfoStack.poll();
-            }
-        }
-
-        Log.d(TAG, "stickyInfo111222=" + stickyInfo + " stickyInfoStack.size=" + stickyInfoStack.size());
-
-        if (stickyInfo != null) {
-            View child = findViewByPosition(stickyInfo.position);
-            if (stickyInfoStack.isEmpty() && child != null && getDecoratedTop(child) == 0) {
-                stickyInfo = null;
-            } else {
-                if (child == null) {
-                    child = recycler.getViewForPosition(stickyInfo.position);
-                } else {
-                    detachAndScrapView(child, recycler);
-                }
-                SceneLayoutParams params = (SceneLayoutParams) child.getLayoutParams();
-                params.setScene(stickyInfo.scene);
-                super.addView(child, getChildCount());
-                measureChild(child, 0, 0);
-                layoutDecorated(child, 0, currentStickyOffset, getWidth(),
-                        currentStickyOffset + getDecoratedMeasuredHeight(child));
-
-                stickyInfo.scene.getMultiData().onItemSticky(new EasyViewHolder(child),
-                        stickyInfo.position - stickyInfo.scene.getPositionOffset(), true);
-            }
-        }
+        mStickyItemManager.setEnable(true);
+        mStickyItemManager.initStickyItems(mSceneList, topPosition);
 
         lastScene = null;
         for (int i = 0; i < getChildCount(); i++) {
@@ -419,7 +379,6 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
             }
         }
 
-
     }
 
 //    private List<MultiData<?>> getAllMultiData(List<MultiData<?>> dataList) {
@@ -435,25 +394,6 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
 //        }
 //        return list;
 //    }
-
-    private void initStickyInfoStack(int position) {
-        stickyInfoStack.clear();
-        int offset = 0;
-
-        for (Scene scene : mSceneList) {
-            int count = scene.getItemCount();
-            for (int pos = offset; pos < offset + count; pos++) {
-                if (scene.getMultiData().isStickyPosition(pos - offset)) {
-                    Log.d(TAG, "stickyInfo111 pos=" + pos);
-                    stickyInfoStack.push(new StickyInfo(pos, scene));
-                }
-                if (pos >= position) {
-                    return;
-                }
-            }
-            offset += count;
-        }
-    }
 
     @Override
     public boolean canScrollHorizontally() {
@@ -486,10 +426,10 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
 
     @Override
     public void offsetChildrenVertical(int dy) {
-        if (isOverScrolling && stickyInfo != null && overScrollDirection == OVER_SCROLL_UP) {
+        if (isOverScrolling && mStickyItemManager.hasStickyItem() && overScrollDirection == OVER_SCROLL_UP) {
             for (int i = 0; i < getChildCount(); i++) {
                 View child = getChildAt(i);
-                if (child != null && getPosition(child) != stickyInfo.position) {
+                if (child != null && mStickyItemManager.isStickyPosition(getPosition(child))) {
                     child.offsetTopAndBottom(dy);
                 }
             }
@@ -562,7 +502,7 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
                 if (view == null) {
                     return 0;
                 }
-                if (stickyInfo != null && stickyInfo.position == getPosition(view)) {
+                if (mStickyItemManager.isStickyPosition(getPosition(view))) {
                     i++;
                     continue;
                 }
@@ -590,7 +530,7 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
                 if (view == null) {
                     return 0;
                 }
-                if (stickyInfo != null && stickyInfo.position == getPosition(view)) {
+                if (mStickyItemManager.isStickyPosition(getPosition(view))) {
                     i--;
                     continue;
                 }
@@ -602,18 +542,20 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
             i = mSceneList.indexOf(scene);
             Log.w(TAG, "scrollVerticallyBy consumedLast=" + consumed + " i=" + i + " lastPosition=" + getPosition(view));
             while (consumed < dy && i < mSceneList.size() - 1) {
+
                 int bottom = scene.getBottom();
+                Log.e(TAG, "scrollVerticallyBy111 height=" + (bottom - scene.getTop()) + " scene=" + scene);
                 scene = mSceneList.get(++i);
                 scene.setTop(bottom);
                 consumed += scene.fillVertical(null, dy - consumed);
+                Log.w(TAG, "scrollVerticallyBy111 top=" + bottom + " dy=" + dy + " consumed=" + consumed + " scene=" + scene);
             }
         }
 
         Log.d(TAG, "scrollVerticallyBy consumed=" + consumed);
 
         Scene last = null;
-        handleSticky = true;
-//        List<Layouter> layouters = new ArrayList<>();
+        mStickyItemManager.setHandleSticky(true);
         for (int i = 0; i < getChildCount(); i++) {
             View view = getChildAt(i);
             if (view == null) {
@@ -624,14 +566,12 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
                 Log.d(TAG, "scrollVerticallyBy i=" + i + " position=" + getPosition(view));
                 continue;
             }
-//            Layouter layouter = scene.getLayouter();
             if (scene != last) {
-//                layouters.add(layouter);
                 scene.offsetTopAndBottom(-consumed);
                 last = scene;
             }
             if (scene.canScrollVertically()) {
-                if (handleSticky(scene, view, i, consumed)) {
+                if (mStickyItemManager.handleSticky(scene, view, i, consumed)) {
                     continue;
                 }
                 if (scene.getLayoutHelper().shouldRecycleChildViewVertically(view, consumed)) {
@@ -659,190 +599,19 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
             consumed = dy;
         }
 
-        if (stickyInfo != null) {
-            View child = findViewByPosition(stickyInfo.position);
-            if (child == null) {
-                child = recycler.getViewForPosition(stickyInfo.position);
-            } else {
-                detachAndScrapView(child, recycler);
-            }
-            SceneLayoutParams params = (SceneLayoutParams) child.getLayoutParams();
-            params.setScene(stickyInfo.scene);
-            super.addView(child, getChildCount());
-            measureChild(child, 0, 0);
-            Log.e(TAG, "scrollVerticallyBy currentStickyOffset=" + currentStickyOffset);
-            layoutDecorated(child, 0, currentStickyOffset, getWidth(), currentStickyOffset + getDecoratedMeasuredHeight(child));
-
-            stickyInfo.scene.getMultiData().onItemSticky(new EasyViewHolder(child),
-                    stickyInfo.position - stickyInfo.scene.getPositionOffset(),
-                    true);
-        }
+        mStickyItemManager.onScrolled();
 
         Log.d(TAG, "scrollVerticallyBy getChildCount=" + getChildCount() + " \n");
         return consumed;
     }
 
-    private boolean handleSticky;
-
-    private boolean handleSticky(Scene scene, View view, int i, int consumed) {
-        int position = getPosition(view);
-
-        boolean isStickyPosition = scene.getMultiData().isStickyPosition(position - scene.getPositionOffset());
-        if (!isStickyPosition) {
-            return false;
-        }
-
-        Log.e(TAG, "scrollVerticallyBy");
-        Log.e(TAG, "scrollVerticallyBy ================================start");
-        Log.d(TAG, "scrollVerticallyBy i=" + i + " stickyPosition=" + position);
-        int decoratedTop = scene.getDecoratedTop(view);
-        int decoratedBottom = scene.getDecoratedBottom(view);
-//                        Log.d(TAG, "scrollVerticallyBy decoratedTop=" + decoratedTop
-//                                + " decoratedBottom=" + decoratedBottom + " height=" + getDecoratedMeasuredHeight(view)
-//                                + " consumed=" + consumed + " dy=" + dy
-//                                + " currentStickyPosition=" + currentStickyPosition + " position=" + position + " iii=" + i + " last=" + (getChildCount() - 1));
-
-        Log.d(TAG, "scrollVerticallyBy isStickyChild i=" + i + " position=" + position + " stickyInfo=" + stickyInfo);
-
-        if (stickyInfo != null && stickyInfo.position == position) {
-            // 已是当前吸顶view
-
-//                            Log.d(TAG, "scrollVerticallyBy decoratedTop=" + decoratedTop + " childPos=" + (getChildCount() - 1) + " i=" + i + " consumed=" + consumed);
-            if (i != getChildCount() - 1 && decoratedTop - consumed >= 0) { //  && decoratedTop - consumed >= 0
-//                            currentStickyOffset = decoratedTop - getDecoratedMeasuredHeight(view) - consumed;
-                if (stickyInfo != null) {
-                    stickyInfo.scene.getMultiData().onItemSticky(new EasyViewHolder(view),
-                            stickyInfo.position - stickyInfo.scene.getPositionOffset(),
-                            false);
-                }
-                if (stickyInfoStack.isEmpty()) {
-                    stickyInfo = null;
-                    currentStickyOffset = 0;
-                } else {
-                    stickyInfo = stickyInfoStack.pop();
-                }
-                handleSticky = false;
-                if (stickyInfo != null) {
-                    View child = findViewByPosition(stickyInfo.position);
-                    if (child == null) {
-                        child = getViewForPosition(stickyInfo.position);
-                        measureChild(child, 0, 0);
-                    }
-                    SceneLayoutParams params = (SceneLayoutParams) child.getLayoutParams();
-                    params.setScene(stickyInfo.scene);
-
-                    currentStickyOffset = decoratedTop - getDecoratedMeasuredHeight(child) - consumed;
-                }
-                Log.d(TAG, "scrollVerticallyBy 吸顶==>下一个吸顶 stickyInfo=" + stickyInfo + " currentStickyOffset=" + currentStickyOffset);
-            } else {
-                return true;
-            }
-        } else if (handleSticky) {
-            handleSticky = false;
-            // 不是当前吸顶view
-            if (stickyInfo == null) {
-                // 无吸顶
-                // dy > 0 &&
-                if (decoratedTop - consumed < 0) {
-                    currentStickyOffset = 0;
-                    stickyInfo = new StickyInfo(position, scene);
-                    layoutDecorated(view, 0, 0, getWidth(), getDecoratedMeasuredHeight(view));
-                    Log.d(TAG, "scrollVerticallyBy 无吸顶===》当前吸顶 currentStickyPosition==position : " + position);
-                    return true;
-                }
-                Log.d(TAG, "scrollVerticallyBy 无吸顶");
-            } else {
-                // 说明已经有sticky吸顶item
-                View child = findViewByPosition(stickyInfo.position);
-                if (child == null) {
-                    child = getViewForPosition(stickyInfo.position);
-                    measureChild(child, 0, 0);
-                }
-                SceneLayoutParams params = (SceneLayoutParams) child.getLayoutParams();
-                params.setScene(stickyInfo.scene);
-                Log.d(TAG, "scrollVerticallyBy 有吸顶 stickyInfo=" + stickyInfo + " position=" + position);
-
-                if (position > stickyInfo.position) {
-                    Log.d(TAG, "scrollVerticallyBy 有吸顶 decoratedTop - consumed="
-                            + (decoratedTop - consumed) + " childHeight=" + getDecoratedMeasuredHeight(view)
-                            + " pos=" + position + " stickyPos=" + stickyInfo.position);
-                    if (decoratedTop - consumed <= 0) {
-                        stickyInfoStack.push(stickyInfo);
-                        scene.getLayoutHelper().addViewToRecycler(child);
-                        if (stickyInfo != null) {
-                            stickyInfo.scene.getMultiData().onItemSticky(new EasyViewHolder(child), stickyInfo.position - stickyInfo.scene.getPositionOffset(), false);
-                        }
-                        stickyInfo = new StickyInfo(position, scene);
-                        currentStickyOffset = 0;
-                        layoutDecorated(view, 0, 0, getWidth(), getDecoratedMeasuredHeight(view));
-                        Log.d(TAG, "scrollVerticallyBy 更改吸顶 child continue + position=" + position);
-                        return true;
-                    } else if (decoratedTop - consumed < getDecoratedMeasuredHeight(child)) {
-                        child.offsetTopAndBottom(-consumed);
-//                                    currentStickyOffset = Math.min(layouter.getDecoratedTop(child), getDecoratedMeasuredHeight(child));
-                        int top = scene.getDecoratedTop(child);
-                        if (top > 0) {
-                            child.offsetTopAndBottom(-top);
-                        }
-                        currentStickyOffset = scene.getDecoratedTop(child);
-                        Log.d(TAG, "scrollVerticallyBy 更改吸顶 child continue currentStickyOffset=" + currentStickyOffset + " position=" + position);
-                    } else {
-                        currentStickyOffset = 0;
-                    }
-                } else {
-                    if (decoratedBottom - consumed >= 0) {
-                        child.offsetTopAndBottom(-consumed);
-//                                    currentStickyOffset = Math.min(layouter.getDecoratedTop(child), getDecoratedMeasuredHeight(child));
-                        int top = scene.getDecoratedTop(child);
-                        if (top > 0) {
-                            child.offsetTopAndBottom(-top);
-                        }
-                        currentStickyOffset = scene.getDecoratedTop(child);
-
-                    } else if (decoratedBottom - consumed > getDecoratedMeasuredHeight(child)) {
-//                                    currentStickyOffset = decoratedTop - getDecoratedMeasuredHeight() - consumed;
-                        if (stickyInfo != null) {
-                            stickyInfo.scene.getMultiData()
-                                    .onItemSticky(new EasyViewHolder(child),
-                                            stickyInfo.position - stickyInfo.scene.getPositionOffset(),
-                                            false);
-                        }
-                        if (stickyInfoStack.isEmpty()) {
-                            stickyInfo = null;
-                            currentStickyOffset = 0;
-                        } else {
-                            stickyInfo = stickyInfoStack.pop();
-                        }
-
-                        if (stickyInfo != null) {
-                            child = findViewByPosition(stickyInfo.position);
-                            if (child == null) {
-                                child = getViewForPosition(stickyInfo.position);
-                                measureChild(child, 0, 0);
-                            }
-                            params = (SceneLayoutParams) child.getLayoutParams();
-                            params.setScene(stickyInfo.scene);
-
-                            currentStickyOffset = Math.min(0, decoratedTop - getDecoratedMeasuredHeight(child) - consumed);
-                        }
-
-                        layoutDecorated(view, 0, 0, getWidth(), getDecoratedMeasuredHeight(view));
-                        Log.d(TAG, "scrollVerticallyBy 更改吸顶 child continue");
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
     @Override
     public void addView(View child) {
-        Log.d(TAG, "addView psoition=" + getPosition(child) + " stickyInfo=" + stickyInfo + " lastIndex=" + (getChildCount() - 1));
-        if (stickyInfo == null) {
-            super.addView(child, getChildCount());
-        } else {
+        Log.d(TAG, "addView psoition=" + getPosition(child) + " lastIndex=" + (getChildCount() - 1));
+        if (mStickyItemManager.hasStickyItem()) {
             super.addView(child, getChildCount() - 1);
+        } else {
+            super.addView(child, getChildCount());
         }
     }
 

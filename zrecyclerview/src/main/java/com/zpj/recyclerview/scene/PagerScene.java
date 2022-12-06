@@ -19,7 +19,7 @@ import java.util.List;
 
 public class PagerScene extends AbsScene<PagerLayouter> {
 
-    private static final String TAG = "ViewPagerLayouter";
+    private static final String TAG = "PagerScene";
 
     public static final int SCROLL_STATE_IDLE = 0;
     public static final int SCROLL_STATE_DRAGGING = 1;
@@ -58,6 +58,8 @@ public class PagerScene extends AbsScene<PagerLayouter> {
 
     @Override
     public void saveState(View firstChild) {
+        Log.e(TAG, "saveState firstP=" + getPosition(firstChild));
+        Log.e(TAG, "saveState currentItem=" + getCurrentItem() + " currentP=" + getCurrentPosition());
         View current = findViewByPosition(getCurrentPosition());
         super.saveState(current);
     }
@@ -71,10 +73,17 @@ public class PagerScene extends AbsScene<PagerLayouter> {
     }
 
     @Override
+    public int fillVertical(View anchorView, int dy) {
+        anchorView = findViewByPosition(getCurrentPosition());
+        return super.fillVertical(anchorView, dy);
+    }
+
+    @Override
     protected Flinger createFlinger() {
         return new PagerFlinger(this) {
             @Override
             protected void onItemSelected(int item) {
+                Log.e(TAG, "onItemSelected item=" + item);
                 mAnchorInfo.position = item;
                 if (mOnPageChangeListeners != null) {
                     for(int i = 0; i < mOnPageChangeListeners.size(); ++i) {

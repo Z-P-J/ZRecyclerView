@@ -25,7 +25,7 @@ import com.zpj.recyclerview.layouter.Layouter;
 
 public class ContainerScene extends AbsScene<Layouter> {
 
-    private static final String TAG = "ContainerLayouter";
+    private static final String TAG = "BannerScene";
 
     @NonNull
     private final Scene mDelegateScene;
