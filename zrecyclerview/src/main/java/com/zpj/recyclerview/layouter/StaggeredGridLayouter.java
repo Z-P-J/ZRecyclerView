@@ -59,8 +59,10 @@ public class StaggeredGridLayouter extends AbsLayouter {
     public StaggeredGridLayouter(@IntRange(from = 1) int spanCount) {
         mSpanCount = spanCount;
     }
-    
+
+    // TODO 修复瀑布流布局，可能是saveState出现了问题
     public void saveState(Scene scene) {
+        Log.e(TAG, "saveState positionOff=" + scene.getPositionOffset());
         int childWidth = scene.getWidth() / mSpanCount;
         boolean[] places = new boolean[mSpanCount];
 
@@ -82,6 +84,7 @@ public class StaggeredGridLayouter extends AbsLayouter {
             }
 
             int col = scene.getDecoratedLeft(view) / childWidth;
+            Log.e(TAG, "saveState col=" + col);
             if (!places[col]) {
                 places[col] = true;
                 mTops[col] = scene.getDecoratedTop(view);
@@ -156,12 +159,11 @@ public class StaggeredGridLayouter extends AbsLayouter {
 
     @Override
     public int fillVertical(Scene scene, AnchorInfo anchorInfo, int dy) {
+        Log.e(TAG, "fillVertical dy=" + dy + " top=" + scene.getTop() + " anchorInfo=" + anchorInfo);
         initColumns(scene);
         if (dy > 0) {
             // 从下往上滑动
             if (anchorInfo.anchorView == null) {
-
-
                 int maxBottom = scene.getTop();
                 for (int i = 0; i < mSpanCount; i++) {
 
@@ -327,9 +329,9 @@ public class StaggeredGridLayouter extends AbsLayouter {
 
     private int fillColumnTop(Scene scene, Column column, int dy, int currentPosition, int anchorTop) {
 
-        if (anchorTop - dy < 0) {
-            return anchorTop;
-        }
+//        if (anchorTop - dy < 0) {
+//            return anchorTop;
+//        }
 
         int next;
         if (currentPosition < 0) {
@@ -372,10 +374,9 @@ public class StaggeredGridLayouter extends AbsLayouter {
     }
 
     private int fillColumnBottom(Scene scene, Column column, int dy, int currentPosition, int anchorBottom) {
-
-        if (anchorBottom - dy > scene.getHeight()) {
-            return anchorBottom;
-        }
+//        if (anchorBottom - dy > scene.getHeight()) {
+//            return anchorBottom;
+//        }
 
         int next;
         if (currentPosition < 0) {

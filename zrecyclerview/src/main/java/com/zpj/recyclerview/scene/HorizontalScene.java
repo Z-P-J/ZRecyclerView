@@ -12,8 +12,6 @@ import com.zpj.recyclerview.layouter.HorizontalLayouter;
 
 public class HorizontalScene extends AbsScene<HorizontalLayouter> {
 
-    private static final String TAG = "HorizontalLayouter";
-
     public HorizontalScene(MultiData<?> multiData) {
         this(multiData, new HorizontalLayouter());
     }

@@ -1,5 +1,6 @@
 package com.zpj.recyclerview.scene;
 
+import android.util.Log;
 import android.view.View;
 
 import com.zpj.recyclerview.MultiData;
@@ -22,6 +23,7 @@ public class StaggeredGridScene extends AbsScene<StaggeredGridLayouter> {
 
     @Override
     public void saveState(View firstChild) {
+        Log.e("StaggeredGridLayouter", "saveState firstP=" + getPosition(firstChild));
         mLayouter.saveState(this);
     }
 

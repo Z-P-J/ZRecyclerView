@@ -9,7 +9,7 @@ import com.zpj.recyclerview.layouter.PagerLayouter;
 
 public class BannerScene extends PagerScene {
 
-    private static final String TAG = "BannerLayouter";
+    private static final String TAG = "BannerScene";
 
     private boolean mStart;
 
