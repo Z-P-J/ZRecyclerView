@@ -58,8 +58,6 @@ public class PagerScene extends AbsScene<PagerLayouter> {
 
     @Override
     public void saveState(View firstChild) {
-        Log.e(TAG, "saveState firstP=" + getPosition(firstChild));
-        Log.e(TAG, "saveState currentItem=" + getCurrentItem() + " currentP=" + getCurrentPosition());
         View current = findViewByPosition(getCurrentPosition());
         super.saveState(current);
     }
@@ -83,7 +81,6 @@ public class PagerScene extends AbsScene<PagerLayouter> {
         return new PagerFlinger(this) {
             @Override
             protected void onItemSelected(int item) {
-                Log.e(TAG, "onItemSelected item=" + item);
                 mAnchorInfo.position = item;
                 if (mOnPageChangeListeners != null) {
                     for(int i = 0; i < mOnPageChangeListeners.size(); ++i) {
@@ -111,8 +108,8 @@ public class PagerScene extends AbsScene<PagerLayouter> {
     }
 
     @Override
-    public boolean onTouchDown(float downX, float downY, MotionEvent event) {
-        boolean result = super.onTouchDown(downX, downY, event);
+    public boolean onTouchDown(MotionEvent event) {
+        boolean result = super.onTouchDown(event);
         if (result && mScrollState == SCROLL_STATE_SETTLING) {
             setScrollState(SCROLL_STATE_DRAGGING);
         }
@@ -120,17 +117,17 @@ public class PagerScene extends AbsScene<PagerLayouter> {
     }
 
     @Override
-    public boolean onTouchMove(float x, float y, float downX, float downY, MotionEvent event) {
+    public boolean onTouchMove(MotionEvent event) {
         if (this.mScrollState != SCROLL_STATE_DRAGGING) {
             setScrollState(SCROLL_STATE_DRAGGING);
         }
-        return super.onTouchMove(x, y, downX, downY, event);
+        return super.onTouchMove(event);
     }
 
     @Override
-    public boolean onTouchUp(float velocityX, float velocityY, MotionEvent event) {
+    public boolean onTouchUp(MotionEvent event, float velocityX, float velocityY) {
         setScrollState(SCROLL_STATE_SETTLING);
-        return super.onTouchUp(velocityX, velocityY, event);
+        return super.onTouchUp(event, velocityX, velocityY);
     }
 
     @Override
@@ -292,9 +289,7 @@ public class PagerScene extends AbsScene<PagerLayouter> {
                 View current = findViewByPosition(mPagerScene.getCurrentPosition());
                 int index = indexOfChild(view);
                 int center = indexOfChild(current);
-                boolean result = Math.abs(index - center) > mPagerScene.getOffscreenPageLimit();
-                Log.d(TAG, "shouldRecycleChildViewHorizontally currentPosition=" + mPagerScene.getCurrentPosition() + " position=" + getPosition(view) + " recycle=" + result);
-                return result;
+                return Math.abs(index - center) > mPagerScene.getOffscreenPageLimit();
             } else {
                 return Math.abs(mPagerScene.getCurrentPosition() - getPosition(view)) > mPagerScene.getOffscreenPageLimit();
             }

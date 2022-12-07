@@ -63,13 +63,13 @@ public class HorizontalScene extends AbsScene<HorizontalLayouter> {
     }
 
     @Override
-    public boolean onTouchUp(float velocityX, float velocityY, MotionEvent event) {
+    public boolean onTouchUp(MotionEvent event, float velocityX, float velocityY) {
         if (isInfinite()) {
             if (canScrollHorizontally() && mFlinger != null) {
                 mFlinger.fling(velocityX, velocityY);
             }
             return false;
         }
-        return super.onTouchUp(velocityX, velocityY, event);
+        return super.onTouchUp(event, velocityX, velocityY);
     }
 }

@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 
 import com.zpj.recyclerview.EasyViewHolder;
 import com.zpj.recyclerview.HeaderMultiData;
-import com.zpj.recyclerview.MultiAdapter;
+import com.zpj.recyclerview.MultiSceneAdapter;
 import com.zpj.recyclerview.MultiData;
 
 import java.util.HashMap;
@@ -47,7 +47,7 @@ public class StickyHeaderItemDecoration extends RecyclerView.ItemDecoration {
         }
 
         LinearLayoutManager linearLayoutManager = (LinearLayoutManager) layoutManager;
-        MultiAdapter groupAdapter = (MultiAdapter) adapter;
+        MultiSceneAdapter groupAdapter = (MultiSceneAdapter) adapter;
 
 
         int currItemPosition = linearLayoutManager.findFirstVisibleItemPosition();

@@ -111,19 +111,18 @@ public class BannerScene extends PagerScene {
     }
 
     @Override
-    public boolean onTouchDown(float downX, float downY, MotionEvent event) {
-        if (!canHandleTouch(downX, downY)) {
+    public boolean onTouchDown(MotionEvent event) {
+        if (!canHandleTouch(event)) {
             return false;
         }
-        Log.d(TAG, "onTouchDown downX=" + downX + " downY=" + downY);
         stopAutoPlay();
-        return super.onTouchDown(downX, downY, event);
+        return super.onTouchDown(event);
     }
 
     @Override
-    public boolean onTouchUp(float velocityX, float velocityY, MotionEvent event) {
+    public boolean onTouchUp(MotionEvent event, float velocityX, float velocityY) {
         Log.d(TAG, "onTouchUp velocityX=" + velocityX + " velocityY=" + velocityY);
-        boolean result = super.onTouchUp(velocityX, velocityY, event);
+        boolean result = super.onTouchUp(event, velocityX, velocityY);
         startAutoPlay();
         return result;
     }

@@ -92,18 +92,18 @@ public class ContainerScene extends AbsScene<Layouter> {
     }
 
     @Override
-    public boolean onTouchDown(float downX, float downY, MotionEvent event) {
-        return mDelegateScene.onTouchDown(downX, downY, event);
+    public boolean onTouchDown(MotionEvent event) {
+        return mDelegateScene.onTouchDown(event);
     }
 
     @Override
-    public boolean onTouchMove(float x, float y, float downX, float downY, MotionEvent event) {
-        return mDelegateScene.onTouchMove(x, y, downX, downY, event);
+    public boolean onTouchMove(MotionEvent event) {
+        return mDelegateScene.onTouchMove(event);
     }
 
     @Override
-    public boolean onTouchUp(float velocityX, float velocityY, MotionEvent event) {
-        return mDelegateScene.onTouchUp(velocityX, velocityY, event);
+    public boolean onTouchUp(MotionEvent event, float velocityX, float velocityY) {
+        return mDelegateScene.onTouchUp(event, velocityX, velocityY);
     }
 
     @Override

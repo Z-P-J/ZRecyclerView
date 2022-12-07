@@ -25,7 +25,7 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
 
     protected boolean hasMore = true;
 
-    private MultiAdapter mAdapter;
+    private MultiSceneAdapter mAdapter;
 
     protected int mLastCount = 0;
 
@@ -43,12 +43,12 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
         return new VerticalLayouter();
     }
 
-    public void setAdapter(MultiAdapter adapter) {
+    public void setAdapter(MultiSceneAdapter adapter) {
         this.mAdapter = adapter;
         mLastCount = getCount();
     }
 
-    public MultiAdapter getAdapter() {
+    public MultiSceneAdapter getAdapter() {
         return mAdapter;
     }
 
@@ -137,14 +137,14 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
      * TODO 优化数据加载
      */
     @Deprecated
-    public boolean load(MultiAdapter adapter) {
+    public boolean load(MultiSceneAdapter adapter) {
         return load(0, 0, adapter);
     }
 
     /**
      * TODO 优化数据加载
      */
-    public boolean load(int start, int end, MultiAdapter adapter) {
+    public boolean load(int start, int end, MultiSceneAdapter adapter) {
         if (this.mAdapter == null) {
             setAdapter(adapter);
         }
@@ -195,7 +195,7 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
     }
 
     protected void scrollToPosition(final int position) {
-        final MultiAdapter adapter = getAdapter();
+        final MultiSceneAdapter adapter = getAdapter();
         adapter.post(new Runnable() {
             @Override
             public void run() {
@@ -215,7 +215,7 @@ public abstract class MultiData<T> extends EasyStateConfig<MultiData<T>> { // ex
     }
 
     protected void smoothScrollToPosition(final int position) {
-        final MultiAdapter adapter = getAdapter();
+        final MultiSceneAdapter adapter = getAdapter();
         adapter.post(new Runnable() {
             @Override
             public void run() {

@@ -395,8 +395,9 @@ public class BaseRecycler<T, R extends BaseRecycler<T, R>> extends EasyStateConf
                 onGetChildLayoutIdListener, onCreateViewHolder,
                 onBindViewHolderListener, onItemClickListener,
                 onItemLongClickListener, onClickListeners,
-                onLongClickListeners, mRefresher, this
+                onLongClickListeners, this
         );
+        easyAdapter.setRefreshHeader(mRefresher);
         easyAdapter.setAdapterInjector(adapterInjector);
         if (headerView != null) {
             easyAdapter.setHeaderView(headerView);
@@ -412,6 +413,7 @@ public class BaseRecycler<T, R extends BaseRecycler<T, R>> extends EasyStateConf
 //            easyAdapter.setOnBindFooterListener(onBindFooterListener);
             easyAdapter.setFooterViewHolder(new DefaultFooterViewHolder());
         }
+
         easyAdapter.setOnLoadMoreListener(this);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(easyAdapter);

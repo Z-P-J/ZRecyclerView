@@ -68,11 +68,11 @@ public interface Scene {
 
     boolean isAttached();
 
-    boolean onTouchDown(float downX, float downY, MotionEvent event);
+    boolean onTouchDown(MotionEvent event);
 
-    boolean onTouchMove(float x, float y, float downX, float downY, MotionEvent event);
+    boolean onTouchMove(MotionEvent event);
 
-    boolean onTouchUp(float velocityX, float velocityY, MotionEvent event);
+    boolean onTouchUp(MotionEvent event, float velocityX, float velocityY);
 
     void onFlingFinished();
 

@@ -93,10 +93,6 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
     public void attachRecycler(final MultiSceneRecycler recycler) {
         super.attachRecycler(recycler);
         mSceneList = recycler.getItems();
-        if (recycler.getRefresher() != null) {
-            mSceneList.add(0, new RefresherScene(
-                    new RefresherMultiData(recycler.getRefresher()), recycler.getRefresher()));
-        }
         recycler.getRecyclerView().setOverScrollMode(View.OVER_SCROLL_NEVER);
         final int touchSlop = ViewConfiguration.get(mRecycler.getContext()).getScaledTouchSlop();
         final int maxVelocity = ViewConfiguration.get(mRecycler.getContext()).getScaledMaximumFlingVelocity();
@@ -129,8 +125,8 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
                     }
 
                     for (Scene scene : mSceneList) {
-                        if (scene.onTouchDown(mDownX, mDownY, event)) {
-                            if (scene.getMultiData() instanceof RefresherMultiData) {
+                        if (scene.onTouchDown(event)) {
+                            if (scene instanceof RefresherScene) {
                                 if (!isOverScrolling) {
                                     mRefresherScene = scene;
                                 }
@@ -164,12 +160,12 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
 
                     if (mScrollDirection == DIRECTION_VERTICAL) {
                         if (mRefresherScene != null) {
-                            mRefresherScene.onTouchMove(event.getX(), event.getY(), mDownX, mDownY, event);
+                            mRefresherScene.onTouchMove(event);
                             mTouchedScene = null;
                         }
                     } else if (mScrollDirection == DIRECTION_HORIZONTAL) {
                         if (mTouchedScene != null) {
-                            mTouchedScene.onTouchMove(event.getX(), event.getY(), mDownX, mDownY, event);
+                            mTouchedScene.onTouchMove(event);
                         }
                         mRefresherScene = null;
                     }
@@ -195,12 +191,12 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
 
                     boolean result = false;
                     if (mTouchedScene != null) {
-                        mTouchedScene.onTouchUp(velocityX, velocityY, event);
+                        mTouchedScene.onTouchUp(event, velocityX, velocityY);
                         mTouchedScene = null;
                         result = direction == DIRECTION_HORIZONTAL;
                     }
                     if (mRefresherScene != null) {
-                        result |= mRefresherScene.onTouchUp(velocityX, velocityY, event);
+                        result |= mRefresherScene.onTouchUp(event, velocityX, velocityY);
                         mRefresherScene = null;
                     }
                     return result;
@@ -712,55 +708,6 @@ public class MultiSceneLayoutManager extends BaseMultiLayoutManager
                 last = scene;
                 scene.saveState(child);
             }
-        }
-    }
-
-    private static class RefresherMultiData extends MultiData<Void> {
-
-        private final IRefresher mRefresher;
-
-        public RefresherMultiData(IRefresher mRefresher) {
-            super();
-            hasMore = false;
-            this.mRefresher = mRefresher;
-        }
-
-        @Override
-        public View onCreateView(Context context, ViewGroup container, int viewType) {
-            if (mRefresher.getView() == null) {
-                return mRefresher.onCreateView(context, container);
-            }
-            return mRefresher.getView();
-        }
-
-        @Override
-        public int getViewType(int position) {
-            return mRefresher.hashCode();
-        }
-
-        @Override
-        public boolean hasViewType(int viewType) {
-            return viewType == mRefresher.hashCode();
-        }
-
-        @Override
-        public int getCount() {
-            return 1;
-        }
-
-        @Override
-        public int getLayoutId(int viewType) {
-            return 0;
-        }
-
-        @Override
-        public boolean loadData() {
-            return false;
-        }
-
-        @Override
-        public void onBindViewHolder(EasyViewHolder holder, List<Void> list, int position, List<Object> payloads) {
-
         }
     }
 

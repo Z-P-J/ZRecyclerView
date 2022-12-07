@@ -70,7 +70,7 @@ public abstract class ExpandableMultiData<T> extends HeaderMultiData<T> {
 
     public void expand() {
         isExpand = true;
-        final MultiAdapter adapter = getAdapter();
+        final MultiSceneAdapter adapter = getAdapter();
         if (adapter == null) {
             return;
         }
@@ -88,7 +88,7 @@ public abstract class ExpandableMultiData<T> extends HeaderMultiData<T> {
 
     public void collapse() {
         isExpand = false;
-        MultiAdapter adapter = getAdapter();
+        MultiSceneAdapter adapter = getAdapter();
         if (adapter == null) {
             return;
         }
