@@ -38,7 +38,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     protected View headerView;
     protected IFooterViewHolder footerViewHolder;
 
-    protected final IRefresher mRefreshHeader;
+    protected IRefresher mRefreshHeader;
 
     protected final IEasy.OnGetChildViewTypeListener<T> onGetChildViewTypeListener;
     protected final IEasy.OnGetChildLayoutIdListener onGetChildLayoutIdListener;
@@ -63,7 +63,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
                 IEasy.OnItemClickListener<T> onClickListener,
                 IEasy.OnItemLongClickListener<T> onLongClickListener,
                 SparseArray<IEasy.OnClickListener<T>> onClickListeners,
-                SparseArray<IEasy.OnLongClickListener<T>> onLongClickListeners, IRefresher refresh) {
+                SparseArray<IEasy.OnLongClickListener<T>> onLongClickListeners) {
         this.list = list;
         this.itemRes = itemRes;
         this.onGetChildViewTypeListener = onGetChildViewTypeListener;
@@ -75,7 +75,6 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         this.onClickListeners = onClickListeners;
         this.onLongClickListeners = onLongClickListeners;
         registerAdapterDataObserver(mObserver);
-        mRefreshHeader = refresh;
     }
 
     public List<T> getData() {
@@ -241,6 +240,18 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     @Override
     public void onAttachedToRecyclerView(@NonNull final RecyclerView recyclerView) {
         mRecyclerView = recyclerView;
+        initRefresherTouchListener(recyclerView);
+        super.onAttachedToRecyclerView(recyclerView);
+        recyclerView.addOnScrollListener(mOnScrollListener);
+        RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
+
+        initLayoutManagerOnAttachedToRecyclerView(manager);
+        if (adapterInjector != null) {
+            adapterInjector.onAttachedToRecyclerView(recyclerView);
+        }
+    }
+
+    protected void initRefresherTouchListener(RecyclerView recyclerView) {
         recyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
 
             private float downX = -1;
@@ -322,13 +333,6 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
             }
         });
-        super.onAttachedToRecyclerView(recyclerView);
-        recyclerView.addOnScrollListener(mOnScrollListener);
-        RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
-        initLayoutManagerOnAttachedToRecyclerView(manager);
-        if (adapterInjector != null) {
-            adapterInjector.onAttachedToRecyclerView(recyclerView);
-        }
     }
 
     protected void initLayoutManagerOnAttachedToRecyclerView(RecyclerView.LayoutManager manager) {
@@ -494,6 +498,10 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         return adapterInjector;
     }
 
+    public void setRefreshHeader(IRefresher refresher) {
+        this.mRefreshHeader = refresher;
+    }
+
     public void setHeaderView(@NonNull View headerView) {
         ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         headerView.setLayoutParams(params);
@@ -511,13 +519,6 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
 
     public View getHeaderView() {
         return headerView;
-    }
-
-    public void setFooterView(@NonNull View footerView) {
-//        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-//        footerView.setLayoutParams(params);
-//        this.footerView = footerView;
-//        notifyItemInserted(getItemCount() - 1);
     }
 
     public void setFooterViewHolder(IFooterViewHolder footerViewHolder) {
@@ -600,39 +601,59 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
     private final RecyclerView.AdapterDataObserver mObserver = new RecyclerView.AdapterDataObserver() {
         @Override
         public void onChanged() {
-            finishLoad();
+            onItemChanged();
 
-            if (mRefreshHeader != null) {
-                mRefreshHeader.stopRefresh();
-            }
+            stopRefresh();
         }
 
         @Override
         public void onItemRangeChanged(int positionStart, int itemCount) {
-            finishLoad();
+            EasyAdapter.this.onItemRangeChanged(positionStart, itemCount);
         }
 
         @Override
         public void onItemRangeInserted(int positionStart, int itemCount) {
-            finishLoad();
+            EasyAdapter.this.onItemRangeInserted(positionStart, itemCount);
         }
 
         @Override
         public void onItemRangeRemoved(int positionStart, int itemCount) {
-            finishLoad();
+            EasyAdapter.this.onItemRangeRemoved(positionStart, itemCount);
         }
 
         @Override
         public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
-            finishLoad();
-        }
-
-        private void finishLoad() {
-            mIsLoading = false;
-            tryToLoadMore();
+            EasyAdapter.this.onItemRangeMoved(fromPosition, toPosition, itemCount);
         }
 
     };
+
+    public void stopRefresh() {
+        if (mRefreshHeader != null) {
+            mRefreshHeader.stopRefresh();
+        }
+    }
+
+    protected void onItemChanged() {
+        mIsLoading = false;
+        tryToLoadMore();
+    }
+
+    protected void onItemRangeChanged(int positionStart, int itemCount) {
+        onItemChanged();
+    }
+
+    protected void onItemRangeInserted(int positionStart, int itemCount) {
+        onItemChanged();
+    }
+
+    protected void onItemRangeRemoved(int positionStart, int itemCount) {
+        onItemChanged();
+    }
+
+    protected void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
+        onItemChanged();
+    }
 
     public RecyclerView getRecyclerView() {
         return mRecyclerView;

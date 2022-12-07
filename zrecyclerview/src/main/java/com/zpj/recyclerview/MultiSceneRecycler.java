@@ -33,7 +33,7 @@ public class MultiSceneRecycler extends BaseRecycler<Scene, MultiSceneRecycler> 
     }
 
     public MultiSceneRecycler build() {
-        MultiAdapter adapter = new MultiAdapter(recyclerView.getContext(), getItems(), this, mRefresher);
+        MultiSceneAdapter adapter = new MultiSceneAdapter(recyclerView.getContext(), getItems(), this);
         easyAdapter = adapter;
 
         int maxSpan = 1;
@@ -148,11 +148,8 @@ public class MultiSceneRecycler extends BaseRecycler<Scene, MultiSceneRecycler> 
                 mItemTouchHelper.attachToRecyclerView(recyclerView);
             }
         }
-        if (layoutManager instanceof BaseMultiLayoutManager) {
-            ((BaseMultiLayoutManager) layoutManager).attachRecycler(this);
-        } else {
-            layoutManager = new GridLayoutManager(recyclerView.getContext(), maxSpan);
-        }
+
+        easyAdapter.setRefreshHeader(mRefresher);
         easyAdapter.setAdapterInjector(adapterInjector);
         if (headerView != null) {
             easyAdapter.setHeaderView(headerView);
@@ -163,6 +160,12 @@ public class MultiSceneRecycler extends BaseRecycler<Scene, MultiSceneRecycler> 
         } else {
             easyAdapter.setFooterViewHolder(new DefaultFooterViewHolder());
         }
+
+        if (layoutManager instanceof BaseMultiLayoutManager) {
+            ((BaseMultiLayoutManager) layoutManager).attachRecycler(this);
+        } else {
+            layoutManager = new GridLayoutManager(recyclerView.getContext(), maxSpan);
+        }
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(easyAdapter);
         easyAdapter.showContent();
@@ -170,8 +173,8 @@ public class MultiSceneRecycler extends BaseRecycler<Scene, MultiSceneRecycler> 
     }
 
     @Override
-    public MultiAdapter getAdapter() {
-        return (MultiAdapter) super.getAdapter();
+    public MultiSceneAdapter getAdapter() {
+        return (MultiSceneAdapter) super.getAdapter();
     }
 
     private int gcd(int x, int y) {

@@ -64,6 +64,9 @@ public abstract class AbsScene<T extends Layouter> implements Scene {
         if (manager == null) {
             throw new IllegalArgumentException("attach error! LayoutManager must not be null!");
         }
+        if (mLayoutManager == manager) {
+            return;
+        }
         mLayoutManager = manager;
         if (mHelper != null && mHelper.getLayoutManager() != manager) {
             mHelper = null;
@@ -212,13 +215,14 @@ public abstract class AbsScene<T extends Layouter> implements Scene {
     private float mLastY;
     private boolean isTouchUp = true;
 
-    public boolean onTouchDown(float downX, float downY, MotionEvent event) {
-        if (!canHandleTouch(downX, downY)) {
+    @Override
+    public boolean onTouchDown(MotionEvent event) {
+        if (!canHandleTouch(event)) {
             return false;
         }
         if (canScrollHorizontally()) {
-            mLastX = downX;
-            mLastY = downY;
+            mLastX = event.getX();
+            mLastY = event.getY();
             isTouchUp = false;
             if (mFlinger != null) {
                 mFlinger.stop();
@@ -234,12 +238,15 @@ public abstract class AbsScene<T extends Layouter> implements Scene {
         return new HorizontalFlinger(this);
     }
 
-    protected boolean canHandleTouch(float downX, float downY) {
+    protected boolean canHandleTouch(MotionEvent event) {
+        float downY = event.getY();
         return isAttached() && downY >= getTop() & downY <= getBottom();
     }
 
-    public boolean onTouchMove(float x, float y, float downX, float downY, MotionEvent event) {
+    @Override
+    public boolean onTouchMove(MotionEvent event) {
         if (canScrollHorizontally()) {
+            float x = event.getX();
             int dx = (int) (mLastX - x);
             mLastX = x;
             if (dx != 0) {
@@ -250,7 +257,8 @@ public abstract class AbsScene<T extends Layouter> implements Scene {
         return false;
     }
 
-    public boolean onTouchUp(float velocityX, float velocityY, MotionEvent event) {
+    @Override
+    public boolean onTouchUp(MotionEvent event, float velocityX, float velocityY) {
         if (canScrollHorizontally()) {
             isTouchUp = true;
             if (tryToStopOverScroll()) {

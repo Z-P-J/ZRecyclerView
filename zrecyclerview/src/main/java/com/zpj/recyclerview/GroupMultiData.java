@@ -68,7 +68,7 @@ public class GroupMultiData extends MultiData<MultiData<?>> {
 
 
     @Override
-    public boolean load(int start, int end, MultiAdapter adapter) {
+    public boolean load(int start, int end, MultiSceneAdapter adapter) {
         if (getAdapter() == null) {
             setAdapter(adapter);
         }
@@ -144,7 +144,7 @@ public class GroupMultiData extends MultiData<MultiData<?>> {
     }
 
     @Override
-    public void setAdapter(MultiAdapter adapter) {
+    public void setAdapter(MultiSceneAdapter adapter) {
         super.setAdapter(adapter);
         for (MultiData<?> data : mData) {
             data.setAdapter(adapter);
