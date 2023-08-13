@@ -2,13 +2,11 @@ package com.zpj.recyclerview;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.v7.widget.BaseMultiLayoutManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerViewHelper;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -143,7 +141,7 @@ public class MultiSceneAdapter extends EasyStateAdapter<Scene> {
             }
             Scene scene = list.get(i);
             MultiData<?> data = scene.getMultiData();
-            int max = offset + data.getCount();
+            int max = offset + data.getItemCount();
 
             if (max <= start) {
                 offset = max;
@@ -195,6 +193,12 @@ public class MultiSceneAdapter extends EasyStateAdapter<Scene> {
 
     @Override
     public void setRefreshHeader(IRefresher refresher) {
+        if (refresher == null) {
+            return;
+        }
+        if (mRefresherScene != null) {
+            list.remove(mRefresherScene);
+        }
         mRefresherScene = new RefresherScene(refresher) {
 
             @Override
@@ -302,7 +306,7 @@ public class MultiSceneAdapter extends EasyStateAdapter<Scene> {
             }
 
             @Override
-            public int getCount() {
+            public int getItemCount() {
                 return 1;
             }
 
@@ -440,14 +444,14 @@ public class MultiSceneAdapter extends EasyStateAdapter<Scene> {
         }
 
         @Override
-        public int getCount() {
+        public int getItemCount() {
             return 1;
         }
 
         @Override
         public void onBindViewHolder(EasyViewHolder holder, List<Object> list, int position, List<Object> payloads) {
             ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                    getItemCount() == 1 ? ViewGroup.LayoutParams.MATCH_PARENT : ViewGroup.LayoutParams.WRAP_CONTENT);
+                    MultiSceneAdapter.this.getItemCount() == 1 ? ViewGroup.LayoutParams.MATCH_PARENT : ViewGroup.LayoutParams.WRAP_CONTENT);
             footerViewHolder.getView().setLayoutParams(params);
             holder.setOnItemClickListener(new View.OnClickListener() {
                 @Override

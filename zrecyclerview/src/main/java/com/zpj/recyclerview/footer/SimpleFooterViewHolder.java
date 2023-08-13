@@ -43,7 +43,7 @@ public class SimpleFooterViewHolder extends AbsFooterViewHolder {
         Context context = root.getContext();
         FrameLayout frameLayout = new FrameLayout(context);
         if (loadingView == null && loadingViewId > 0) {
-            loadingView = LayoutInflater.from(context).inflate(loadingViewId, null, false);
+            loadingView = LayoutInflater.from(context).inflate(loadingViewId, root, false);
         }
         if (loadingView != null) {
             FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -52,7 +52,7 @@ public class SimpleFooterViewHolder extends AbsFooterViewHolder {
         }
         if (textView == null) {
             if (textViewId > 0) {
-                textView = LayoutInflater.from(context).inflate(textViewId, null, false);
+                textView = LayoutInflater.from(context).inflate(textViewId, root, false);
             } else {
                 TextView text = new TextView(context);
                 text.setGravity(Gravity.CENTER);

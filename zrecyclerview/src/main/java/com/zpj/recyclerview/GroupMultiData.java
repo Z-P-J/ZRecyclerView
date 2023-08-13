@@ -19,7 +19,7 @@ public class GroupMultiData extends MultiData<MultiData<?>> {
 
     public GroupMultiData(List<MultiData<?>> datas) {
         super();
-        mData.addAll(datas);
+        mItems.addAll(datas);
     }
 
     public GroupMultiData(MultiData<?>...datas) {
@@ -36,18 +36,18 @@ public class GroupMultiData extends MultiData<MultiData<?>> {
     @Override
     public int getViewType(int position) {
         int count = 0;
-        for (MultiData<?> data : mData) {
-            if (position >= count && position < count + data.getCount()) {
+        for (MultiData<?> data : mItems) {
+            if (position >= count && position < count + data.getItemCount()) {
                 return data.getViewType(position - count);
             }
-            count  += data.getCount();
+            count  += data.getItemCount();
         }
         throw new IllegalArgumentException("getViewType illegal position=" + position);
     }
 
     @Override
     public boolean hasViewType(int viewType) {
-        for (MultiData<?> data : mData) {
+        for (MultiData<?> data : mItems) {
             if (data.hasViewType(viewType)) {
                 return true;
             }
@@ -57,7 +57,7 @@ public class GroupMultiData extends MultiData<MultiData<?>> {
 
     @Override
     public View onCreateView(Context context, ViewGroup container, int viewType) {
-        for (MultiData<?> data : mData) {
+        for (MultiData<?> data : mItems) {
             if (data.hasViewType(viewType)) {
                 return data.onCreateView(context, container, viewType);
             }
@@ -76,12 +76,12 @@ public class GroupMultiData extends MultiData<MultiData<?>> {
 
             int offset = 0;
             MultiData<?> loadingData = null;
-            for (MultiData<?> data : mData) {
+            for (MultiData<?> data : mItems) {
                 if (end < offset) {
                     break;
                 }
 
-                int max = offset + data.getCount();
+                int max = offset + data.getItemCount();
                 Log.d(TAG, "onLoadMore start=" + start + " end=" + end + " offset=" + offset + " max=" + max + " data=" + data);
 
                 if (max <= start) {
@@ -110,23 +110,23 @@ public class GroupMultiData extends MultiData<MultiData<?>> {
     @Override
     public void onItemSticky(EasyViewHolder holder, int position, boolean isSticky) {
         int count = 0;
-        for (MultiData<?> data : mData) {
-            if (position >= count && position < count + data.getCount()) {
+        for (MultiData<?> data : mItems) {
+            if (position >= count && position < count + data.getItemCount()) {
                 data.onItemSticky(holder, position, isSticky);
                 break;
             }
-            count  += data.getCount();
+            count  += data.getItemCount();
         }
     }
 
     @Override
     public boolean isStickyPosition(int position) {
         int count = 0;
-        for (MultiData<?> data : mData) {
-            if (position >= count && position < count + data.getCount()) {
+        for (MultiData<?> data : mItems) {
+            if (position >= count && position < count + data.getItemCount()) {
                 return data.isStickyPosition(position);
             }
-            count  += data.getCount();
+            count  += data.getItemCount();
         }
         throw new IllegalArgumentException("isStickyPosition illegal position=" + position);
     }
@@ -135,28 +135,28 @@ public class GroupMultiData extends MultiData<MultiData<?>> {
     public void onBindViewHolder(EasyViewHolder holder, List<MultiData<?>> list, int position, List<Object> payloads) {
         int count = 0;
         for (MultiData<?> data : list) {
-            if (position >= count && position < count + data.getCount()) {
+            if (position >= count && position < count + data.getItemCount()) {
                 data.onBindViewHolder(holder, position - count, payloads);
                 break;
             }
-            count  += data.getCount();
+            count  += data.getItemCount();
         }
     }
 
     @Override
     public void setAdapter(MultiSceneAdapter adapter) {
         super.setAdapter(adapter);
-        for (MultiData<?> data : mData) {
+        for (MultiData<?> data : mItems) {
             data.setAdapter(adapter);
         }
     }
 
     @Override
-    public int getCount() {
+    public int getItemCount() {
 
         int count = 0;
-        for (MultiData<?> data : mData) {
-            count += data.getCount();
+        for (MultiData<?> data : mItems) {
+            count += data.getItemCount();
         }
 
         return count;
@@ -171,16 +171,6 @@ public class GroupMultiData extends MultiData<MultiData<?>> {
     }
 
     @Override
-    public final void onClick(EasyViewHolder holder, View view, MultiData<?> data) {
-        super.onClick(holder, view, data);
-    }
-
-    @Override
-    public final boolean onLongClick(EasyViewHolder holder, View view, MultiData<?> data) {
-        return super.onLongClick(holder, view, data);
-    }
-
-    @Override
     public final int getColumnCount(int viewType) {
         return super.getColumnCount(viewType);
     }
@@ -190,8 +180,4 @@ public class GroupMultiData extends MultiData<MultiData<?>> {
         return super.getMaxColumnCount();
     }
 
-    @Override
-    public final int getRealPosition(int position) {
-        return super.getRealPosition(position);
-    }
 }

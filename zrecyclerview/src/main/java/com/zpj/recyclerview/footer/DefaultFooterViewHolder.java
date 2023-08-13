@@ -15,7 +15,7 @@ public class DefaultFooterViewHolder extends AbsFooterViewHolder {
 
     @Override
     public View onCreateFooterView(ViewGroup root) {
-        View view = LayoutInflater.from(root.getContext()).inflate(R.layout.easy_base_footer, null, false);
+        View view = LayoutInflater.from(root.getContext()).inflate(R.layout.easy_base_footer, root, false);
         progressContainer = view.findViewById(R.id.ll_container_progress);
         tvMsg = view.findViewById(R.id.tv_msg);
         return view;

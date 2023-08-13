@@ -22,7 +22,7 @@ public class IntMultiData extends BaseHeaderMultiData<Integer> {
                 try {
                     Thread.sleep(1000);
                     for (int i = 0; i < 10; i++) {
-                        mData.add(i);
+                        mItems.add(i);
                     }
                     showContent();
                 } catch (InterruptedException e) {

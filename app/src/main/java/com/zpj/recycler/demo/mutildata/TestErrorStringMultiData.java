@@ -45,7 +45,7 @@ public class TestErrorStringMultiData extends BaseHeaderMultiData<String> {
                         return;
                     }
                     for (int i = 0; i < 16; i++) {
-                        mData.add("" + i);
+                        mItems.add("" + i);
                     }
                     showContent();
                 } catch (InterruptedException e) {

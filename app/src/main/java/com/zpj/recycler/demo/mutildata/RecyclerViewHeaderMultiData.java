@@ -49,11 +49,11 @@ public class RecyclerViewHeaderMultiData extends BaseHeaderMultiData<Integer> {
                 try {
                     Thread.sleep(1000);
                     for (int i = 0; i < 16; i++) {
-                        mData.add(i);
+                        mItems.add(i);
                     }
 
                     showContent();
-                    Log.d("loadData", "RecyclerViewHeaderMultiData getCount=" + getCount());
+                    Log.d("loadData", "RecyclerViewHeaderMultiData getCount=" + RecyclerViewHeaderMultiData.this.getItemCount());
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

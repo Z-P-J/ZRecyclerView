@@ -19,14 +19,14 @@ public abstract class DragAndSwipeMultiData<T> extends StateMultiData<T> impleme
 
     @Override
     public boolean onMove(int from, int to) {
-        Collections.swap(mData, from, to);
+        Collections.swap(mItems, from, to);
         notifyItemMove(from, to);
         return true;
     }
 
     @Override
     public void onSwiped(int position, int direction) {
-        mData.remove(position);
+        mItems.remove(position);
         notifyItemRemoved(position);
     }
 

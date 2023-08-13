@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.Px;
-import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.BaseMultiLayoutManager;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -126,7 +125,7 @@ public abstract class AbsScene<T extends Layouter> implements Scene {
     }
 
     public int getItemCount() {
-        return mMultiData.getCount();
+        return mMultiData.getItemCount();
     }
 
     public void setLeft(int left) {

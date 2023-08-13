@@ -120,7 +120,7 @@ public class RefresherScene extends VerticalScene {
         }
 
         @Override
-        public int getCount() {
+        public int getItemCount() {
             return 1;
         }
 

@@ -4,7 +4,6 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.zpj.recyclerview.layouter.Layouter;
 import com.zpj.statemanager.BaseViewHolder;
 import com.zpj.statemanager.IViewHolder;
 import com.zpj.statemanager.State;
@@ -31,6 +30,10 @@ public abstract class StateMultiData<T> extends MultiData<T> {
         super(list);
     }
 
+    public StateMultiData(ItemLoader<T> loader) {
+        super(loader);
+    }
+
     public State getState() {
         return state;
     }
@@ -44,7 +47,7 @@ public abstract class StateMultiData<T> extends MultiData<T> {
 
     @Override
     void onBindViewHolder(EasyViewHolder holder, final int position, List<Object> payloads) {
-        int viewType = getViewType(getRealPosition(position));
+        int viewType = getViewType(position);
         if (viewType == STATE_EMPTY.hashCode() || viewType == STATE_LOADING.hashCode()
                 || viewType == STATE_ERROR.hashCode() || viewType == STATE_LOGIN.hashCode()
                 || viewType == STATE_NO_NETWORK.hashCode()) {
@@ -73,9 +76,9 @@ public abstract class StateMultiData<T> extends MultiData<T> {
     }
 
     @Override
-    public int getCount() {
+    public int getItemCount() {
         if (state == STATE_CONTENT) {
-            return super.getCount();
+            return super.getItemCount();
         }
         return 1;
     }
@@ -138,14 +141,14 @@ public abstract class StateMultiData<T> extends MultiData<T> {
 
     protected void showLoading() {
         setState(STATE_LOADING);
-        this.mData.clear();
+        this.mItems.clear();
         hasMore = true;
         notifyDataSetChange();
     }
 
     protected void showEmpty() {
         setState(STATE_EMPTY);
-        this.mData.clear();
+        this.mItems.clear();
         notifyDataSetChange();
     }
 
@@ -155,19 +158,19 @@ public abstract class StateMultiData<T> extends MultiData<T> {
 
     protected void showError() {
         setState(STATE_ERROR);
-        this.mData.clear();
+        this.mItems.clear();
         notifyDataSetChange();
     }
 
     protected void showLogin() {
         setState(STATE_LOGIN);
-        this.mData.clear();
+        this.mItems.clear();
         notifyDataSetChange();
     }
 
     protected void showNoNetwork() {
         setState(STATE_NO_NETWORK);
-        this.mData.clear();
+        this.mItems.clear();
         notifyDataSetChange();
     }
 

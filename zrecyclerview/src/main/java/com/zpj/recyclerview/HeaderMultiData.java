@@ -3,8 +3,6 @@ package com.zpj.recyclerview;
 import android.support.annotation.IntRange;
 import android.support.annotation.LayoutRes;
 
-import com.zpj.recyclerview.layouter.Layouter;
-
 import java.util.List;
 
 import static com.zpj.statemanager.State.STATE_CONTENT;
@@ -20,7 +18,7 @@ public abstract class HeaderMultiData<T> extends StateMultiData<T> {
     }
 
     @Override
-    public int getCount() {
+    public int getItemCount() {
         if (getState() == STATE_CONTENT) {
             if (getChildCount() == 0 && hasMore) {
                 return 0;
@@ -84,7 +82,7 @@ public abstract class HeaderMultiData<T> extends StateMultiData<T> {
     }
 
     public int getChildCount() {
-        return mData.size();
+        return mItems.size();
     }
 
     public @IntRange(from = 1) int getHeaderColumnCount() {

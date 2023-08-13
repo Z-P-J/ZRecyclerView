@@ -33,7 +33,7 @@ public abstract class ContainerMultiData<T> extends StateMultiData<T> {
     }
 
     @Override
-    public final int getCount() {
+    public final int getItemCount() {
         if (getState() == STATE_CONTENT) {
             if (getChildCount() == 0 && hasMore) {
                 return 0;
@@ -80,7 +80,7 @@ public abstract class ContainerMultiData<T> extends StateMultiData<T> {
     }
 
     public int getChildCount() {
-        return mData.size();
+        return mItems.size();
     }
 
     public abstract int getLayoutId();

@@ -73,14 +73,14 @@ public class StickyHeaderItemDecoration extends RecyclerView.ItemDecoration {
 
         int nextGroupPosition = currGroupPosition;
 
-        int size = groupAdapter.getData().size();
+        int size = groupAdapter.getItems().size();
         for (int i = 0; i < size; i++) {
-            MultiData<?> data = groupAdapter.getData().get(i).getMultiData();
+            MultiData<?> data = groupAdapter.getItems().get(i).getMultiData();
             if (data.hasMore()) {
                 break;
             }
             int p = currItemPosition - count;
-            if (p >= 0 && p < data.getCount()) {
+            if (p >= 0 && p < data.getItemCount()) {
                 if (data instanceof HeaderMultiData) {
                     currGroupPosition = i;
                     nextGroupPosition = currGroupPosition + 1;
@@ -99,7 +99,7 @@ public class StickyHeaderItemDecoration extends RecyclerView.ItemDecoration {
                     break;
                 }
             }
-            count += data.getCount();
+            count += data.getItemCount();
         }
 
         if (currentMultiData == null) {

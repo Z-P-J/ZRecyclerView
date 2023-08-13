@@ -52,7 +52,7 @@ public class MultiExpandableActivity extends AppCompatActivity {
                         Thread.sleep((long) (5000 * Math.random()));
                         int size = Math.min(10, (int) (100 * Math.random()));
                         for (int i = 0; i < size; i++) {
-                            mData.add(i);
+                            mItems.add(i);
                         }
                         showContent();
                     } catch (InterruptedException e) {

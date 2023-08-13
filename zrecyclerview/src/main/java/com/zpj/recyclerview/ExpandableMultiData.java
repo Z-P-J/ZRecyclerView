@@ -41,7 +41,7 @@ public abstract class ExpandableMultiData<T> extends HeaderMultiData<T> {
     }
 
     @Override
-    public int getCount() {
+    public int getItemCount() {
         if (getState() == STATE_CONTENT) {
             if (getChildCount() == 0 && hasMore) {
                 return 0;
@@ -75,15 +75,15 @@ public abstract class ExpandableMultiData<T> extends HeaderMultiData<T> {
             return;
         }
         int num = getStartCount();
-        for (Scene scene : adapter.getData()) {
+        for (Scene scene : adapter.getItems()) {
             MultiData<?> data = scene.getMultiData();
             if (data == this) {
-                adapter.notifyItemRangeInserted(num + 1, getCount() - mLastCount); // mData.size()
+                adapter.notifyItemRangeInserted(num + 1, this.getItemCount() - mLastCount); // mData.size()
                 break;
             }
-            num  += data.getCount();
+            num  += data.getItemCount();
         }
-        mLastCount = getCount();
+        mLastCount = this.getItemCount();
     }
 
     public void collapse() {
@@ -93,15 +93,15 @@ public abstract class ExpandableMultiData<T> extends HeaderMultiData<T> {
             return;
         }
         int num = getStartCount();
-        for (Scene scene : adapter.getData()) {
+        for (Scene scene : adapter.getItems()) {
             MultiData<?> data = scene.getMultiData();
             if (data == this) {
-                adapter.notifyItemRangeRemoved(num + 1, mLastCount - getCount()); // mData.size()
+                adapter.notifyItemRangeRemoved(num + 1, mLastCount - this.getItemCount()); // mData.size()
                 break;
             }
-            num  += data.getCount();
+            num  += data.getItemCount();
         }
-        mLastCount = getCount();
+        mLastCount = this.getItemCount();
     }
 
 //    protected abstract void onStateChange(EasyViewHolder headerHolder, boolean isExpand);

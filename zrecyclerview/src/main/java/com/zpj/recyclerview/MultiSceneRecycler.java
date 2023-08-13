@@ -157,8 +157,6 @@ public class MultiSceneRecycler extends BaseRecycler<Scene, MultiSceneRecycler> 
         }
         if (footerViewBinder != null) {
             easyAdapter.setFooterViewHolder(footerViewBinder);
-        } else {
-            easyAdapter.setFooterViewHolder(new DefaultFooterViewHolder());
         }
 
         if (layoutManager instanceof BaseMultiLayoutManager) {

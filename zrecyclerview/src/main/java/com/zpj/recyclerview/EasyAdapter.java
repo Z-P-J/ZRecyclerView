@@ -77,7 +77,7 @@ public class EasyAdapter<T> extends RecyclerView.Adapter<EasyViewHolder> {
         registerAdapterDataObserver(mObserver);
     }
 
-    public List<T> getData() {
+    public List<T> getItems() {
         return list;
     }
 

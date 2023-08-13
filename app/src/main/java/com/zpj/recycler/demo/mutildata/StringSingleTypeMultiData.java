@@ -37,7 +37,7 @@ public class StringSingleTypeMultiData extends SingleTypeMultiData<String> {
                 try {
                     Thread.sleep(1000);
                     for (int i = 0; i < 16; i++) {
-                        mData.add("" + i);
+                        mItems.add("" + i);
                     }
                     showContent();
                 } catch (InterruptedException e) {
